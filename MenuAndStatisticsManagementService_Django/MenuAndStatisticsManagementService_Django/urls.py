@@ -14,10 +14,13 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+# MenuAndStatisticsManagementService_Django/urls.py
+
 from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('table_management.urls')),  # Bao gồm URL của table_management
+    path('api/', include('menu_management.urls')),  # Bao gồm URL của menu_management
 ]

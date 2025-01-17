@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     
     # Các app khác của bạn
     'table_management',
+    'menu_management'
 ]
 
 
@@ -82,14 +83,20 @@ WSGI_APPLICATION = 'MenuAndStatisticsManagementService_Django.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',  # Chuyển sang sử dụng MySQL (MariaDB tương thích)
-        'NAME': 'SavorGO',  # Tên cơ sở dữ liệu
-        'USER': 'root',  # Tên người dùng MariaDB (thường là root)
-        'PASSWORD': 'sapassword',  # Mật khẩu của người dùng
-        'HOST': 'localhost',  # Máy chủ MariaDB
-        'PORT': '3306',  # Mặc định là 3306
-    }
+    'default': {  # MariaDB
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'SavorGO',  # Tên cơ sở dữ liệu MariaDB
+        'USER': 'root',  # Tên người dùng MariaDB
+        'PASSWORD': 'sapassword',  # Mật khẩu
+        'HOST': 'localhost',  # Máy chủ
+        'PORT': '3306',  # Cổng MariaDB
+    },
+    'mongodb': {  # MongoDB
+        'ENGINE': 'djongo',
+        'NAME': 'SavorGO',  # Tên cơ sở dữ liệu MongoDB
+        'HOST': 'localhost',  # Địa chỉ MongoDB
+        'PORT': 27017,
+    },
 }
 
 
