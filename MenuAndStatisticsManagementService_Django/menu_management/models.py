@@ -1,24 +1,36 @@
-# menu_management/models.py
+from mongoengine import Document, EmbeddedDocument, fields
+from datetime import datetime
 
-from djongo import models
+class Size(EmbeddedDocument):
+    size_name = fields.StringField(max_length=50, required=False)
+    price_change = fields.FloatField(required=False)
 
-class Menu(models.Model):
-    name = models.CharField(max_length=255)
-    category = models.CharField(max_length=100)
-    description = models.TextField()
-    original_price = models.FloatField()
-    sale_price = models.FloatField()
-    image_url = models.URLField()
-    sizes = models.JSONField()  # Thay vì ArrayField, dùng JSONField trực tiếp
-    options = models.JSONField()  # Tương tự với options
-    status = models.CharField(max_length=50)
-    created_time = models.DateTimeField(auto_now_add=True)
-    modified_time = models.DateTimeField(auto_now=True)
-    # Chỉ định rõ ràng rằng sử dụng 'id' làm khóa chính
-    _id = models.ObjectIdField(primary_key=True)  # Sử dụng ObjectId làm primary key thay vì tự động thêm 'id'
-    
+class Option(EmbeddedDocument):
+    option_name = fields.StringField(max_length=100, required=False)
+    price_change = fields.FloatField(required=False)
+
+class Menu(Document):
+    name = fields.StringField(max_length=255, required=True)
+    category = fields.StringField(max_length=100, required=False)
+    description = fields.StringField()
+    original_price = fields.FloatField()
+    sale_price = fields.FloatField()
+    image_url = fields.URLField()
+    sizes = fields.EmbeddedDocumentListField(Size)  # Danh sách các kích thước
+    options = fields.EmbeddedDocumentListField(Option)  # Danh sách các tùy chọn
+    status = fields.StringField(max_length=50)
+    created_time = fields.DateTimeField(default=datetime.utcnow)  # Tự động gán thời gian tạo
+    modified_time = fields.DateTimeField(default=datetime.utcnow)  # Tự động gán thời gian chỉnh sửa
+
+    meta = {
+        'collection': 'menus',  # Tên collection trong MongoDB
+    }
+
+    def save(self, *args, **kwargs):
+        if not self.created_time:
+            self.created_time = datetime.utcnow()
+        self.modified_time = datetime.utcnow()  # Cập nhật thời gian chỉnh sửa
+        return super(Menu, self).save(*args, **kwargs)
+
     def __str__(self):
         return self.name
-
-    class Meta:
-        db_table = 'menus'  # Đổi tên bảng thành 'menus'
