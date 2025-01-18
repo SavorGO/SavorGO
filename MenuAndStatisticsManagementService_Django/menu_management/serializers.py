@@ -55,4 +55,27 @@ class MenuSerializer(serializers.Serializer):
         menu.save()  # MongoEngine sẽ tự động gán giá trị cho id khi lưu
 
         return menu
+    def update(self, instance, validated_data):
+        # Cập nhật các trường trong instance
+        instance.name = validated_data.get('name', instance.name)
+        instance.category = validated_data.get('category', instance.category)
+        instance.description = validated_data.get('description', instance.description)
+        instance.original_price = validated_data.get('original_price', instance.original_price)
+        instance.sale_price = validated_data.get('sale_price', instance.sale_price)
+        instance.image_url = validated_data.get('image_url', instance.image_url)
+        instance.status = validated_data.get('status', instance.status)
+
+        # Cập nhật sizes nếu có
+        sizes_data = validated_data.get('sizes', [])
+        if sizes_data:
+            instance.sizes = [Size(**size_data) for size_data in sizes_data]
+
+        # Cập nhật options nếu có
+        options_data = validated_data.get('options', [])
+        if options_data:
+            instance.options = [Option(**option_data) for option_data in options_data]
+
+        # Lưu đối tượng đã cập nhật
+        instance.save()
+        return instance
 
