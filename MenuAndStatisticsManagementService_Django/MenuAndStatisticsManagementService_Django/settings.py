@@ -38,15 +38,18 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+    'django_mongoengine',  # Đảm bảo đã thêm django_mongoengine vào INSTALLED_APPS
     # Thêm app rest_framework
     'rest_framework',
     
     # Các app khác của bạn
     'table_management',
+    'menu_management'
 ]
 
+APPEND_SLASH = False
 
+DEFAULT_INDEX_TABLESPACE = None  # Ngăn Django ORM xử lý MongoEngine model
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -82,19 +85,37 @@ WSGI_APPLICATION = 'MenuAndStatisticsManagementService_Django.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
+    'default': {  # MariaDB
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'SavorGO',  # Tên cơ sở dữ liệu MariaDB
+        'USER': 'root',  # Tên người dùng MariaDB
+        'PASSWORD': 'sapassword',  # Mật khẩu
+        'HOST': 'localhost',  # Máy chủ
+        'PORT': '3306',  # Cổng MariaDB
+    }
+}
+MONGODB_DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',  # Chuyển sang sử dụng MySQL (MariaDB tương thích)
-        'NAME': 'SavorGO',  # Tên cơ sở dữ liệu
-        'USER': 'root',  # Tên người dùng MariaDB (thường là root)
-        'PASSWORD': 'sapassword',  # Mật khẩu của người dùng
-        'HOST': 'localhost',  # Máy chủ MariaDB
-        'PORT': '3306',  # Mặc định là 3306
+        'name': 'SavorGO',  # Tên database MongoDB
+        'host': 'localhost',  # Địa chỉ host MongoDB
+        'port': 27017,  # Cổng kết nối MongoDB (mặc định là 27017)
+        'username': '',  # Tên người dùng MongoDB nếu cần
+        'password': '',  # Mật khẩu MongoDB nếu cần
     }
 }
 
+from MenuAndStatisticsManagementService_Django.database_routers import MariaDBRouter, MongoDBRouter
+
+DATABASE_ROUTERS = [MariaDBRouter(), MongoDBRouter()]
+import mongoengine
 
 
-
+# Cấu hình kết nối MongoDB
+mongoengine.connect(
+    db='SavorGO',  # Tên database MongoDB
+    host='localhost',         # Địa chỉ host MongoDB
+    port=27017,               # Cổng kết nối MongoDB (mặc định là 27017)
+)
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
