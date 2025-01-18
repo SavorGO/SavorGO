@@ -79,7 +79,7 @@ class MenuViewSet(ViewSet):
         if not search_query:
             return Response({"error": "No search query provided"}, status=status.HTTP_400_BAD_REQUEST)
 
-        query = Q(name__icontains=search_query) | Q(category__icontains=search_query) | Q(description__icontains=search_query)
+        query = Q(name__icontains=search_query) | Q(category__icontains=search_query) | Q(description__icontains=search_query) | Q(status__icontains=search_query)
 
         # Tìm kiếm trong cơ sở dữ liệu
         menus = Menu.objects.filter(query)
