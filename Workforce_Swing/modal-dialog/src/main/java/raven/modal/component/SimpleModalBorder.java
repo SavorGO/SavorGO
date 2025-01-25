@@ -18,6 +18,7 @@ import java.util.function.Consumer;
  * @author Raven
  */
 public class SimpleModalBorder extends Modal implements ModalBorderAction {
+	private JButton btnOk;
 
     protected final Component component;
     protected JComponent header;
@@ -175,17 +176,21 @@ public class SimpleModalBorder extends Modal implements ModalBorderAction {
         JButton button = new JButton(option.text) {
             @Override
             public boolean isDefaultButton() {
-                if (option.type == 0) {
+                if (option.type == OK_OPTION) {
                     return true;
                 }
                 return super.isDefaultButton();
             }
         };
+        if (option.type == OK_OPTION) {
+            btnOk = button; // Lưu tham chiếu nút "OK"
+        }
         button.addActionListener(e -> {
             doAction(option.type);
         });
         return button;
     }
+
 
     protected void applyBackButton(Consumer onBack) {
         Component backButton = createBackButton(onBack);

@@ -3,7 +3,7 @@ package raven.modal.demo.forms.input;
 import com.formdev.flatlaf.FlatClientProperties;
 import net.miginfocom.swing.MigLayout;
 import raven.modal.component.ModalBorderAction;
-import raven.modal.component.SimpleModalBorder;
+import raven.modal.component.AdaptSimpleModalBorder;
 
 import javax.swing.*;
 import java.awt.event.KeyAdapter;
@@ -57,7 +57,7 @@ public class SimpleInputForms extends JPanel {
                 if (e.isControlDown() && e.getKeyChar() == 10) {
                     ModalBorderAction modalBorderAction = ModalBorderAction.getModalBorderAction(SimpleInputForms.this);
                     if (modalBorderAction != null) {
-                        modalBorderAction.doAction(SimpleModalBorder.YES_OPTION);
+                        modalBorderAction.doAction(AdaptSimpleModalBorder.YES_OPTION);
                     }
                 }
             }

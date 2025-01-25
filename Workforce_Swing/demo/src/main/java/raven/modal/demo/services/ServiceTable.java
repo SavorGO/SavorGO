@@ -10,7 +10,7 @@ public interface ServiceTable {
 	public List<ModelTable> getAllTables() throws IOException;
 	public ModelTable getTableById(Long id) throws IOException;
 	public List<ModelTable> searchTables(String search) throws IOException;
-	public void createTable(String name) throws IOException;
+	public void createTable(ModelTable table) throws IOException;
 	public void updateTable(ModelTable table) throws IOException;
 	public void removeTable(long id) throws IOException;
 	public void removeTables(List<Long> ids) throws IOException;

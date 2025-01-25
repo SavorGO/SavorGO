@@ -6,7 +6,7 @@ import com.formdev.flatlaf.util.Animator;
 import com.formdev.flatlaf.util.CubicBezierEasing;
 import com.formdev.flatlaf.util.Graphics2DProxy;
 import net.miginfocom.swing.MigLayout;
-import raven.modal.component.SimpleModalBorder;
+import raven.modal.component.AdaptSimpleModalBorder;
 import raven.modal.listener.ModalCallback;
 
 import javax.swing.*;
@@ -14,7 +14,7 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.util.Random;
 
-public class SimpleAlerts extends SimpleModalBorder {
+public class SimpleAlerts extends AdaptSimpleModalBorder {
 
     public SimpleAlerts(Component component, String title, AlertsOption alertsOption, int actionType, ModalCallback callback) {
         super(new PanelEffect(component, alertsOption), title, actionType, callback);

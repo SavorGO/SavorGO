@@ -13,36 +13,36 @@ import raven.modal.demo.utils.BusinessException;
 
 public class ControllerTable {
 	private ServiceTable serviceTable = new ServiceImplTable();
+
 	public List<ModelTable> getAllTables() throws IOException {
 		return serviceTable.getAllTables();
 	}
+
 	public ModelTable getTableById(Long id) throws IOException {
 		return serviceTable.getTableById(id);
 	}
-	public void createTable(String name) throws IOException {
-		serviceTable.createTable(name);
+
+	public void createTable(Object[] tableData) throws IOException {
+		ModelTable table = ModelTable.builder().name(tableData[0].toString()).build();
+		serviceTable.createTable(table);
 	}
-	public void updateTable(Long id, String name, EnumTableStatus status, LocalDateTime reservedTime) throws IOException, BusinessException {
-		ModelTable table;
-		table = serviceTable.getTableById(id);
-		table.setName(name);
-		table.setStatus(status);
-		if(reservedTime == null) {
-			
-		} else {
-			if(!reservedTime.equals(table.getReservedTime()) && reservedTime.isAfter(LocalDateTime.now().plusDays(7))) throw new BusinessException("Cannot reserve after 7 days");
-			if(!reservedTime.equals(table.getReservedTime()) && reservedTime.isBefore(LocalDateTime.now())) throw new BusinessException("Cannot change reserve time before now");
-			reservedTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-			table.setReservedTime(reservedTime);
-		}
+
+	public void updateTable(Object[] tableData) throws IOException {
+		ModelTable table = serviceTable.getTableById((long) tableData[0]);
+		table.setName(tableData[1].toString());
+		table.setStatus(EnumTableStatus.fromDisplayName(tableData[2].toString()));
+		table.setReservedTime((LocalDateTime) tableData[3]);
 		serviceTable.updateTable(table);
 	}
-	public void removeTable(long id) throws IOException {
+
+	public void deleteTable(long id) throws IOException {
 		serviceTable.removeTable(id);
 	}
-	public void removeTables(List<Long> ids) throws IOException{
+
+	public void deleteTables(List<Long> ids) throws IOException {
 		serviceTable.removeTables(ids);
 	}
+
 	public List<ModelTable> searchTables(String search) throws IOException {
 		return serviceTable.searchTables(search);
 	}

@@ -12,13 +12,13 @@ class Option(EmbeddedDocument):
 class Menu(Document):
     name = fields.StringField(max_length=255, required=True)
     category = fields.StringField(max_length=100, required=False)
-    description = fields.StringField()
+    description = fields.StringField(required=False)
     original_price = fields.FloatField()
     sale_price = fields.FloatField()
-    image_url = fields.URLField()
+    public_id = fields.StringField()
     sizes = fields.EmbeddedDocumentListField(Size)  # Danh sách các kích thước
     options = fields.EmbeddedDocumentListField(Option)  # Danh sách các tùy chọn
-    status = fields.StringField(max_length=50)
+    status = fields.StringField(max_length=50, required = False)
     created_time = fields.DateTimeField(default=datetime.utcnow)  # Tự động gán thời gian tạo
     modified_time = fields.DateTimeField(default=datetime.utcnow)  # Tự động gán thời gian chỉnh sửa
 

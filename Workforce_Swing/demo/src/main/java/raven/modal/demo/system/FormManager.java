@@ -2,11 +2,12 @@ package raven.modal.demo.system;
 
 import raven.modal.Drawer;
 import raven.modal.ModalDialog;
-import raven.modal.component.SimpleModalBorder;
+import raven.modal.component.AdaptSimpleModalBorder;
 import raven.modal.demo.auth.Login;
 import raven.modal.demo.component.About;
 import raven.modal.demo.forms.FormDashboard;
-import raven.modal.demo.forms.FormTables;
+import raven.modal.demo.forms.FormMenu;
+import raven.modal.demo.forms.FormTable;
 import raven.modal.demo.utils.UndoRedo;
 
 import javax.swing.*;
@@ -72,7 +73,7 @@ public class FormManager {
         frame.getContentPane().removeAll();
         frame.getContentPane().add(getMainForm());
 
-        Drawer.setSelectedItemClass(FormTables.class);
+        Drawer.setSelectedItemClass(FormMenu.class);
         frame.repaint();
         frame.revalidate();
     }
@@ -107,7 +108,7 @@ public class FormManager {
     }
 
     public static void showAbout() {
-        ModalDialog.showModal(frame, new SimpleModalBorder(new About(), "About"),
+        ModalDialog.showModal(frame, new AdaptSimpleModalBorder(new About(), "About"),
                 ModalDialog.createOption().setAnimationEnabled(false)
         );
     }

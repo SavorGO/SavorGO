@@ -16,7 +16,6 @@ public abstract class CardBasic<ModelBasic> extends JPanel {
     public CardBasic(ModelBasic modelBasic, Consumer<ModelBasic> event) {
         this.modelBasic = modelBasic;
         this.event = event;
-        init();
     }
 
     protected abstract void init();

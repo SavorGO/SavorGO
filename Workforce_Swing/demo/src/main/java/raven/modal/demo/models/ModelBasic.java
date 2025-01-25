@@ -14,7 +14,6 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @SuperBuilder
 public abstract class ModelBasic {
-	private long id;
 	@JsonProperty("created_time")
 	private LocalDateTime createdTime;
 	@JsonProperty("modified_time")
