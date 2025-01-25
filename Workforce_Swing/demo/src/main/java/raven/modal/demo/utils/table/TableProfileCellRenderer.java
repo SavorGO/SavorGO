@@ -34,7 +34,9 @@ public class TableProfileCellRenderer extends JPanel implements TableCellRendere
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
         JLabel com = (JLabel) delegate.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        System.out.println(false);
         if (value instanceof ModelProfile) {
+        	System.out.println(true);
             ModelProfile profile = (ModelProfile) value;
             if (profile.getIcon() != null) {
                 labelProfile.setIcon(profile.getIcon());

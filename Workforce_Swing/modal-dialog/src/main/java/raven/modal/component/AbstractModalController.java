@@ -96,9 +96,9 @@ public abstract class AbstractModalController extends JPanel implements Controll
 
     public void pushModal(Modal modal) {
         installModalComponent(modal);
-        if (modal instanceof SimpleModalBorder) {
-            SimpleModalBorder simpleModalBorder = (SimpleModalBorder) modal;
-            simpleModalBorder.applyBackButton(getOnBackAction());
+        if (modal instanceof AdaptSimpleModalBorder) {
+            AdaptSimpleModalBorder adaptSimpleModalBorder = (AdaptSimpleModalBorder) modal;
+            adaptSimpleModalBorder.applyBackButton(getOnBackAction());
         }
         pushStack(this.modal);
         this.modal = modal;

@@ -1,15 +1,17 @@
-package raven.modal.demo.forms.card;
+package raven.modal.demo.forms.cards;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import net.miginfocom.swing.MigLayout;
 import raven.extras.AvatarIcon;
 import raven.modal.demo.component.MyImageIcon;
+import raven.modal.demo.forms.other.CardBasic;
 import raven.modal.demo.models.ModelMenu;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.function.Consumer;
 
@@ -37,16 +39,22 @@ public class CardMenu extends CardBasic<ModelMenu> {
 
     @Override
     protected void init() {
-        putClientProperty(FlatClientProperties.STYLE, "" +
-                "arc:30;" +
-                "[light]background:darken($Panel.background,3%);" +
-                "[dark]background:lighten($Panel.background,3%);");
-
+    	setupCardStyle();
         setLayout(new MigLayout("", "fill"));
         panelHeader = createHeader();
         panelBody = createBody();
         add(panelHeader);
         add(panelBody);
+    }
+    
+    /** 
+     * Set up the style for the card.
+     */
+    private void setupCardStyle() {
+        putClientProperty(FlatClientProperties.STYLE, "" +
+                "arc:30;" +
+                "[light]background:darken($Panel.background,3%);" +
+                "[dark]background:lighten($Panel.background,3%);");
     }
 
     @Override
@@ -56,7 +64,12 @@ public class CardMenu extends CardBasic<ModelMenu> {
                 "background:null");
 
         JLabel label = new JLabel();
-        label.setIcon(new MyImageIcon("src/main/resources/raven/modal/demo/icons/menu.png", 130, 130, 20));
+        try {
+			label.setIcon(new MyImageIcon("src/main/resources/raven/modal/demo/icons/menu.png", 130, 130, 20));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			label.setIcon(null);
+		}
         header.add(label);
         return header;
     }
@@ -98,9 +111,9 @@ public class CardMenu extends CardBasic<ModelMenu> {
      * Add the status label to the body panel.
      */
     private void addStatusLabel(JPanel body) {
-        JLabel statusLabel = new JLabel(modelMenu.getStatus());
+        JLabel statusLabel = new JLabel(modelMenu.getStatus().toString());
         statusLabel.putClientProperty(FlatClientProperties.STYLE, "font:bold;");
-        statusLabel.setForeground(getStatusColor(modelMenu.getStatus())); // Set color based on status
+        statusLabel.setForeground(getStatusColor(modelMenu.getStatus().toString())); // Set color based on status
         body.add(statusLabel);
     }
 

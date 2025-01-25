@@ -6,7 +6,7 @@ import net.miginfocom.swing.MigLayout;
 import raven.modal.Drawer;
 import raven.modal.ModalDialog;
 import raven.modal.Toast;
-import raven.modal.component.SimpleModalBorder;
+import raven.modal.component.AdaptSimpleModalBorder;
 import raven.modal.demo.menu.MyDrawerBuilder;
 import raven.modal.demo.utils.DemoPreferences;
 import raven.modal.toast.ToastPromise;
@@ -44,7 +44,7 @@ public class TestForm extends JFrame {
             show.addActionListener(e -> {
                 JButton hide = new JButton("Hide");
                 hide.addActionListener(e1 -> setVisible(false));
-                ModalDialog.showModal(this, new SimpleModalBorder(hide, "Test"));
+                ModalDialog.showModal(this, new AdaptSimpleModalBorder(hide, "Test"));
             });
             Drawer.installDrawer(this, new MyDrawerBuilder());
             setLayout(new MigLayout("al center center"));

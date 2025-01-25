@@ -5,7 +5,7 @@ import com.formdev.flatlaf.fonts.roboto.FlatRobotoFont;
 import com.formdev.flatlaf.themes.FlatMacLightLaf;
 import net.miginfocom.swing.MigLayout;
 import raven.modal.ModalDialog;
-import raven.modal.component.SimpleModalBorder;
+import raven.modal.component.AdaptSimpleModalBorder;
 import test.alerts.AlertsOption;
 import test.alerts.SimpleAlerts;
 
@@ -27,7 +27,7 @@ public class TestAlerts extends JFrame {
                     "border:5,35,2,35");
             label.setHorizontalAlignment(JTextField.CENTER);
             label.setText("Hello! I hope you're having a wonderful day.");
-            ModalDialog.showModal(this, new SimpleAlerts(label, "Alerts", alertsOption, SimpleModalBorder.OK_OPTION, (controller, action) -> {
+            ModalDialog.showModal(this, new SimpleAlerts(label, "Alerts", alertsOption, AdaptSimpleModalBorder.OK_OPTION, (controller, action) -> {
 
             }));
         });

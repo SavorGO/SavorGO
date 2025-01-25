@@ -4,6 +4,7 @@ import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import net.miginfocom.swing.MigLayout;
 import raven.modal.Toast;
+import raven.modal.component.AdaptSimpleModalBorder;
 import raven.modal.component.SimpleModalBorder;
 import raven.modal.listener.ModalCallback;
 import raven.modal.toast.ToastPanel;

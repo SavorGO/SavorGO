@@ -1,18 +1,16 @@
-package raven.modal.demo.forms.input;
+package raven.modal.demo.forms.info;
 
-import com.formdev.flatlaf.FlatClientProperties;
 import net.miginfocom.swing.MigLayout;
-import raven.modal.component.ModalBorderAction;
-import raven.modal.component.SimpleModalBorder;
+
+import java.io.IOException;
 
 import javax.swing.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 
-public abstract class InputFormBasic<ModelBasic> extends JPanel {
-    public InputFormBasic() {
+public abstract class PopupFormBasic<ModelBasic> extends JScrollPane {
+	protected JPanel contentPanel = new JPanel(new MigLayout("fillx,wrap,insets 5 30 5 30,width 400", "[fill]", ""));
+    public PopupFormBasic() {
     }
-    protected abstract void init();
+    protected abstract void init() throws IOException;
     protected abstract void createTitle();
-
+    protected abstract void createFields();
 }

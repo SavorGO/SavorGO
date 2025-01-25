@@ -1,6 +1,5 @@
 package raven.modal.demo.component;
 
-
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -12,12 +11,12 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
-
 
 import com.cloudinary.*;
 import com.cloudinary.utils.ObjectUtils;
@@ -35,12 +34,11 @@ public class MyImageIcon extends ImageIcon {
 		this.bufferedImage = bufferedImage;
 	}
 
-	public void setBufferedImage(String url) {
+	public void setBufferedImage(String url) throws IOException {
 		try {
 			bufferedImage = ImageIO.read(new File(url));
 		} catch (IOException e) {
-			System.out.println("Không đọc file ảnh được");
-			e.printStackTrace();
+			throw new IOException("Can't read image file");
 		}
 	}
 
@@ -65,7 +63,7 @@ public class MyImageIcon extends ImageIcon {
 	}
 
 	// Khoi tao day du
-	public MyImageIcon(String url,int width, int height, int round) {
+	public MyImageIcon(String url, int width, int height, int round) throws IOException {
 		setBufferedImage(url);
 		setBufferedImage(resize(bufferedImage, width, height));
 		makeRoundedCorner(bufferedImage, round);
@@ -86,7 +84,7 @@ public class MyImageIcon extends ImageIcon {
 		return bufferedImage;
 	}
 
-	public MyImageIcon(String url) {
+	public MyImageIcon(String url) throws IOException {
 		setBufferedImage(url);
 		setImage(bufferedImage);
 	}
@@ -137,8 +135,8 @@ public class MyImageIcon extends ImageIcon {
 		return output;
 	}
 
-	private static Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap("cloud_name", "dje0pvmau", "api_key",
-			"773151356157165", "api_secret", "u3Rcr_2sPMoyFM6gtHQ_0vqnMKg"));
+	private static Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap("cloud_name", "dtgzcw63e", "api_key",
+			"965871288783373", "api_secret", "cT1_xumJYIooLl_pPU751VeL7go"));
 
 	public static MyImageIcon getMyImageIconFromCloudnaryImageTag(String publicID, int width, int height, int radius)
 			throws URISyntaxException, IOException {
@@ -148,29 +146,29 @@ public class MyImageIcon extends ImageIcon {
 				.generate(publicID).trim();
 		URL url = new URL(urlString);
 		url.openStream().close();
-		
+
 		return new MyImageIcon(url);
 	}
 
-	public static String updateImageToCloud(String tenThuMuc, File file) {
-		String randomPublicID = generateRandomString();
-		 try {
-			cloudinary.uploader().upload(file, ObjectUtils.asMap("public_id", tenThuMuc+randomPublicID));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		 return randomPublicID;
+	public static String updateImageToCloud(String tenThuMuc, File file) throws Exception {
+	    String randomPublicID = generateRandomString();
+	    cloudinary.api().createFolder(tenThuMuc, ObjectUtils.emptyMap());
+
+	    // Tải lên hình ảnh lên Cloudinary
+	    Map<String, Object> uploadResult = cloudinary.uploader().upload(file, ObjectUtils.asMap("public_id","SavorGO"+"/"+tenThuMuc+"/"+randomPublicID,"asset_folder", "SavorGO"+"/"+tenThuMuc,
+	    		  "resource_type", "image"));
+	    // Lấy URL của hình ảnh đã tải lên
+	    String imageUrl = (String) uploadResult.get("url");
+	    return randomPublicID;
 	}
+
 	public static String generateRandomString() {
-        int leftLimit = 48; // numeral '0'
-        int rightLimit = 122; // letter 'z'
-        int targetStringLength = 10;
-        Random random = ThreadLocalRandom.current();
-        return random.ints(leftLimit, rightLimit + 1)
-          .filter(i -> (i <= 57 || i >= 65) && (i <= 90 || i >= 97))
-          .limit(targetStringLength)
-          .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
-          .toString();
-    }
+		int leftLimit = 48; // numeral '0'
+		int rightLimit = 122; // letter 'z'
+		int targetStringLength = 10;
+		Random random = ThreadLocalRandom.current();
+		return random.ints(leftLimit, rightLimit + 1).filter(i -> (i <= 57 || i >= 65) && (i <= 90 || i >= 97))
+				.limit(targetStringLength)
+				.collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append).toString();
+	}
 }

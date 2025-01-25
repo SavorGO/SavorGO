@@ -1,5 +1,7 @@
 package raven.modal.demo.models;
 
+import java.util.Arrays;
+
 public enum EnumTableStatus {
     AVAILABLE("Available"),       // Bàn trống, sẵn sàng sử dụng
     OUT_OF_SERVICE("Out of Service"), // Bàn không sử dụng được
@@ -18,6 +20,7 @@ public enum EnumTableStatus {
     public String getDisplayName() {
         return displayName;
     }
+    //
     public static EnumTableStatus fromDisplayName(String displayName) {
         for (EnumTableStatus status : EnumTableStatus.values()) {
             if (status.getDisplayName().equalsIgnoreCase(displayName)) {
@@ -26,5 +29,12 @@ public enum EnumTableStatus {
         }
         throw new IllegalArgumentException("No enum constant with display name " + displayName);
     }
+	public static String[] getDisplayNames() {
+		String[] statuses = Arrays.stream(EnumTableStatus.values())
+                .filter(status -> status != EnumTableStatus.DELETED) // Exclude DELETED status
+                .map(EnumTableStatus::getDisplayName) // Get display names
+                .toArray(String[]::new);
+		return statuses;
+	}
 
 }

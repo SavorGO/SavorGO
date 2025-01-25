@@ -3,7 +3,6 @@ package raven.modal.demo.forms.info;
 import com.formdev.flatlaf.FlatClientProperties;
 import net.miginfocom.swing.MigLayout;
 import raven.modal.demo.controllers.ControllerMenu;
-import raven.modal.demo.forms.input.PopupFormBasic;
 import raven.modal.demo.models.ModelMenu;
 
 import javax.swing.*;
@@ -46,11 +45,11 @@ public class InfoFormMenu extends PopupFormBasic<ModelMenu> {
     protected void createFields() {
         addField("Menu ID:", modelMenu.getId());
         addField("Menu Name:", modelMenu.getName());
-        addField("Category:", modelMenu.getCategory());
+        addField("Category:", modelMenu.getCategory().getDisplayName());
         addField("Description:", modelMenu.getDescription());
         addField("Original Price:", String.valueOf(modelMenu.getOriginalPrice()));
         addField("Sale Price:", String.valueOf(modelMenu.getSalePrice()));
-        addField("Status:", modelMenu.getStatus());
+        addField("Status:", modelMenu.getStatus().toString());
         addListField("Sizes:", modelMenu.getSizes());
         addListField("Options:", modelMenu.getOptions());
         addField("Created At:", modelMenu.getCreatedTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));

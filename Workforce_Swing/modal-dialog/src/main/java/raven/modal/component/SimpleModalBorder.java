@@ -17,7 +17,7 @@ import java.util.function.Consumer;
  *
  * @author Raven
  */
-public class AdaptSimpleModalBorder extends Modal implements ModalBorderAction {
+public class SimpleModalBorder extends Modal implements ModalBorderAction {
 	private JButton btnOk;
 
     protected final Component component;
@@ -43,31 +43,31 @@ public class AdaptSimpleModalBorder extends Modal implements ModalBorderAction {
     public static final int CLOSE_OPTION = -1;
     public static final int OPENED = 20;
 
-    public AdaptSimpleModalBorder(Component component, String title) {
+    public SimpleModalBorder(Component component, String title) {
         this(component, title, new ModalBorderOption());
     }
 
-    public AdaptSimpleModalBorder(Component component, String title, ModalBorderOption option) {
+    public SimpleModalBorder(Component component, String title, ModalBorderOption option) {
         this(component, title, option, DEFAULT_OPTION, null);
     }
 
-    public AdaptSimpleModalBorder(Component component, String title, int optionType, ModalCallback callback) {
+    public SimpleModalBorder(Component component, String title, int optionType, ModalCallback callback) {
         this(component, title, new ModalBorderOption(), optionType, callback);
     }
 
-    public AdaptSimpleModalBorder(Component component, String title, Option[] optionsType, ModalCallback callback) {
+    public SimpleModalBorder(Component component, String title, Option[] optionsType, ModalCallback callback) {
         this(component, title, new ModalBorderOption(), -1, optionsType, callback);
     }
 
-    public AdaptSimpleModalBorder(Component component, String title, ModalBorderOption option, int optionType, ModalCallback callback) {
+    public SimpleModalBorder(Component component, String title, ModalBorderOption option, int optionType, ModalCallback callback) {
         this(component, title, option, optionType, null, callback);
     }
 
-    public AdaptSimpleModalBorder(Component component, String title, ModalBorderOption option, Option[] optionsType, ModalCallback callback) {
+    public SimpleModalBorder(Component component, String title, ModalBorderOption option, Option[] optionsType, ModalCallback callback) {
         this(component, title, option, -1, optionsType, callback);
     }
 
-    private AdaptSimpleModalBorder(Component component, String title, ModalBorderOption option, int optionType, Option[] optionsType, ModalCallback callback) {
+    private SimpleModalBorder(Component component, String title, ModalBorderOption option, int optionType, Option[] optionsType, ModalCallback callback) {
         this.component = component;
         this.option = option;
         this.title = title;
@@ -184,7 +184,6 @@ public class AdaptSimpleModalBorder extends Modal implements ModalBorderAction {
         };
         if (option.type == OK_OPTION) {
             btnOk = button; // Lưu tham chiếu nút "OK"
-            setOkButtonEnabled(false); // Mặc định nút "OK" không được kích hoạt
         }
         button.addActionListener(e -> {
             doAction(option.type);
@@ -278,11 +277,6 @@ public class AdaptSimpleModalBorder extends Modal implements ModalBorderAction {
         public Option(String text, int type) {
             this.text = text;
             this.type = type;
-        }
-    }
-    public void setOkButtonEnabled(boolean enabled) {
-        if (btnOk != null) {
-            btnOk.setEnabled(enabled);
         }
     }
 }

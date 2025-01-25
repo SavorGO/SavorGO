@@ -5,7 +5,7 @@ from mongoengine.queryset.visitor import Q
 from datetime import datetime
 from .models import Menu
 from .serializers import MenuSerializer
-
+from bson import ObjectId, errors
 
 class MenuViewSet(ViewSet):
     def list(self, request):
@@ -26,12 +26,17 @@ class MenuViewSet(ViewSet):
 
     def create(self, request):
         # POST /menus/
+        print("Received Data:", request.data)  # Debug dữ liệu được gửi từ client
         serializer = MenuSerializer(data=request.data)
+
         if serializer.is_valid():
             menu = serializer.save()
+            print("Menu Created Successfully:", menu)  # Debug đối tượng đã lưu
             return Response(MenuSerializer(menu).data, status=status.HTTP_201_CREATED)
         else:
+            print("Serializer Errors:", serializer.errors)  # Debug lỗi serializer
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
     def update_by_id(self, request, pk=None):
         # PUT /menus/<pk>
@@ -74,14 +79,29 @@ class MenuViewSet(ViewSet):
         return Response({"message": f"{menus.count()} menus have been marked as DELETED."}, status=status.HTTP_200_OK)
 
     def search(self, request):
-        # GET /menus/search?q=query
+        # Nhận query string (ví dụ: ?q=keyword)
         search_query = request.GET.get('q', None)
         if not search_query:
             return Response({"error": "No search query provided"}, status=status.HTTP_400_BAD_REQUEST)
 
-        query = Q(name__icontains=search_query) | Q(category__icontains=search_query) | Q(description__icontains=search_query) | Q(status__icontains=search_query)
+        # Khởi tạo query trống
+        query = Q()
 
-        # Tìm kiếm trong cơ sở dữ liệu
+        # Xử lý tìm kiếm theo ObjectId (nếu hợp lệ)
+        try:
+            obj_id = ObjectId(search_query)
+            query |= Q(id=obj_id)
+        except (errors.InvalidId):
+            pass  # Bỏ qua nếu không phải ObjectId hợp lệ
+
+        # Tìm kiếm trong các trường khác
+        query |= Q(name__icontains=search_query) | \
+                 Q(category__icontains=search_query) | \
+                 Q(description__icontains=search_query) | \
+                 Q(status__icontains=search_query)
+
+        # Thực hiện tìm kiếm
         menus = Menu.objects.filter(query)
         serializer = MenuSerializer(menus, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+

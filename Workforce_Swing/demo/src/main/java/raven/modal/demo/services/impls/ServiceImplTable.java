@@ -72,9 +72,9 @@ public class ServiceImplTable implements ServiceTable{
     }
 
 	@Override
-	public void createTable(String name) throws IOException {
+	public void createTable(ModelTable table) throws IOException {
 	    // Tạo JSON body với tham số name
-	    String jsonBody = "{\"name\":\"" + name + "\"}";
+	    String jsonBody = objectMapper.writeValueAsString(table);
 
 	    // Tạo request HTTP POST
 	    Request request = new Request.Builder()

@@ -81,6 +81,7 @@ public class ServiceImplMenu implements ServiceMenu {
     @Override
     public void createMenu(ModelMenu modelMenu) throws IOException {
         String jsonBody = objectMapper.writeValueAsString(modelMenu);
+        System.out.println(jsonBody);
         Request request = new Request.Builder()
                 .url(API_URL)
                 .post(RequestBody.create(jsonBody, MediaType.parse("application/json; charset=utf-8")))
@@ -119,7 +120,7 @@ public class ServiceImplMenu implements ServiceMenu {
      * @throws IOException If an I/O error occurs during the request.
      */
     @Override
-    public void removeMenu(String id) throws IOException {
+    public void deleteMenu(String id) throws IOException {
         String url = API_URL_ID + id;
         Request request = new Request.Builder().url(url).delete().build();
         try (Response response = client.newCall(request).execute()) {
@@ -136,7 +137,7 @@ public class ServiceImplMenu implements ServiceMenu {
      * @throws IOException If an I/O error occurs during the request.
      */
     @Override
-    public void removeMenus(List<String> ids) throws IOException {
+    public void deleteMenus(List<String> ids) throws IOException {
         String json = "{\"ids\": " + ids.toString() + "}";
         RequestBody body = RequestBody.create(json, MediaType.parse("application/json; charset=utf-8"));
         Request request = new Request.Builder().url(API_URL).delete(body).build();

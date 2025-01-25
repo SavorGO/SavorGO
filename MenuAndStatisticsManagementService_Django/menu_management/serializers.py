@@ -17,13 +17,13 @@ class MenuSerializer(serializers.Serializer):
     id = serializers.CharField(read_only=True)  # Thêm trường id vào để lấy giá trị từ MongoDB
     name = serializers.CharField(max_length=255)
     category = serializers.CharField(max_length=100, required=False)
-    description = serializers.CharField(required=False)
+    description = serializers.CharField(required=False, allow_blank=True)
     original_price = serializers.FloatField()
     sale_price = serializers.FloatField()
-    image_url = serializers.URLField(required=False)
+    public_id = serializers.CharField(required=False)
     sizes = SizeSerializer(many=True, required=False, default=[])  # Đặt giá trị mặc định là một danh sách rỗng
     options = OptionSerializer(many=True, required=False, default=[])  # Đặt giá trị mặc định là một danh sách rỗng
-    status = serializers.CharField(max_length=50)
+    status = serializers.CharField(max_length=50, required=False, allow_null=True, default="Discontinued")
     created_time = serializers.DateTimeField(read_only=True)  # Read-only
     modified_time = serializers.DateTimeField(read_only=True)  # Read-only
 
@@ -50,7 +50,7 @@ class MenuSerializer(serializers.Serializer):
             for option_data in options_data:
                 option = Option(**option_data)
                 menu.options.append(option)
-
+        menu.status = 'Discontinued'
         # Lưu menu với các sizes và options đã thêm
         menu.save()  # MongoEngine sẽ tự động gán giá trị cho id khi lưu
 
@@ -62,7 +62,7 @@ class MenuSerializer(serializers.Serializer):
         instance.description = validated_data.get('description', instance.description)
         instance.original_price = validated_data.get('original_price', instance.original_price)
         instance.sale_price = validated_data.get('sale_price', instance.sale_price)
-        instance.image_url = validated_data.get('image_url', instance.image_url)
+        instance.public_id = validated_data.get('public_id', instance.public_id)
         instance.status = validated_data.get('status', instance.status)
 
         # Cập nhật sizes nếu có

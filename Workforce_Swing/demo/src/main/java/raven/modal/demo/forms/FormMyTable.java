@@ -4,7 +4,7 @@ import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import net.miginfocom.swing.MigLayout;
 import raven.modal.ModalDialog;
-import raven.modal.component.SimpleModalBorder;
+import raven.modal.component.AdaptSimpleModalBorder;
 import raven.modal.demo.forms.input.SimpleInputForms;
 import raven.modal.demo.models.ModelEmployee;
 import raven.modal.demo.models.ModelProfile;
@@ -261,8 +261,8 @@ public class FormMyTable extends Form {
         option.getLayoutOption().setSize(-1, 1f)
                 .setLocation(Location.TRAILING, Location.TOP)
                 .setAnimateDistance(0.7f, 0);
-        ModalDialog.showModal(this, new SimpleModalBorder(
-                new SimpleInputForms(), "Create", SimpleModalBorder.YES_NO_OPTION,
+        ModalDialog.showModal(this, new AdaptSimpleModalBorder(
+                new SimpleInputForms(), "Create", AdaptSimpleModalBorder.YES_NO_OPTION,
                 (controller, action) -> {
 
                 }), option);

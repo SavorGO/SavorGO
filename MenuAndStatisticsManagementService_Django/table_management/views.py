@@ -32,19 +32,23 @@ class TableViewSet(ViewSet):
             # Lấy dữ liệu từ body của request
             data = request.data
 
-            # Kiểm tra dữ liệu name có tồn tại không
-            if 'name' not in data:
-                return Response({'error': 'Name is required.'}, status=status.HTTP_400_BAD_REQUEST)
+            # Validate trường 'name'
+            name = data.get('name', '').strip()  # Lấy giá trị 'name' hoặc gán giá trị mặc định là chuỗi rỗng
+            if not name:
+                return Response({'error': 'Name cannot be empty.'}, status=status.HTTP_400_BAD_REQUEST)
+            elif len(name) > 255:
+                return Response({'error': 'Name cannot exceed 255 characters.'}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Tạo table mới với name và các giá trị mặc định
+            # Tạo table mới
             table = Table.objects.create(
-                name=data['name'],
-                status="OUT_OF_SERVICE",  # Giá trị mặc định
+                name=name,
+                status=data.get('status', 'OUT_OF_SERVICE'),  # Sử dụng giá trị mặc định nếu không được cung cấp
             )
             return Response({'message': 'Table created successfully.', 'table_id': table.id}, status=status.HTTP_201_CREATED)
 
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 
     def update_by_id(self, request, pk=None):
         # PUT /tables/<int:pk>
@@ -88,8 +92,6 @@ class TableViewSet(ViewSet):
         # Cập nhật các trường khác từ request
         table.name = request.data.get('name', table.name)
         table.status = request.data.get('status', table.status)
-        table.reserved = request.data.get('reserved', table.reserved)
-
         # Lưu bảng sau khi cập nhật
         table.save()
 

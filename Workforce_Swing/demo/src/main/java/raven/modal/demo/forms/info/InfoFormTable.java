@@ -3,7 +3,6 @@ package raven.modal.demo.forms.info;
 import com.formdev.flatlaf.FlatClientProperties;
 import net.miginfocom.swing.MigLayout;
 import raven.modal.demo.controllers.ControllerTable;
-import raven.modal.demo.forms.input.PopupFormBasic;
 import raven.modal.demo.models.ModelTable;
 
 import javax.swing.*;

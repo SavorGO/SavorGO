@@ -3,7 +3,7 @@ package raven.modal.demo.forms;
 import com.formdev.flatlaf.FlatClientProperties;
 import net.miginfocom.swing.MigLayout;
 import raven.modal.ModalDialog;
-import raven.modal.component.SimpleModalBorder;
+import raven.modal.component.AdaptSimpleModalBorder;
 import raven.modal.demo.component.LabelButton;
 import raven.modal.demo.forms.input.SimpleInputForms;
 import raven.modal.demo.simple.SimpleInputForms2;
@@ -206,7 +206,7 @@ public class FormModal extends Form {
                 "border:5,35,5,35");
         txt.setText("Sets the default hide mode for the layout. This hide mode can be overridden by the component constraint." +
                 "\nThe hide mode specified how the layout manager should handle a component that isn't visible.");
-        ModalDialog.showModal(this, new SimpleModalBorder(txt, "Sample Message", SimpleModalBorder.YES_NO_OPTION, null), option);
+        ModalDialog.showModal(this, new AdaptSimpleModalBorder(txt, "Sample Message", AdaptSimpleModalBorder.YES_NO_OPTION, null), option);
     }
 
     private void showCustomModal(SimpleMessageModal.Type type, Option option) {
@@ -216,20 +216,20 @@ public class FormModal extends Form {
                 "\nencountered any interesting challenges," +
                 "\nor simply had a good time relaxing, I'd love to hear about it." +
                 "\nIt's always great to catch up and share our experiences.";
-        ModalDialog.showModal(this, new SimpleMessageModal(type, message, "This is a modal custom message", SimpleModalBorder.YES_NO_OPTION, null), option);
+        ModalDialog.showModal(this, new SimpleMessageModal(type, message, "This is a modal custom message", AdaptSimpleModalBorder.YES_NO_OPTION, null), option);
     }
     private void showModalSlide(Option option) {
         final String id = "input";
-        ModalDialog.showModal(this, new SimpleModalBorder(
-                new SimpleInputForms(), "Sample Input Forms", SimpleModalBorder.YES_NO_CANCEL_OPTION,
+        ModalDialog.showModal(this, new AdaptSimpleModalBorder(
+                new SimpleInputForms(), "Sample Input Forms", AdaptSimpleModalBorder.YES_NO_CANCEL_OPTION,
                 (controller, action) -> {
-                    if (action == SimpleModalBorder.YES_OPTION) {
+                    if (action == AdaptSimpleModalBorder.YES_OPTION) {
 
                         // consume no close modal
                         controller.consume();
 
                         // push modal
-                        ModalDialog.pushModal(new SimpleModalBorder(new SimpleInputForms2(), "New Input Forms", SimpleModalBorder.YES_NO_OPTION, null), id);
+                        ModalDialog.pushModal(new AdaptSimpleModalBorder(new SimpleInputForms2(), "New Input Forms", AdaptSimpleModalBorder.YES_NO_OPTION, null), id);
                     }
                 }), option, id);
     }
