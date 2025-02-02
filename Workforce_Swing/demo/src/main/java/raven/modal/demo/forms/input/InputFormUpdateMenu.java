@@ -162,7 +162,6 @@ public class InputFormUpdateMenu extends PopupFormBasic {
 			@Override
 			public void focusLost(FocusEvent e) {
 				super.focusLost(e);
-				System.out.println("Focus Lost at Sale Price");
 				validateInput();
 			}
 		});
@@ -579,6 +578,6 @@ public class InputFormUpdateMenu extends PopupFormBasic {
 		return new Object[] {modelMenu.getId(), txtName.getText(), EnumMenuStatus.fromDisplayName(cmbStatus.getSelectedItem().toString()),
 				EnumMenuCategory.fromDisplayName(cmbCategory.getSelectedItem().toString()),
 				txtOriginalPrice.getDoubleValue(), txtSalePrice.getDoubleValue(), getSizesFromTable(),
-				getOptionsFromTable(), txtImagePath.getText().contains("/") ? txtImagePath.getText().trim() : null, txtDescription.getText() };
+				getOptionsFromTable(), txtImagePath.getText().contains("\\") ? txtImagePath.getText().trim() : null, txtDescription.getText() };
 	}
 }

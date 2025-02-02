@@ -45,14 +45,18 @@ class MenuViewSet(ViewSet):
         except Menu.DoesNotExist:
             return Response({"error": "Menu not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # Update các trường từ request
-        serializer = MenuSerializer(menu, data=request.data, partial=True)
-        if serializer.is_valid():
-            menu = serializer.save()
-            return Response(MenuSerializer(menu).data)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+        try:
+            # Update các trường từ request
+            serializer = MenuSerializer(menu, data=request.data, partial=True)
+            if serializer.is_valid():
+                menu = serializer.save()
+                return Response(MenuSerializer(menu).data)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            # Ghi lại lỗi và trả về thông báo lỗi
+            print(f"An error occurred while updating the menu: {str(e)}")  # Hoặc sử dụng logging
+            return Response({"error": "An error occurred while updating the menu."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     def delete(self, request, pk=None):
         # DELETE /menus/<pk>
         try:

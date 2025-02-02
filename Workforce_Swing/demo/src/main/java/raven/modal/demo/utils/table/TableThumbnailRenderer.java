@@ -60,7 +60,7 @@ public class TableThumbnailRenderer extends JPanel implements TableCellRenderer 
                         if ("table".equals(imagePath)) {
                             iconHolder[0] = new MyImageIcon("src/main/resources/images/system/table.png", 55, 55, 10);
                         } else {
-                            iconHolder[0] = MyImageIcon.getMyImageIconFromCloudnaryImageTag(imagePath, 55, 55, 10);
+                            iconHolder[0] = MyImageIcon.getMyImageIconFromCloudinaryImageTag(imagePath, 55, 55, 10);
 
                             if (iconHolder[0] == null) {
                                 iconHolder[0] = new MyImageIcon("src/main/resources/images/system/no_image_found.png", 55, 55, 10);

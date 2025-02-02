@@ -78,6 +78,7 @@ public class MyDrawerBuilder extends SimpleDrawerBuilder {
                 new Item("Manage Tables", "table.svg", FormTable.class),
                 new Item("Manage Users", "user.svg", FormDashboard.class),
                 new Item("Manage Menus", "menu.svg", FormMenu.class),
+                new Item("Manage Promotions", "promotion.svg", FormPromotion.class),
                 new Item.Label("SWING UI"),
                 new Item("Forms", "forms.svg")
                         .subMenu("Input", FormInput.class)
@@ -156,7 +157,7 @@ public class MyDrawerBuilder extends SimpleDrawerBuilder {
         });
 
         simpleMenuOption.setMenus(items)
-                .setBaseIconPath("raven/modal/demo/drawer/icon")
+                .setBaseIconPath("icons/drawer")
                 .setIconScale(0.05f);
 
         return simpleMenuOption;

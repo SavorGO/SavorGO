@@ -23,4 +23,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('table_management.urls')),  # Bao gồm URL của table_management
     path('api/', include('menu_management.urls')),  # Bao gồm URL của menu_management
+    path('api/', include('promotion_management.urls')),  # Bao gồm URL của promotion_management
 ]

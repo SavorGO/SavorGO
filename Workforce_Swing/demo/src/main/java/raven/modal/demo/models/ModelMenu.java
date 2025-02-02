@@ -38,11 +38,12 @@ public class ModelMenu extends ModelBasic {
     private LocalDateTime reservedTime;
 
     @Override
-    public Object[] toTableRowBasic() {
+    @JsonIgnore
+    public Object[] toTableRowBasic() throws IOException {
     	return new Object[]{
                 false,
                 this.getId(),
-                new ThumbnailCell("SavorGO/Menus/"+this.publicId, this.getName(),this.getStatus().getDisplayName(),null),
+                this.getThumbnailCell(),
                 (this.getCategory()==null)?"OTHER":getCategory().getDisplayName(),
                 this.getOriginalPrice(),
                 this.getSalePrice(),  
@@ -69,6 +70,11 @@ public class ModelMenu extends ModelBasic {
     }
     
     @JsonIgnore
+    public ThumbnailCell getThumbnailCell() {
+	    return new ThumbnailCell(this.publicId == null ? null : "SavorGO/Menus/"+this.publicId, this.getName(),this.getStatus().getDisplayName(),null);
+    }
+    
+    @JsonIgnore
     public MyImageIcon getImage(int height, int width, int round) throws IOException {
     	if(height == 0 || width == 0) {
 	    	// set default 50 round 0
@@ -77,12 +83,16 @@ public class ModelMenu extends ModelBasic {
 	    	round = 0;
     	}
 	    try {
-			return MyImageIcon.getMyImageIconFromCloudnaryImageTag("SavorGO/Menus/"+publicId, height, width, round);
+			return MyImageIcon.getMyImageIconFromCloudinaryImageTag("SavorGO/Menus/"+publicId, height, width, round);
 		} catch (URISyntaxException | IOException e) {
 			// return no image found
 			return new MyImageIcon("src/main/resources/images/system/no_image_found.png", 55, 55, 10);
 		}
     }
+    @Override
+	public String toString() {
+		return this.getName();
+	}
 }
 
 

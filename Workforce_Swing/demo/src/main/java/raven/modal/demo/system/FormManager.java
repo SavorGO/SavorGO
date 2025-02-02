@@ -7,6 +7,7 @@ import raven.modal.demo.auth.Login;
 import raven.modal.demo.component.About;
 import raven.modal.demo.forms.FormDashboard;
 import raven.modal.demo.forms.FormMenu;
+import raven.modal.demo.forms.FormPromotion;
 import raven.modal.demo.forms.FormTable;
 import raven.modal.demo.utils.UndoRedo;
 
@@ -73,7 +74,7 @@ public class FormManager {
         frame.getContentPane().removeAll();
         frame.getContentPane().add(getMainForm());
 
-        Drawer.setSelectedItemClass(FormMenu.class);
+        Drawer.setSelectedItemClass(FormPromotion.class);
         frame.repaint();
         frame.revalidate();
     }
