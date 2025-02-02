@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     
     # Các app khác của bạn
     'table_management',
-    'menu_management'
+    'menu_management',
+    'promotion_management',
 ]
 
 APPEND_SLASH = False

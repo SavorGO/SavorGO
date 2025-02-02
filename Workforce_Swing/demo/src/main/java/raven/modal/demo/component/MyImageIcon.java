@@ -13,6 +13,9 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 
 import javax.imageio.ImageIO;
@@ -138,23 +141,63 @@ public class MyImageIcon extends ImageIcon {
 	private static Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap("cloud_name", "dtgzcw63e", "api_key",
 			"965871288783373", "api_secret", "cT1_xumJYIooLl_pPU751VeL7go"));
 
-	public static MyImageIcon getMyImageIconFromCloudnaryImageTag(String publicID, int width, int height, int radius)
-			throws URISyntaxException, IOException {
-		// TODO Auto-generated method stub
-		String urlString = cloudinary.url()
-				.transformation(new Transformation().height(height).width(width).crop("scale").chain().radius(radius))
-				.generate(publicID).trim();
-		URL url = new URL(urlString);
-		url.openStream().close();
+	public static MyImageIcon getMyImageIconFromCloudinaryImageTag(String publicID, int width, int height, int radius)
+	        throws URISyntaxException, IOException {
+	    String urlString = null;
+	    int retryCount = 3;  // Số lần thử lại
+	    boolean success = false;
+	    MyImageIcon icon = null;
 
-		return new MyImageIcon(url);
+	    while (retryCount > 0 && !success) {
+	        try {
+	            // Tạo URL từ Cloudinary
+	            urlString = cloudinary.url()
+	                    .transformation(new Transformation().height(height).width(width).crop("scale").chain().radius(radius))
+	                    .generate(publicID);
+
+	            // Kiểm tra URL
+	            if (urlString == null || urlString.isEmpty()) {
+	            	return icon = new MyImageIcon("src/main/resources/images/system/no_image_found.png", width, height, radius);
+	            }
+
+	            // Mở URL để kiểm tra
+	            URL url = new URL(urlString);
+	            url.openStream().close();
+
+	            // Tạo MyImageIcon từ URL
+	            icon = new MyImageIcon(url);
+
+	            // Đánh dấu là tải thành công
+	            success = true;
+
+	        } catch (IOException e) {
+	            // In ra lỗi và giảm số lần thử lại
+	            System.err.println("public id: " + publicID + " | " + urlString + " | Error generating image URL or loading image: " + e.getMessage());
+	            e.printStackTrace();
+	            retryCount--;
+
+	            // Nếu hết lần thử, dùng ảnh mặc định
+	            if (retryCount == 0) {
+	                try {
+	                    icon = new MyImageIcon("src/main/resources/images/system/no_image_found.png", width, height, radius);
+	                } catch (IOException e1) {
+	                    e1.printStackTrace();
+	                }
+	            }
+	        }
+	    }
+
+	    // Trả về icon sau khi tải xong hoặc ảnh mặc định nếu không thành công
+	    return icon;
 	}
+
 
 	public static String updateImageToCloud(String tenThuMuc, File file) throws Exception {
 	    String randomPublicID = generateRandomString();
 	    cloudinary.api().createFolder(tenThuMuc, ObjectUtils.emptyMap());
 
 	    // Tải lên hình ảnh lên Cloudinary
+	    System.out.println("file: " + file);
 	    Map<String, Object> uploadResult = cloudinary.uploader().upload(file, ObjectUtils.asMap("public_id","SavorGO"+"/"+tenThuMuc+"/"+randomPublicID,"asset_folder", "SavorGO"+"/"+tenThuMuc,
 	    		  "resource_type", "image"));
 	    // Lấy URL của hình ảnh đã tải lên

@@ -12,6 +12,7 @@ import raven.modal.demo.models.ModelMenu;
 import raven.modal.demo.services.ServiceMenu;
 import raven.modal.demo.services.impls.ServiceImplMenu;
 import raven.modal.demo.utils.BusinessException;
+import java.util.concurrent.*;
 
 public class ControllerMenu {
 
@@ -68,26 +69,33 @@ public class ControllerMenu {
 	}
 
 	public void updateMenu(Object[] menuData) throws IOException, BusinessException {
-		ModelMenu menu = getMenuById(menuData[0].toString());
-		menu.setName(menuData[1].toString());
-		menu.setStatus((EnumMenuStatus) menuData[2]);
-		menu.setCategory((EnumMenuCategory) menuData[3]);
-		menu.setOriginalPrice((double) menuData[4]);
-		menu.setSalePrice((double) menuData[5]);
-		menu.setSizes((List) menuData[6]);
-		menu.setOptions((List) menuData[7]);
-		if(menuData[8] != null) {
-			String publicId = null;
-			try {
-				publicId = MyImageIcon.updateImageToCloud("Menus",new File( menuData[6].toString()));
-			} catch (Exception e) {
-				// TODO: handle exception
-				e.printStackTrace();
-			}
-			menu.setPublicId(publicId);
-		}
-		menu.setDescription(menuData[9].toString());
-		serviceMenu.updateMenu(menu);
+	    ModelMenu menu = getMenuById(menuData[0].toString());
+	    menu.setName(menuData[1].toString());
+	    menu.setStatus((EnumMenuStatus) menuData[2]);
+	    menu.setCategory((EnumMenuCategory) menuData[3]);
+	    menu.setOriginalPrice((double) menuData[4]);
+	    menu.setSalePrice((double) menuData[5]);
+	    menu.setSizes((List) menuData[6]);
+	    menu.setOptions((List) menuData[7]);
+	    if (menuData[8] != null) {
+	        ExecutorService executor = Executors.newSingleThreadExecutor();
+	        Future<String> future = executor.submit(() -> {
+	            return MyImageIcon.updateImageToCloud("Menus", new File(menuData[8].toString()));
+	        });
+	        try {
+	            String publicId = future.get(); // Chờ cho đến khi tác vụ hoàn thành
+	            menu.setPublicId(publicId);
+	    	   
+	        } catch (InterruptedException | ExecutionException e) {
+	            e.printStackTrace();
+	            // Xử lý lỗi nếu cần
+	        } finally {
+
+	            executor.shutdown(); // Đảm bảo đóng ExecutorService
+	        }
+	    }
+	    menu.setDescription(menuData[9].toString());
+	    serviceMenu.updateMenu(menu);
 	}
 
 	/**

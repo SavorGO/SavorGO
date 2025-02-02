@@ -1,4 +1,5 @@
 package raven.modal.demo.models;
+import java.io.IOException;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -18,5 +19,5 @@ public abstract class ModelBasic {
 	private LocalDateTime createdTime;
 	@JsonProperty("modified_time")
 	private LocalDateTime modifiedTime;
-	protected abstract Object[] toTableRowBasic(); 
+	protected abstract Object[] toTableRowBasic() throws IOException; 
 }

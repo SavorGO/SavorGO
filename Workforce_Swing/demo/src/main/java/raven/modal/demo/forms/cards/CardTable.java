@@ -67,7 +67,7 @@ public class CardTable extends CardBasic<ModelTable> {
         
         JLabel label = new JLabel();
         try {
-			label.setIcon(new MyImageIcon("src/main/resources/raven/modal/demo/icons/table.png", 130, 130, 20));
+			label.setIcon(new MyImageIcon("src/main/resources/images/system/table.png", 130, 130, 20));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

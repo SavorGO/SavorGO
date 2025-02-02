@@ -85,7 +85,9 @@ public class InputFormUpdateTable extends PopupFormBasic<ModelTable> {
 				validateInput(); // Validate input on each key release
 			}
 		});
-        contentPanel.add(new JLabel("Table Name"), "gapy 5 0");
+        JLabel lblName = new JLabel("Table Name");
+		lblName.putClientProperty(FlatClientProperties.STYLE, "font:bold");
+        contentPanel.add(lblName, "gapy 5 0");
         contentPanel.add(txtName);
 
         // Error label for table name

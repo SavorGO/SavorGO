@@ -108,6 +108,7 @@ public class ServiceImplMenu implements ServiceMenu {
                 .build();
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
+				System.out.println(response);
                 throw new IOException("Unexpected code " + response);
             }
         }

@@ -26,13 +26,12 @@ class MongoDBRouter:
             return True
         return None
 
-
 class MariaDBRouter:
     def db_for_read(self, model, **hints):
         """
         Chỉ định cơ sở dữ liệu MariaDB cho các đọc dữ liệu từ MariaDB.
         """
-        if model._meta.app_label == 'table_management':  # Chỉ định ứng dụng cho MariaDB
+        if model._meta.app_label in ('table_management', 'promotion_management'):  # Chỉ định thêm promotion_management
             return 'default'
         return None
 
@@ -40,7 +39,7 @@ class MariaDBRouter:
         """
         Chỉ định cơ sở dữ liệu MariaDB cho các ghi dữ liệu vào MariaDB.
         """
-        if model._meta.app_label == 'table_management':  # Chỉ định ứng dụng cho MariaDB
+        if model._meta.app_label in ('table_management', 'promotion_management'):  # Chỉ định thêm promotion_management
             return 'default'
         return None
 
@@ -49,6 +48,9 @@ class MariaDBRouter:
         Ngăn cấm quan hệ giữa các model thuộc các cơ sở dữ liệu khác nhau.
         """
         db_list = ('mongodb', 'default')  # Các cơ sở dữ liệu hợp lệ
-        if obj1._meta.app_label == 'table_management' and obj2._meta.app_label == 'table_management':
+        if (
+            obj1._meta.app_label in ('table_management', 'promotion_management') and
+            obj2._meta.app_label in ('table_management', 'promotion_management')
+        ):
             return True
         return None

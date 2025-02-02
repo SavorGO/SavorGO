@@ -4,6 +4,7 @@ import com.formdev.flatlaf.FlatClientProperties;
 import net.miginfocom.swing.MigLayout;
 import raven.modal.demo.controllers.ControllerMenu;
 import raven.modal.demo.models.ModelMenu;
+import raven.modal.demo.utils.DefaultComponent;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -43,6 +44,9 @@ public class InfoFormMenu extends PopupFormBasic<ModelMenu> {
      */
     @Override
     protected void createFields() {
+    	if (modelMenu.getThumbnailCell() != null) {
+			contentPanel.add(DefaultComponent.createThumbnailPanel(modelMenu.getThumbnailCell(), true), "gapy 5 0");
+		}
         addField("Menu ID:", modelMenu.getId());
         addField("Menu Name:", modelMenu.getName());
         addField("Category:", modelMenu.getCategory().getDisplayName());

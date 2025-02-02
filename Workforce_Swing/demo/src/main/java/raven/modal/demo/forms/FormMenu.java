@@ -3,13 +3,16 @@ package raven.modal.demo.forms;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import net.miginfocom.swing.MigLayout;
+import raven.modal.Drawer;
 import raven.modal.ModalDialog;
 import raven.modal.Toast;
 import raven.modal.component.AdaptSimpleModalBorder;
 import raven.modal.demo.controllers.ControllerMenu; // Updated to ControllerMenu
+import raven.modal.demo.controllers.ControllerPromotion;
 import raven.modal.demo.forms.cards.CardMenu;
 import raven.modal.demo.forms.info.InfoFormMenu; // Updated to InfoFormMenu
 import raven.modal.demo.forms.input.InputFormCreateMenu; // Updated to InputFormCreateMenu
+import raven.modal.demo.forms.input.InputFormCreatePromotion;
 import raven.modal.demo.forms.input.InputFormUpdateMenu; // Updated to InputFormUpdateMenu
 import raven.modal.demo.layout.ResponsiveLayout;
 import raven.modal.demo.models.ModelProfile;
@@ -42,6 +45,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -180,7 +184,7 @@ public class FormMenu extends Form {
 			@Override
 			protected int getAlignment(int column) {
 				int trailing[] = { 5, 6, 7, 8 };
-				int center[] = {2 };
+				int center[] = { 2 };
 				// Kiểm tra nếu column nằm trong trailing
 				if (Arrays.stream(trailing).anyMatch(value -> value == column)) {
 					return SwingConstants.TRAILING; // Hoặc giá trị mong muốn
@@ -307,16 +311,21 @@ public class FormMenu extends Form {
 	}
 
 	private JPopupMenu createPopupMenu() {
+		boolean isBasicTableOneSelected = findSelectedMenuIds().size() == 1;
+		boolean isBasicTableManySelected = findSelectedMenuIds(panelCard).size() == 1;
+		boolean isOneSelected = isBasicTableOneSelected || isBasicTableManySelected;
 		JPopupMenu popupMenu = new JPopupMenu();
 
 		JMenuItem detailsMenuItem = new JMenuItem("View Details");
 		JMenuItem copyMenuItem = new JMenuItem("Copy cell text");
 		JMenuItem editMenuItem = new JMenuItem("Edit");
-		JMenuItem deleteMenuItem = new JMenuItem(((findSelectedMenuIds().size() == 1)|| (findSelectedMenuIds(panelCard).size() == 1)) ? "Delete" : "Delete many");
+		JMenuItem deleteMenuItem = new JMenuItem(isOneSelected ? "Delete" : "Delete many");
+		JMenuItem createPromotion = new JMenuItem(isOneSelected ? "Create promotion" : "Create many promotions");
 		popupMenu.add(detailsMenuItem);
 		popupMenu.add(copyMenuItem);
 		popupMenu.add(editMenuItem);
 		popupMenu.add(deleteMenuItem);
+		popupMenu.add(createPromotion);
 		detailsMenuItem.addActionListener(e -> {
 			showModal("details");
 		});
@@ -329,6 +338,10 @@ public class FormMenu extends Form {
 
 		deleteMenuItem.addActionListener(e -> {
 			showModal("delete");
+		});
+
+		createPromotion.addActionListener(e -> {
+			showModal("create-promotion");
 		});
 
 		if (selectedTitle.equals("Grid table")) {
@@ -423,40 +436,39 @@ public class FormMenu extends Form {
 	private volatile boolean isLoading = false;
 
 	private void loadData(String searchTerm) {
-	    if (isLoading) {
-	        return;
-	    }
+		if (isLoading) {
+			return;
+		}
 
-	    // Đặt trạng thái isLoading thành true
-	    isLoading = true;
+		// Đặt trạng thái isLoading thành true
+		isLoading = true;
 
-	    // Sử dụng ExecutorService để quản lý luồng
-	    ExecutorService executor = Executors.newSingleThreadExecutor(); // Chỉ cần 1 luồng cho công việc này
-	    executor.submit(() -> {
-	        try {
-	            panelCard.removeAll(); // Clear existing CardMenu components
-	            List<ModelMenu> menus = fetchMenus(searchTerm);
-	            if (menus == null || menus.isEmpty()) {
-	                Toast.show(this, Toast.Type.INFO, "No menu in database or in search");
-	                return;
-	            }
+		// Sử dụng ExecutorService để quản lý luồng
+		ExecutorService executor = Executors.newSingleThreadExecutor(); // Chỉ cần 1 luồng cho công việc này
+		executor.submit(() -> {
+			try {
+				panelCard.removeAll(); // Clear existing CardMenu components
+				List<ModelMenu> menus = fetchMenus(searchTerm);
+				if (menus == null || menus.isEmpty()) {
+					Toast.show(this, Toast.Type.INFO, "No menu in database or in search");
+					return;
+				}
 
-	            // Gọi các phương thức populate với danh sách menu
-	            populateCardMenu(menus);
-	            populateBasicMenu(menus);
-	        } catch (IOException e) {
-	            e.printStackTrace();
-	        } finally {
-	            // Đảm bảo giải phóng tài nguyên sau khi hoàn thành
-	            executor.shutdown(); // Tắt ExecutorService khi công việc hoàn thành
-	            System.gc(); // Gọi garbage collection nếu cần thiết
+				// Gọi các phương thức populate với danh sách menu
+				populateCardMenu(menus);
+				populateBasicMenu(menus);
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				// Đảm bảo giải phóng tài nguyên sau khi hoàn thành
+				executor.shutdown(); // Tắt ExecutorService khi công việc hoàn thành
+				System.gc(); // Gọi garbage collection nếu cần thiết
 
-	            // Đặt trạng thái isLoading về false sau khi hoàn tất
-	            isLoading = false;
-	        }
-	    });
+				// Đặt trạng thái isLoading về false sau khi hoàn tất
+				isLoading = false;
+			}
+		});
 	}
-
 
 	/**
 	 * Fetches the list of menus based on the search term.
@@ -478,96 +490,97 @@ public class FormMenu extends Form {
 	 * 
 	 * @param menus The list of ModelMenu objects to populate.
 	 */
-	private void populateCardMenu(List<ModelMenu> menus) {
-		// Create a fixed thread pool with a number of threads
-		ExecutorService executor = Executors.newFixedThreadPool(4); // Adjust the number of threads as needed
-		CountDownLatch latch = new CountDownLatch(menus.size()); // Latch to wait for all tasks to complete
+	private List<List<ModelMenu>> sortAndGroupMenus(List<ModelMenu> menus) {
+		// Phân loại danh sách menu theo tình trạng
+		List<ModelMenu> availableMenus = new ArrayList<>();
+		List<ModelMenu> otherMenus = new ArrayList<>();
 
-		// Sort the menus by ID and submit tasks to the executor
-		menus.parallelStream().forEach(modelMenu -> {
-			executor.submit(() -> {
-				try {
-					// Create a CardMenu for each ModelMenu
-					CardMenu cardMenu = new CardMenu(modelMenu, null);
-					cardMenu.addMouseListener(new MouseAdapter() {
-						@Override
-						public void mouseReleased(MouseEvent e) {
-							showPopup(e);
-						}
-
-						private void showPopup(MouseEvent e) {
-							if (e.getComponent() instanceof CardMenu) {
-								if (SwingUtilities.isLeftMouseButton(e)) {
-									cardMenu.setSelected(!cardMenu.isSelected());
-									if (cardMenu.isSelected()) {
-										cardMenu.setBorder(BorderFactory.createLineBorder(Color.GREEN, 5)); // Green
-																											// border
-									} else {
-										cardMenu.setBorder(BorderFactory.createEmptyBorder()); // Remove border when not
-									}
-								} else if (e.isPopupTrigger()) {
-									cardMenu.setSelected(true);
-									cardMenu.setBorder(BorderFactory.createLineBorder(Color.GREEN, 5)); // Green border
-									createPopupMenu().show(e.getComponent(), e.getX(), e.getY());
-								}
-							}
-						}
-					});
-					// Add the cardMenu to the panelCard on the Event Dispatch Thread
-					SwingUtilities.invokeLater(() -> panelCard.add(cardMenu));
-				} finally {
-					latch.countDown(); // Decrement the latch count
-				}
-			});
-		});
-
-		// Wait for all tasks to complete
-		try {
-			latch.await(); // Wait until all threads have finished
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt(); // Restore interrupted status
-		} finally {
-			executor.shutdown(); // Shutdown the executor
-			panelCard.revalidate(); // Revalidate the panel to update the UI
-			panelCard.repaint(); // Repaint the panel to reflect changes
+		for (ModelMenu menu : menus) {
+			if ("AVAILABLE".equalsIgnoreCase(menu.getStatus().getDisplayName())) {
+				availableMenus.add(menu);
+			} else {
+				otherMenus.add(menu);
+			}
 		}
+
+		// Sắp xếp từng nhóm theo tên
+		availableMenus.sort(Comparator.comparing(ModelMenu::getName));
+		otherMenus.sort(Comparator.comparing(ModelMenu::getName));
+
+		// Trả về danh sách chứa hai nhóm
+		List<List<ModelMenu>> groupedMenus = new ArrayList<>();
+		groupedMenus.add(availableMenus);
+		groupedMenus.add(otherMenus);
+		return groupedMenus;
 	}
 
-	/**
-	 * Populates the basic menu with the fetched ModelMenu objects using
-	 * multithreading.
-	 * 
-	 * @param menus The list of ModelMenu objects to populate.
-	 */
-	private static int count = 1;
-	private void populateBasicMenu(List<ModelMenu> menus) {
-		//Delete all row in table
-		((DefaultTableModel)table.getModel()).setRowCount(0);
-		// Create a fixed thread pool with a number of threads
-		ExecutorService executor = Executors.newFixedThreadPool(4); // Adjust the number of threads as needed
-		CountDownLatch latch = new CountDownLatch(menus.size()); // Latch to wait for all tasks to complete
+	private void populateCardMenu(List<ModelMenu> menus) {
+		// Gọi hàm con để phân loại và sắp xếp menu
+		List<List<ModelMenu>> groupedMenus = sortAndGroupMenus(menus);
 
-		// Clear the existing rows in the table model
-		// Sort the menus by ID and submit tasks to the executor
-		menus.parallelStream().sorted(Comparator.comparing(ModelMenu::getId)).forEach(modelMenu -> {
-			executor.submit(() -> {
-				try {
-					// Add the row to the table model on the Event Dispatch Thread
-					SwingUtilities.invokeLater(() -> tableModel.addRow(modelMenu.toTableRowBasic()));
-				} finally {
-					latch.countDown(); // Decrement the latch count
-				}
+		// Duyệt qua từng nhóm menu và tạo CardMenu
+		for (List<ModelMenu> group : groupedMenus) {
+			for (ModelMenu modelMenu : group) {
+				// Tạo CardMenu cho mỗi ModelMenu
+				CardMenu cardMenu = new CardMenu(modelMenu, null);
+
+				// Thêm MouseListener để xử lý sự kiện
+				cardMenu.addMouseListener(new MouseAdapter() {
+					@Override
+					public void mouseReleased(MouseEvent e) {
+						showPopup(e);
+					}
+
+					private void showPopup(MouseEvent e) {
+						if (e.getComponent() instanceof CardMenu) {
+							if (SwingUtilities.isLeftMouseButton(e)) {
+								cardMenu.setSelected(!cardMenu.isSelected());
+								if (cardMenu.isSelected()) {
+									cardMenu.setBorder(BorderFactory.createLineBorder(Color.GREEN, 5)); // Green border
+								} else {
+									cardMenu.setBorder(BorderFactory.createEmptyBorder()); // Remove border when not
+								}
+							} else if (e.isPopupTrigger()) {
+								cardMenu.setSelected(true);
+								cardMenu.setBorder(BorderFactory.createLineBorder(Color.GREEN, 5)); // Green border
+								createPopupMenu().show(e.getComponent(), e.getX(), e.getY());
+							}
+						}
+					}
+				});
+
+				// Thêm CardMenu vào panelCard trên Event Dispatch Thread
+				SwingUtilities.invokeLater(() -> panelCard.add(cardMenu));
+			}
+		}
+
+		// Revalidate và repaint panel sau khi thêm tất cả CardMenu
+		SwingUtilities.invokeLater(() -> {
+			panelCard.revalidate();
+			panelCard.repaint();
+		});
+	}
+
+	private void populateBasicMenu(List<ModelMenu> menus) {
+		// Gọi hàm con để phân loại và sắp xếp menu
+		List<List<ModelMenu>> groupedMenus = sortAndGroupMenus(menus);
+
+		// Xóa tất cả các hàng trong bảng
+		((DefaultTableModel) table.getModel()).setRowCount(0);
+
+		// Thêm từng menu vào bảng
+		groupedMenus.forEach(group -> {
+			group.forEach(modelMenu -> {
+				// Thêm dòng vào bảng trên Event Dispatch Thread
+				SwingUtilities.invokeLater(() -> {
+					try {
+						tableModel.addRow(modelMenu.toTableRowBasic());
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				});
 			});
 		});
-
-		// Wait for all tasks to complete
-		try {
-			latch.await(); // Wait until all threads have finished
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt(); // Restore interrupted status
-		} finally {
-			executor.shutdown(); // Shutdown the executor
-		}
 	}
 
 	/**
@@ -589,6 +602,8 @@ public class FormMenu extends Form {
 		case "delete":
 			showDeleteModal();
 			break;
+		case "create-promotion":
+			showCreatePromotionModal();
 		default:
 			break;
 		}
@@ -620,18 +635,40 @@ public class FormMenu extends Form {
 	 * Displays a modal dialog for creating a new menu.
 	 */
 	private void showCreateModal() {
-	    InputFormCreateMenu inputFormCreateMenu = new InputFormCreateMenu();
-	    // Show the modal dialog and handle the result directly in the event handler
-	    ModalDialog.showModal(this, new AdaptSimpleModalBorder(inputFormCreateMenu, "Create menu",
-	            AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
-	                if (action == AdaptSimpleModalBorder.YES_OPTION) {
-	                    handleCreateMenu(inputFormCreateMenu);
-	                }
-	            }), DefaultComponent.getInputForm());
+		InputFormCreateMenu inputFormCreateMenu = new InputFormCreateMenu();
+		// Show the modal dialog and handle the result directly in the event handler
+		ModalDialog.showModal(this, new AdaptSimpleModalBorder(inputFormCreateMenu, "Create menu",
+				AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
+					if (action == AdaptSimpleModalBorder.YES_OPTION) {
+						handleCreateMenu(inputFormCreateMenu);
+					}
+				}), DefaultComponent.getInputForm());
 
-	    // No need to wait here, the UI will not be blocked
+		// No need to wait here, the UI will not be blocked
 	}
 
+	private void showCreatePromotionModal() {
+		InputFormCreatePromotion inputFormCreatePromotion = new InputFormCreatePromotion(getSelectedMenuIds());
+		ModalDialog.showModal(this, new AdaptSimpleModalBorder(inputFormCreatePromotion, "Create promotion",
+				AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
+					if (action == AdaptSimpleModalBorder.YES_OPTION) {
+						handleCreatePromotion(inputFormCreatePromotion);
+					}
+				}), DefaultComponent.getInputFormDoubleSize());
+	}
+
+	private void handleCreatePromotion(InputFormCreatePromotion inputFormCreatePromotion) {
+		try {
+			controllerPromotion.createPromotions(inputFormCreatePromotion.getPromotionData());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		// Sau khi hoàn thành xử lý, chuyển tới form Promotion
+		Drawer.setSelectedItemClass(FormPromotion.class);
+	}
+
+	private ControllerPromotion controllerPromotion = new ControllerPromotion();
 
 	/**
 	 * Handles the creation of a new menu.
@@ -640,57 +677,56 @@ public class FormMenu extends Form {
 	 */
 	private void handleCreateMenu(InputFormCreateMenu inputFormCreateMenu) {
 		Object[] menuData = inputFormCreateMenu.getMenuData();
-		  try { 
-			  controllerMenu.createMenu(menuData); 
-			  Toast.show(this, Toast.Type.SUCCESS,
-		  "Create menu successfully"); loadData(""); // Reload menu data after successful creation 
-		  } catch (IOException e) { Toast.show(this,
-		  Toast.Type.ERROR, "Failed to create menu: " + e.getMessage()); }
-		 
+		try {
+			controllerMenu.createMenu(menuData);
+			Toast.show(this, Toast.Type.SUCCESS, "Create menu successfully");
+			loadData(""); // Reload menu data after successful creation
+		} catch (IOException e) {
+			Toast.show(this, Toast.Type.ERROR, "Failed to create menu: " + e.getMessage());
+		}
 	}
 
 	/**
 	 * Displays a modal dialog for editing an existing menu.
 	 */
 	private void showEditModal() {
-	    String[] idHolder = { "" };
-	    if (selectedTitle.equals("Basic table")) {
-	        if (!validateSingleRowSelection("edit"))
-	            return;
-	        idHolder[0] = table.getValueAt(table.getSelectedRow(), 1).toString();
-	    } else if (selectedTitle.equals("Grid table")) {
-	        if (!validateSingleCardSelection(idHolder, "edit"))
-	            return;
-	    } else {
-	        idHolder[0] = table.getValueAt(table.getSelectedRow(), 1).toString();
-	    }
+		String[] idHolder = { "" };
+		if (selectedTitle.equals("Basic table")) {
+			if (!validateSingleRowSelection("edit"))
+				return;
+			idHolder[0] = table.getValueAt(table.getSelectedRow(), 1).toString();
+		} else if (selectedTitle.equals("Grid table")) {
+			if (!validateSingleCardSelection(idHolder, "edit"))
+				return;
+		} else {
+			idHolder[0] = table.getValueAt(table.getSelectedRow(), 1).toString();
+		}
 
-	    // Cannot edit deleted menu
-	    ModelMenu menu = null;
-	    try {
-	        menu = controllerMenu.getMenuById(idHolder[0]);
-	    } catch (IOException e) {
-	        Toast.show(this, Toast.Type.ERROR, "Failed to find menu to edit: " + e.getMessage());
-	    }
+		// Cannot edit deleted menu
+		ModelMenu menu = null;
+		try {
+			menu = controllerMenu.getMenuById(idHolder[0]);
+		} catch (IOException e) {
+			Toast.show(this, Toast.Type.ERROR, "Failed to find menu to edit: " + e.getMessage());
+		}
 
-	    if ( menu.getStatus().equals(EnumMenuStatus.DELETED)) {
-	        Toast.show(this, Toast.Type.ERROR, "Cannot edit deleted menu");
-	        return;
-	    }
+		if (menu.getStatus().equals(EnumMenuStatus.DELETED)) {
+			Toast.show(this, Toast.Type.ERROR, "Cannot edit deleted menu");
+			return;
+		}
 
-	    InputFormUpdateMenu inputFormUpdateMenu = createInputFormUpdateMenu(menu);
+		InputFormUpdateMenu inputFormUpdateMenu = createInputFormUpdateMenu(menu);
 
-	    // Show the modal dialog and handle the result directly in the event
-	    ModalDialog.showModal(this, new AdaptSimpleModalBorder(inputFormUpdateMenu, "Update menu",
-	            AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
-	                if (action == AdaptSimpleModalBorder.YES_OPTION) {
-	                    handleUpdateMenu(inputFormUpdateMenu);
-	                }
-	            }), DefaultComponent.getInputForm());
+		// Show the modal dialog and handle the result directly in the event
+		ModalDialog.showModal(this, new AdaptSimpleModalBorder(inputFormUpdateMenu, "Update menu",
+				AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
+					if (action == AdaptSimpleModalBorder.YES_OPTION) {
+						handleUpdateMenu(inputFormUpdateMenu);
+					}
+				}), DefaultComponent.getInputForm());
 
-	    // No need to wait here, the UI will not be blocked
+		// No need to wait here, the UI will not be blocked
 	}
-
 
 	/**
 	 * Validates if a single row is selected in the basic menu.
@@ -767,7 +803,7 @@ public class FormMenu extends Form {
 	 * @param menuId              The ID of the menu to update.
 	 */
 	private void handleUpdateMenu(InputFormUpdateMenu inputFormUpdateMenu) {
-		Object[] menuData = inputFormUpdateMenu.getMenuData();//inputFormUpdateMenu.getMenuData();
+		Object[] menuData = inputFormUpdateMenu.getMenuData();// inputFormUpdateMenu.getMenuData();
 		try {
 			controllerMenu.updateMenu(menuData);
 			Toast.show(this, Toast.Type.SUCCESS, "Update menu successfully");
@@ -781,7 +817,7 @@ public class FormMenu extends Form {
 	 * Displays a modal dialog for deleting selected menus.
 	 */
 	private void showDeleteModal() {
-		List<String> findSelectedMenuIds = getSelectedMenuIdsForDeletion();
+		List<String> findSelectedMenuIds = getSelectedMenuIds();
 		if (findSelectedMenuIds.isEmpty()) {
 			Toast.show(this, Toast.Type.ERROR, "You have to select at least one menu to delete");
 			return;
@@ -794,7 +830,7 @@ public class FormMenu extends Form {
 	 * 
 	 * @return The list of selected menu IDs.
 	 */
-	private List<String> getSelectedMenuIdsForDeletion() {
+	private List<String> getSelectedMenuIds() {
 		if (selectedTitle.equals("Basic table")) {
 			return findSelectedMenuIds();
 		} else if (selectedTitle.equals("Grid table")) {
