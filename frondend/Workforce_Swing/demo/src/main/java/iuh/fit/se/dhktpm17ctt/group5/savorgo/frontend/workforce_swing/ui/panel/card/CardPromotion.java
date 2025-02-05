@@ -1,8 +1,8 @@
 package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.card;
 
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.ControllerMenu;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.EnumDiscountType;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.EnumStatusPromotion;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.MenuController;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.PromotionDiscountTypeEnum;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.StatusPromotionEnum;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Menu;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Promotion;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.component.MyImageIcon;
@@ -18,7 +18,7 @@ import java.time.format.DateTimeFormatter;
  */
 public class CardPromotion extends CardBasic<Promotion> {
 	private Menu menu;
-
+	private MenuController menuController;
 	public CardPromotion(Promotion modelPromotion) {
 		super(modelPromotion);
 	}
@@ -27,7 +27,7 @@ public class CardPromotion extends CardBasic<Promotion> {
 	protected void init() {
 		// TODO Auto-generated method stub
 		try {
-			menu = new ControllerMenu().getMenuById(model.getMenuId());
+			menu = new MenuController().getMenuById(model.getMenuId());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 		}
@@ -46,7 +46,7 @@ public class CardPromotion extends CardBasic<Promotion> {
 
 		JLabel label = new JLabel();
 		try {
-			label.setIcon(menu.getImage(130, 130, 20));
+			label.setIcon(menuController.getImage(menu,130, 130, 20));
 		} catch (IOException e) {
 			label.setIcon(null);
 			e.printStackTrace();
@@ -95,7 +95,7 @@ public class CardPromotion extends CardBasic<Promotion> {
 
 	private void addDiscountValueLabel(JPanel body) {
 		JLabel discountValueLabel = new JLabel(
-				"Discount: " + (model.getDiscountType() == EnumDiscountType.PERCENT ? model.getDiscountValue() + "%"
+				"Discount: " + (model.getPromotionDiscountTypeEnum() == PromotionDiscountTypeEnum.PERCENT ? model.getDiscountValue() + "%"
 						: model.getDiscountValue()));
 		discountValueLabel.putClientProperty(FlatClientProperties.STYLE, "font:medium;");
 		body.add(discountValueLabel);
@@ -105,10 +105,10 @@ public class CardPromotion extends CardBasic<Promotion> {
 		double discountedPrice = 0;
 		double profit = menu.getSalePrice() - menu.getOriginalPrice();
 		
-		if(model.getDiscountType() == EnumDiscountType.PERCENT) {
+		if(model.getPromotionDiscountTypeEnum() == PromotionDiscountTypeEnum.PERCENT) {
 			double discountAmount = profit * model.getDiscountValue() / 100;
 			discountedPrice = menu.getSalePrice() - discountAmount;
-		}else if(model.getDiscountType() == EnumDiscountType.FLAT) {
+		}else if(model.getPromotionDiscountTypeEnum() == PromotionDiscountTypeEnum.FLAT) {
 			double discountAmount = model.getDiscountValue();
 			discountedPrice = menu.getSalePrice() - discountAmount;
 		}

@@ -1,7 +1,7 @@
 package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.form.controller;
 
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.ControllerMenu;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.ControllerPromotion;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.MenuController;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.PromotionController;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Menu;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.card.CardMenu;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.form.MenuFormUI;
@@ -38,8 +38,8 @@ import java.util.concurrent.Future;
 
 public class FormMenuController {
     private MenuFormUI formMenu;
-    private ControllerMenu controllerMenu = new ControllerMenu();
-    private ControllerPromotion controllerPromotion = new ControllerPromotion();
+    private MenuController menuController = new MenuController();
+    private PromotionController promotionController = new PromotionController();
     private static final int DEBOUNCE_DELAY = 1000;
     private Timer debounceTimer;
     private volatile boolean isLoading = false;
@@ -127,9 +127,9 @@ public class FormMenuController {
      */
     private List<Menu> fetchMenus(String searchTerm) throws IOException {
         if (searchTerm != null && !searchTerm.isEmpty()) {
-            return controllerMenu.searchMenus(searchTerm);
+            return menuController.searchMenus(searchTerm);
         } else {
-            return controllerMenu.getAllMenus();
+            return menuController.getAllMenus();
         }
     }
 
@@ -185,13 +185,9 @@ public class FormMenuController {
         List<List<Menu>> groupedMenus = sortAndGroupMenus(menus);
         SwingUtilities.invokeLater(() -> formMenu.getTableModel().setRowCount(0));
         groupedMenus.forEach(group -> {
-            group.forEach(modelMenu -> {
+            group.forEach(menu -> {
                 SwingUtilities.invokeLater(() -> {
-                    try {
-                        formMenu.getTableModel().addRow(modelMenu.toTableRowBasic());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    formMenu.getTableModel().addRow(menuController.toTableRow(menu));
                 });
             });
         });
@@ -313,7 +309,7 @@ public class FormMenuController {
      */
     private void handleCreatePromotion(InputFormCreatePromotion inputFormCreatePromotion) {
         try {
-            controllerPromotion.createPromotions(inputFormCreatePromotion.getData());
+            promotionController.createPromotions(inputFormCreatePromotion.getData());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -328,7 +324,7 @@ public class FormMenuController {
     private void handleCreateMenu(InputFormCreateMenu inputFormCreateMenu) {
         Object[] menuData = inputFormCreateMenu.getData();
         try {
-            controllerMenu.createMenu(menuData);
+            menuController.createMenu(menuData);
             Toast.show(formMenu, Toast.Type.SUCCESS, "Create menu successfully");
             loadData("");
         } catch (IOException e) {
@@ -351,7 +347,7 @@ public class FormMenuController {
         }
         Menu menu = null;
         try {
-            menu = controllerMenu.getMenuById(idHolder[0]);
+            menu = menuController.getMenuById(idHolder[0]);
         } catch (IOException e) {
             Toast.show(formMenu, Toast.Type.ERROR, "Failed to find menu to edit: " + e.getMessage());
         }
@@ -440,7 +436,7 @@ public class FormMenuController {
     private void handleUpdateMenu(InputFormUpdateMenu inputFormUpdateMenu) {
         Object[] menuData = inputFormUpdateMenu.getData();
         try {
-            controllerMenu.updateMenu(menuData);
+            menuController.updateMenu(menuData);
             Toast.show(formMenu, Toast.Type.SUCCESS, "Update menu successfully");
             formMenu.formRefresh();
         } catch (IOException | BusinessException e) {
@@ -520,7 +516,7 @@ public class FormMenuController {
      */
     private void deleteMenu(String menuId) {
         try {
-            controllerMenu.deleteMenu(menuId);
+            menuController.deleteMenu(menuId);
             loadData(""); // Reload menu data after successful deletion
             Toast.show(formMenu, Toast.Type.SUCCESS, "Delete menu successfully");
         } catch (IOException e) {
@@ -535,7 +531,7 @@ public class FormMenuController {
      */
     private void deleteMenus(List<String> findSelectedMenuIds) {
         try {
-            controllerMenu.deleteMenus(findSelectedMenuIds);
+            menuController.deleteMenus(findSelectedMenuIds);
             loadData(""); // Reload menu data after successful deletion
             Toast.show(formMenu, Toast.Type.SUCCESS, "Delete menus successfully");
         } catch (IOException e) {

@@ -1,0 +1,29 @@
+[33m8c332e5[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfrontend_user_management[m[33m, [m[1;31morigin/frontend_user_management[m[33m)[m Test
+[33mbd9159e[m Merge branch 'main' into frontend_user_management
+[33ma1e6dee[m Thêm UI user nhưng chưa chạy thử
+[33ma1d5ebf[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m Merge pull request #7 from SavorGO/thinh_backend_users
+[33mef98acd[m[33m ([m[1;31morigin/thinh_backend_users[m[33m)[m Add User Service SpringBoot
+[33mc19d872[m Stop tracking .idea directory
+[33mcf8bde1[m add /.idea/ .gitignore
+[33me832e4e[m Merge pull request #6 from SavorGO/refactor_frontend_workforce_swing
+[33m3dda6fa[m[33m ([m[1;31morigin/refactor_frontend_workforce_swing[m[33m, [m[1;32mrefactor_frontend_workforce_swing[m[33m)[m Refactor and add comment all form
+[33m3e35679[m Removed __pycache__ from tracking
+[33m0b85693[m Merge pull request #5 from SavorGO/thaiGO_frontend_promo
+[33m06407db[m[33m ([m[1;31morigin/thaiGO_frontend_promo[m[33m)[m Done front end promo
+[33mb4851f2[m Update and rename readme.txt to readme.md
+[33m926fcf6[m Merge pull request #4 from SavorGO/thaiGO_frontend_menus
+[33m3dca9d5[m[33m ([m[1;31morigin/thaiGO_frontend_menus[m[33m)[m Recommit
+[33m0954e4d[m Done menu and table frontend backend
+[33me9f9125[m get all and search in menu tables
+[33m69aa388[m get all and search done
+[33m5e3ea54[m Merge pull request #3 from SavorGO/thaiGO_backend_menus
+[33m4e9eb2f[m search function done
+[33m38bcc13[m update_by_id done
+[33m8facab7[m get_by_id function done
+[33m04875fb[m create function successfully
+[33md1a1da7[m Xong get All
+[33m4b5376c[m Merge pull request #2 from SavorGO/thinh_backend_users
+[33m872e312[m Init Project User Service
+[33m459c517[m Merge pull request #1 from SavorGO/thaiGO_frontend_tables
+[33m2e2c5e7[m[33m ([m[1;31morigin/thaiGO_frontend_tables[m[33m)[m frontend for tables
+[33m4500988[m backend for tables

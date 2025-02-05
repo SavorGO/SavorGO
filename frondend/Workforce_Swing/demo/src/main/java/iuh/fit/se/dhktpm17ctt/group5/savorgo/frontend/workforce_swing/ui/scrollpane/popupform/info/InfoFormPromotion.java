@@ -2,9 +2,9 @@ package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scroll
 
 import com.formdev.flatlaf.FlatClientProperties;
 
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.ControllerMenu;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.ControllerPromotion;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.EnumDiscountType;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.MenuController;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.PromotionController;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.PromotionDiscountTypeEnum;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Menu;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Promotion;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.PopupFormBasic;
@@ -12,18 +12,20 @@ import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.Defa
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
+
+import java.awt.MenuContainer;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 
 public class InfoFormPromotion extends PopupFormBasic<Promotion> {
-    private ControllerMenu controllerMenu;
-    private ControllerPromotion controllerPromotion;
-    private Promotion modelPromotion;
+    private MenuController menuController;
+    private PromotionController promotionController;
+    private Promotion promotion;
 
     public InfoFormPromotion(long id) throws IOException {
-        controllerMenu = new ControllerMenu();
-        controllerPromotion = new ControllerPromotion();
-        modelPromotion = controllerPromotion.getPromotionById(id); // Assuming you have a method to get promotion by id
+    	menuController = new MenuController();
+    	promotionController = new PromotionController();
+        promotion = promotionController.getPromotionById(id); // Assuming you have a method to get promotion by id
         init();
     }
 
@@ -52,36 +54,36 @@ public class InfoFormPromotion extends PopupFormBasic<Promotion> {
     @Override
     protected void createFields() throws IOException {
         // Get the associated menu
-        Menu menu = controllerMenu.getMenuById(modelPromotion.getMenuId());
+        Menu menu = menuController.getMenuById(promotion.getMenuId());
         // image
-		if (menu.getThumbnailCell() != null) {
-			contentPanel.add(DefaultComponent.createThumbnailPanel(menu.getThumbnailCell(), true), "gapy 5 0");
+		if (menuController.getThumbnailCell(menu) != null) {
+			contentPanel.add(DefaultComponent.createThumbnailPanel(menuController.getThumbnailCell(menu), true), "gapy 5 0");
 		}
 
         // Add fields to display information
-        addField("Promotion ID:", modelPromotion.getId()+"");
-        addField("Promotion Name:", modelPromotion.getName());
+        addField("Promotion ID:", promotion.getId()+"");
+        addField("Promotion Name:", promotion.getName());
         addField("Menu Name:", menu.getName());
-        addField("Discount Type:", modelPromotion.getDiscountType().toString());
+        addField("Discount Type:", promotion.getPromotionDiscountTypeEnum().toString());
         
         // Calculate discount values
         String discountValue = null;
         String discountedValue = null;
-        if (modelPromotion.getDiscountType() == EnumDiscountType.PERCENT) {
-            discountValue = modelPromotion.getDiscountValue() + "%";
-            discountedValue = menu.getSalePrice() - (menu.getSalePrice() * modelPromotion.getDiscountValue() / 100) + "";
-        } else if (modelPromotion.getDiscountType() == EnumDiscountType.FLAT) {
-            discountValue = modelPromotion.getDiscountValue() + "";
-            discountedValue = menu.getSalePrice() - modelPromotion.getDiscountValue() + "";
+        if (promotion.getPromotionDiscountTypeEnum() == PromotionDiscountTypeEnum.PERCENT) {
+            discountValue = promotion.getDiscountValue() + "%";
+            discountedValue = menu.getSalePrice() - (menu.getSalePrice() * promotion.getDiscountValue() / 100) + "";
+        } else if (promotion.getPromotionDiscountTypeEnum() == PromotionDiscountTypeEnum.FLAT) {
+            discountValue = promotion.getDiscountValue() + "";
+            discountedValue = menu.getSalePrice() - promotion.getDiscountValue() + "";
         }
         addField("Discount Value:", discountValue);
         addField("Discounted Price:", discountedValue);
-        if(modelPromotion.getStartDate() != null)
-        addField("Start Date:", modelPromotion.getStartDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-		if(modelPromotion.getEndDate() != null)
-        addField("End Date:", modelPromotion.getEndDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        addField("Created At:", modelPromotion.getCreatedTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        addField("Updated At:", modelPromotion.getModifiedTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        if(promotion.getStartDate() != null)
+        addField("Start Date:", promotion.getStartDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+		if(promotion.getEndDate() != null)
+        addField("End Date:", promotion.getEndDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        addField("Created At:", promotion.getCreatedTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        addField("Updated At:", promotion.getModifiedTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
     }
 
     /** 

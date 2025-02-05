@@ -2,9 +2,9 @@ package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scroll
 
 import com.formdev.flatlaf.FlatClientProperties;
 
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.ControllerMenu;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.EnumDiscountType;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.EnumMenuStatus;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.MenuController;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.MenuStatusEnum;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.PromotionDiscountTypeEnum;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Menu;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.card.CardMenu;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.InputPopupForm;
@@ -99,7 +99,7 @@ public class InputFormCreatePromotion extends PopupFormBasic<List<Object[]>> imp
                     return new JLabel("No Menu Available"); // Fallback when value is null
                 }
                 // Display thumbnail in the combo box
-                JPanel panel = DefaultComponent.createThumbnailPanel(value.getThumbnailCell(), true);
+                JPanel panel = DefaultComponent.createThumbnailPanel(menuController.getThumbnailCell(value), true);
                 panel.setToolTipText(value.getName());
                 panel.setOpaque(true);
 
@@ -169,11 +169,11 @@ public class InputFormCreatePromotion extends PopupFormBasic<List<Object[]>> imp
     private List<Menu> getAvailableMenus() {
         // This method returns only "AVAILABLE" menus, sorted by name, using parallel streams
         try {
-            List<Menu> allMenus = controllerMenu.getAllMenus(); // Fetch all menus synchronously
+            List<Menu> allMenus = menuController.getAllMenus(); // Fetch all menus synchronously
             
             // Use parallelStream to filter and sort menus with status "AVAILABLE"
             return allMenus.parallelStream()
-                .filter(menu -> EnumMenuStatus.AVAILABLE.equals(menu.getStatus()))  // Filter menus with status "AVAILABLE"
+                .filter(menu -> MenuStatusEnum.AVAILABLE.equals(menu.getStatus()))  // Filter menus with status "AVAILABLE"
                 .sorted(Comparator.comparing(Menu::getName))  // Sort by name
                 .collect(Collectors.toList());  // Collect results into a list
         } catch (IOException e) {
@@ -183,7 +183,7 @@ public class InputFormCreatePromotion extends PopupFormBasic<List<Object[]>> imp
     }
 
     private static int index = 1;
-    private ControllerMenu controllerMenu = new ControllerMenu();
+    private MenuController menuController = new MenuController();
 
     /**
      * Adds a new promotion row for the specified menu ID.
@@ -193,7 +193,7 @@ public class InputFormCreatePromotion extends PopupFormBasic<List<Object[]>> imp
     private void addPromotionRow(String menuId) {
         Menu menu;
         try {
-            menu = controllerMenu.getMenuById(menuId);
+            menu = menuController.getMenuById(menuId);
         } catch (IOException e) {
             Toast.show(InputFormCreatePromotion.this, Toast.Type.ERROR, "Failed to get menu: " + e.getMessage());
             return;
@@ -306,7 +306,7 @@ public class InputFormCreatePromotion extends PopupFormBasic<List<Object[]>> imp
         private JPanel thumbnailPanel = new JPanel();
         private CustomFormattedTextField txtOriginalPrice = new CustomFormattedTextField();
         private CustomFormattedTextField txtSalePrice = new CustomFormattedTextField();
-        private JComboBox<String> cmbDiscountType = new JComboBox<>(EnumDiscountType.getDisplayNames());
+        private JComboBox<String> cmbDiscountType = new JComboBox<>(PromotionDiscountTypeEnum.getDisplayNames());
         private CustomFormattedTextField txtDiscountValue = new CustomFormattedTextField();
         private JLabel lblDiscountValueError = new JLabel();
         private JTextField txtName = new JTextField();
@@ -319,7 +319,7 @@ public class InputFormCreatePromotion extends PopupFormBasic<List<Object[]>> imp
         private DatePicker endDatePicker = DefaultComponent.getDatePicker(txtEndDate);
         private JLabel lblEndDateError = new JLabel();
         private boolean isSelected = false;
-        private Menu modelMenu;
+        private Menu menu;
         private int index;
         private Runnable inputChangeListener;
 
@@ -368,7 +368,7 @@ public class InputFormCreatePromotion extends PopupFormBasic<List<Object[]>> imp
         public PromotionRow(Menu modelMenu, int index) {
             setLayout(new MigLayout("fillx, wrap 2", "[right][grow]", ""));
             setBorder(BorderFactory.createLineBorder(Color.black, 5));
-            this.modelMenu = modelMenu;
+            this.menu = modelMenu;
             this.index = index;
             init();
             validateInput();
@@ -381,22 +381,22 @@ public class InputFormCreatePromotion extends PopupFormBasic<List<Object[]>> imp
             add(txtOrdinalNumber, "growx");
 
             add(new JLabel("ID"));
-            txtId.setText(modelMenu.getId());
+            txtId.setText(menu.getId());
             txtId.setEditable(false);
             add(txtId, "growx");
 
             add(new JLabel("Thumbnail"));
-            thumbnailPanel = DefaultComponent.createThumbnailPanel(modelMenu.getThumbnailCell(), true);
+            thumbnailPanel = DefaultComponent.createThumbnailPanel(menuController.getThumbnailCell(menu), true);
             add(thumbnailPanel, "growx");
 
             add(new JLabel("Original Price"));
             add(txtOriginalPrice, "growx");
             txtOriginalPrice.setEditable(false);
-            txtOriginalPrice.setValue(modelMenu.getOriginalPrice());
+            txtOriginalPrice.setValue(menu.getOriginalPrice());
             add(new JLabel("Sale Price"));
             add(txtSalePrice, "growx");
             txtSalePrice.setEditable(false);
-            txtSalePrice.setValue(modelMenu.getSalePrice());
+            txtSalePrice.setValue(menu.getSalePrice());
             
             add(new JLabel("Name"));
             add(txtName, "growx");
@@ -414,16 +414,16 @@ public class InputFormCreatePromotion extends PopupFormBasic<List<Object[]>> imp
             txtDiscountedPrice.setEditable(false);
 
             double discountedPrice = 0;
-            if (cmbDiscountType.getSelectedItem().equals(EnumDiscountType.PERCENT)) {
-                discountedPrice = modelMenu.getSalePrice()
-                        - (modelMenu.getSalePrice() * txtDiscountValue.getDoubleValue() / 100);
+            if (cmbDiscountType.getSelectedItem().equals(PromotionDiscountTypeEnum.PERCENT)) {
+                discountedPrice = menu.getSalePrice()
+                        - (menu.getSalePrice() * txtDiscountValue.getDoubleValue() / 100);
 
             } else {
-                discountedPrice = modelMenu.getSalePrice() - txtDiscountValue.getDoubleValue();
+                discountedPrice = menu.getSalePrice() - txtDiscountValue.getDoubleValue();
             }
 
-            if (discountedPrice < modelMenu.getOriginalPrice()) {
-                discountedPrice = modelMenu.getOriginalPrice();
+            if (discountedPrice < menu.getOriginalPrice()) {
+                discountedPrice = menu.getOriginalPrice();
             }
 
             add(new JLabel("Start Date"));
@@ -491,7 +491,7 @@ public class InputFormCreatePromotion extends PopupFormBasic<List<Object[]>> imp
                 String discountType = cmbDiscountType.getSelectedItem().toString();
 
                 // Case for percentage discount (PERCENT)
-                if (discountType.equals(EnumDiscountType.PERCENT.getDisplayName())) {
+                if (discountType.equals(PromotionDiscountTypeEnum.PERCENT.getDisplayName())) {
                     if (discountValue > 100) {
                         lblDiscountValueError.setText("Discount value cannot be greater than 100%.");
                         lblDiscountValueError.setForeground(Color.red);
@@ -515,7 +515,7 @@ public class InputFormCreatePromotion extends PopupFormBasic<List<Object[]>> imp
                 }
 
                 // Case for flat discount (FLAT)
-                else if (discountType.equals(EnumDiscountType.FLAT.getDisplayName())) {
+                else if (discountType.equals(PromotionDiscountTypeEnum.FLAT.getDisplayName())) {
                     double maxDiscount = txtSalePrice.getDoubleValue() - txtOriginalPrice.getDoubleValue();
                     isDiscountValueValid = true;
                     if (discountValue > maxDiscount) {

@@ -6,7 +6,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import com.formdev.flatlaf.FlatClientProperties;
 
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.EnumMenuCategory;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.MenuCategoryEnum;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.MenuOption;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.MenuSize;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.component.MyImageIcon;
@@ -45,7 +45,7 @@ public class InputFormCreateMenu extends PopupFormBasic implements InputPopupFor
     private JTextField txtName = new JTextField(); // Text field for menu name
     private CustomFormattedTextField txtOriginalPrice = new CustomFormattedTextField(); // Formatted text field for original price
     private CustomFormattedTextField txtSalePrice = new CustomFormattedTextField(); // Formatted text field for sale price
-    private JComboBox<String> cmbCategory = new JComboBox<>(EnumMenuCategory.getDisplayNames()); // Combo box for menu category
+    private JComboBox<String> cmbCategory = new JComboBox<>(MenuCategoryEnum.getDisplayNames()); // Combo box for menu category
     private JLabel lblImagePreview = new JLabel(); // Label to display the selected image
     private JTextField txtImagePath = new JTextField(); // TextField to display the selected image path
     private JButton btnClearImage = new JButton("Clear Image"); // Button to clear the selected image
@@ -534,7 +534,7 @@ public class InputFormCreateMenu extends PopupFormBasic implements InputPopupFor
     @Override
     public Object[] getData() {
         return new Object[] { txtName.getText(),
-                EnumMenuCategory.fromDisplayName(cmbCategory.getSelectedItem().toString()),
+                MenuCategoryEnum.fromDisplayName(cmbCategory.getSelectedItem().toString()),
                 txtOriginalPrice.getDoubleValue(), txtSalePrice.getDoubleValue(), getSizesFromTable(),
                 getOptionsFromTable(), txtImagePath.getText(), txtDescription.getText() };
     }

@@ -1,8 +1,8 @@
 package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.form.controller;
 
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.ControllerMenu;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.ControllerPromotion;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.EnumStatusPromotion;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.MenuController;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.PromotionController;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.StatusPromotionEnum;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Menu;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Promotion;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.card.CardPromotion;
@@ -41,8 +41,8 @@ public class FormPromotionController {
     private PromotionFormUI formPromotion;
     private static final int DEBOUNCE_DELAY = 1000; // Debounce delay in milliseconds
     private Timer debounceTimer;
-    private ControllerPromotion controllerPromotion = new ControllerPromotion();
-    private ControllerMenu controllerMenu = new ControllerMenu();
+    private PromotionController promotionController = new PromotionController();
+    private MenuController controllerMenu = new MenuController();
 
     /**
      * Constructs a FormPromotionController with the specified PromotionFormUI.
@@ -126,9 +126,9 @@ public class FormPromotionController {
      */
     private List<Promotion> fetchPromotions(String searchTerm) throws IOException {
         if (searchTerm != null && !searchTerm.isEmpty()) {
-            return controllerPromotion.searchPromotions(searchTerm);
+            return promotionController.searchPromotions(searchTerm);
         } else {
-            return controllerPromotion.getAllPromotions();
+            return promotionController.getAllPromotions();
         }
     }
 
@@ -212,7 +212,7 @@ public class FormPromotionController {
         promotions.parallelStream().forEach(promotion -> {
             executor.submit(() -> {
                 try {
-                    Object[] row = controllerPromotion.getBasicRow(promotion);
+                    Object[] row = promotionController.getTableRow(promotion);
                     synchronized (rows) {
                         rows.add(row);
                     }
@@ -316,7 +316,7 @@ public class FormPromotionController {
      */
     private void handleCreatePromotion(InputFormCreatePromotion inputFormCreatePromotion) {
         try {
-            controllerPromotion.createPromotions(inputFormCreatePromotion.getData());
+            promotionController.createPromotions(inputFormCreatePromotion.getData());
             Toast.show(formPromotion, Toast.Type.SUCCESS, "Create promotion successfully");
             loadData(""); // Reload table data after successful creation
         } catch (IOException e) {
@@ -339,7 +339,7 @@ public class FormPromotionController {
         }
         Promotion promotion = null;
         try {
-            promotion = controllerPromotion.getPromotionById(idHolder[0]);
+            promotion = promotionController.getPromotionById(idHolder[0]);
         } catch (IOException e) {
             Toast.show(formPromotion, Toast.Type.ERROR, "Failed to find promotion to edit: " + e.getMessage());
             return;
@@ -353,7 +353,7 @@ public class FormPromotionController {
             return;
         }
 
-        if (promotion.getStatus().equals(EnumStatusPromotion.DELETED)) {
+        if (promotion.getStatus().equals(StatusPromotionEnum.DELETED)) {
             Toast.show(formPromotion, Toast.Type.ERROR, "Cannot edit deleted promotion");
             return;
         }
@@ -415,7 +415,7 @@ public class FormPromotionController {
         Promotion promotion;
         Menu menu;
         try {
-            promotion = controllerPromotion.getPromotionById(promotionId);
+            promotion = promotionController.getPromotionById(promotionId);
         } catch (IOException e) {
             Toast.show(formPromotion, Toast.Type.ERROR, "Failed to find promotion to edit: " + e.getMessage());
             return null;
@@ -452,7 +452,7 @@ public class FormPromotionController {
     private void handleUpdatePromotion(InputFormUpdatePromotion inputFormUpdatePromotion) {
         Object[] promotionData = inputFormUpdatePromotion.getData();
         try {
-            controllerPromotion.updatePromotion(promotionData);
+            promotionController.updatePromotion(promotionData);
             Toast.show(formPromotion, Toast.Type.SUCCESS, "Update promotion successfully");
             formPromotion.formRefresh();
         } catch (IOException | BusinessException e) {
@@ -532,7 +532,7 @@ public class FormPromotionController {
      */
     private void deletePromotion(Long promotionId) {
         try {
-            controllerPromotion.deletePromotion(promotionId);
+            promotionController.deletePromotion(promotionId);
             formPromotion.formRefresh();
             Toast.show(formPromotion, Toast.Type.SUCCESS, "Delete promotion successfully");
         } catch (IOException e) {
@@ -547,7 +547,7 @@ public class FormPromotionController {
      */
     private void deletePromotions(List<Long> findSelectedPromotionIds) {
         try {
-            controllerPromotion.deletePromotions(findSelectedPromotionIds);
+            promotionController.deletePromotions(findSelectedPromotionIds);
             formPromotion.formRefresh();
             Toast.show(formPromotion, Toast.Type.SUCCESS, "Delete promotions successfully");
         } catch (IOException e) {
