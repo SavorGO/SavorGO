@@ -1,6 +1,6 @@
 package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.form.controller;
 
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.ControllerTable;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.TableController;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Table;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.card.CardTable;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.form.TableFormUI;
@@ -39,7 +39,7 @@ import java.util.concurrent.Future;
 
 public class FormTableController {
     private TableFormUI formTableUI;
-    private ControllerTable controllerTable = new ControllerTable();
+    private TableController tableController = new TableController();
     private static final int DEBOUNCE_DELAY = 1000;
     private Timer debounceTimer;
 
@@ -117,9 +117,9 @@ public class FormTableController {
      */
     private List<Table> fetchTables(String searchTerm) throws IOException {
         if (searchTerm != null && !searchTerm.isEmpty()) {
-            return controllerTable.searchTables(searchTerm);
+            return tableController.searchTables(searchTerm);
         } else {
-            return controllerTable.getAllTables();
+            return tableController.getAllTables();
         }
     }
 
@@ -191,10 +191,10 @@ public class FormTableController {
         ExecutorService executor = Executors.newFixedThreadPool(4);
         CountDownLatch latch = new CountDownLatch(tables.size());
         List<Object[]> rows = new ArrayList<>();
-        tables.parallelStream().forEach(modelTable -> {
+        tables.parallelStream().forEach(table -> {
             executor.submit(() -> {
                 try {
-                    Object[] row = modelTable.toTableRowBasic();
+                    Object[] row = tableController.toTableRow(table);
                     synchronized (rows) {
                         rows.add(row);
                     }
@@ -311,7 +311,7 @@ public class FormTableController {
      */
     private void handleCreateTable(InputFormCreateTable inputFormCreateTable) {
         try {
-            controllerTable.createTable(inputFormCreateTable.getData());
+            tableController.createTable(inputFormCreateTable.getData());
             Toast.show(formTableUI, Toast.Type.SUCCESS, "Create table successfully");
             loadData("");
         } catch (IOException e) {
@@ -334,7 +334,7 @@ public class FormTableController {
         }
         Table table = null;
         try {
-            table = controllerTable.getTableById(idHolder[0]);
+            table = tableController.getTableById(idHolder[0]);
         } catch (IOException e) {
             Toast.show(formTableUI, Toast.Type.ERROR, "Failed to find table to edit: " + e.getMessage());
         }
@@ -408,7 +408,7 @@ public class FormTableController {
      */
     private void handleUpdateTable(InputFormUpdateTable inputFormUpdateTable) {
         try {
-            controllerTable.updateTable(inputFormUpdateTable.getData());
+            tableController.updateTable(inputFormUpdateTable.getData());
             Toast.show(formTableUI, Toast.Type.SUCCESS, "Update table successfully");
             loadData("");
         } catch (IOException | BusinessException e) {
@@ -498,7 +498,7 @@ public class FormTableController {
      */
     private void deleteTable(Long tableId) {
         try {
-            controllerTable.deleteTable(tableId);
+            tableController.deleteTable(tableId);
             formTableUI.refreshTable();
             Toast.show(formTableUI, Toast.Type.SUCCESS, "Delete table successfully");
         } catch (IOException e) {
@@ -513,7 +513,7 @@ public class FormTableController {
      */
     private void deleteTables(List<Long> tableIds) {
         try {
-            controllerTable.deleteTables(tableIds);
+            tableController.deleteTables(tableIds);
             formTableUI.refreshTable();
             Toast.show(formTableUI, Toast.Type.SUCCESS, "Delete tables successfully");
         } catch (IOException e) {

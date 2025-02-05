@@ -2,14 +2,14 @@ package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums;
 
 import java.util.Arrays;
 
-public enum EnumDiscountType {
+public enum PromotionDiscountTypeEnum {
     PERCENT("Percent"), // Giảm giá theo phần trăm
     FLAT("Flat");       // Giảm giá theo số tiền cố định
 
     private final String displayName;
 
     // Constructor
-    EnumDiscountType(String displayName) {
+    PromotionDiscountTypeEnum(String displayName) {
         this.displayName = displayName;
     }
 
@@ -18,8 +18,8 @@ public enum EnumDiscountType {
         return displayName;
     }
 
-    public static EnumDiscountType fromDisplayName(String displayName) {
-        for (EnumDiscountType type : EnumDiscountType.values()) {
+    public static PromotionDiscountTypeEnum fromDisplayName(String displayName) {
+        for (PromotionDiscountTypeEnum type : PromotionDiscountTypeEnum.values()) {
             if (type.getDisplayName().equalsIgnoreCase(displayName)) {
                 return type;
             }
@@ -28,8 +28,8 @@ public enum EnumDiscountType {
     }
 
     public static String[] getDisplayNames() {
-        return Arrays.stream(EnumDiscountType.values())
-                .map(EnumDiscountType::getDisplayName)
+        return Arrays.stream(PromotionDiscountTypeEnum.values())
+                .map(PromotionDiscountTypeEnum::getDisplayName)
                 .toArray(String[]::new);
     }
 }

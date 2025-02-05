@@ -3,7 +3,7 @@ package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public enum EnumMenuCategory {
+public enum MenuCategoryEnum {
     BEVERAGES("Beverages"),             // Drinks, including soft drinks, juices, tea, coffee, and alcoholic beverages
     MAIN_COURSE("Main Course"),         // Main dishes, typically the centerpiece of a meal
     DESSERTS("Desserts"),               // Sweet dishes served after the main course, including cakes, ice cream, and pastries
@@ -20,7 +20,7 @@ public enum EnumMenuCategory {
     private final String displayName;
 
     // Constructor
-    EnumMenuCategory(String displayName) {
+    MenuCategoryEnum(String displayName) {
         this.displayName = displayName;
     }
 
@@ -32,8 +32,8 @@ public enum EnumMenuCategory {
 
     @JsonCreator
     // Method to convert display name to enum
-    public static EnumMenuCategory fromDisplayName(String displayName) {
-        for (EnumMenuCategory category : EnumMenuCategory.values()) {
+    public static MenuCategoryEnum fromDisplayName(String displayName) {
+        for (MenuCategoryEnum category : MenuCategoryEnum.values()) {
             if (category.getDisplayName().equalsIgnoreCase(displayName)) {
                 return category;
             }
@@ -43,9 +43,9 @@ public enum EnumMenuCategory {
 
     // Method to return all display names as a String array
     public static String[] getDisplayNames() {
-        String[] displayNames = new String[EnumMenuCategory.values().length];
-        for (int i = 0; i < EnumMenuCategory.values().length; i++) {
-            displayNames[i] = EnumMenuCategory.values()[i].getDisplayName();
+        String[] displayNames = new String[MenuCategoryEnum.values().length];
+        for (int i = 0; i < MenuCategoryEnum.values().length; i++) {
+            displayNames[i] = MenuCategoryEnum.values()[i].getDisplayName();
         }
         return displayNames;
     }

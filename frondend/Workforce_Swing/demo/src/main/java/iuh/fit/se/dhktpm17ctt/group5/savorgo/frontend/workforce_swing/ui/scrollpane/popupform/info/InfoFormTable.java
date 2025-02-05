@@ -2,21 +2,19 @@ package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scroll
 
 import com.formdev.flatlaf.FlatClientProperties;
 
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.ControllerTable;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.TableController;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Table;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.PopupFormBasic;
-import net.miginfocom.swing.MigLayout;
-
 import javax.swing.*;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 
 public class InfoFormTable extends PopupFormBasic<Table> {
-    private ControllerTable controllerTable;
+    private TableController controllerTable;
     private Table modelTable;
 
     public InfoFormTable(long id) throws IOException {
-        controllerTable = new ControllerTable();
+        controllerTable = new TableController();
         modelTable = controllerTable.getTableById(id);
         init();
     }

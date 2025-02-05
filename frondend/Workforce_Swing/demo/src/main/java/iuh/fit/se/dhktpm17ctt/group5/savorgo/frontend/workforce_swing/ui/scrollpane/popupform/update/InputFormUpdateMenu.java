@@ -6,9 +6,9 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import com.formdev.flatlaf.FlatClientProperties;
 
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.ControllerMenu;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.EnumMenuCategory;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.EnumMenuStatus;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.MenuController;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.MenuCategoryEnum;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.MenuStatusEnum;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.MenuOption;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.MenuSize;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Menu;
@@ -50,7 +50,7 @@ public class InputFormUpdateMenu extends PopupFormBasic implements InputPopupFor
 	private JTextField txtName = new JTextField(); // Text field for menu name
 	private CustomFormattedTextField txtOriginalPrice = new CustomFormattedTextField(); // Formatted text field for
 	private CustomFormattedTextField txtSalePrice = new CustomFormattedTextField(); // Formatted text field for
-	private JComboBox<String> cmbCategory = new JComboBox<>(EnumMenuCategory.getDisplayNames()); // Combo box for menu
+	private JComboBox<String> cmbCategory = new JComboBox<>(MenuCategoryEnum.getDisplayNames()); // Combo box for menu
 	private JLabel lblImagePreview = new JLabel(); // Label to display the selected image
 	private JTextField txtImagePath = new JTextField(); // TextField to display the selected image path
 	private JButton btnClearImage = new JButton("Clear Image"); // Button to clear the selected image
@@ -66,12 +66,13 @@ public class InputFormUpdateMenu extends PopupFormBasic implements InputPopupFor
 	private JLabel lblSizesError = new JLabel(); // Declare lblNameError to access the value outside;
 	private JLabel lblOptionsError = new JLabel(); // Declare lblNameError to access the value outside;
 	private JLabel lblDescriptionError = new JLabel(); // Declare lblNameError to access the value outside;
-	private JComboBox<String> cmbStatus = new JComboBox<>(EnumMenuStatus.getDisplayNames()); // Combo box for menu
-	private Menu modelMenu;
+	private JComboBox<String> cmbStatus = new JComboBox<>(MenuStatusEnum.getDisplayNames()); // Combo box for menu
+	private Menu menu;
+	private MenuController menuController = new MenuController();
 
 	public InputFormUpdateMenu(Menu menu) throws IOException {
 		super();
-		this.modelMenu = menu;
+		this.menu = menu;
 		init();
 	}
 
@@ -409,20 +410,20 @@ public class InputFormUpdateMenu extends PopupFormBasic implements InputPopupFor
 	}
 
 	private void setValue() throws IOException {
-		txtName.setText(modelMenu.getName());
-		txtOriginalPrice.setText(modelMenu.getOriginalPrice() + "");
-		txtSalePrice.setText(modelMenu.getSalePrice() + "");
-		cmbCategory.setSelectedItem(modelMenu.getCategory().getDisplayName());
-		txtImagePath.setText(modelMenu.getPublicId());
-		lblImagePreview.setIcon(modelMenu.getImage(340, 340 / 3 * 2, 0));
-		txtDescription.setText(modelMenu.getDescription());
-		cmbStatus.setSelectedItem(modelMenu.getStatus().getDisplayName());
+		txtName.setText(menu.getName());
+		txtOriginalPrice.setText(menu.getOriginalPrice() + "");
+		txtSalePrice.setText(menu.getSalePrice() + "");
+		cmbCategory.setSelectedItem(menu.getCategory().getDisplayName());
+		txtImagePath.setText(menu.getPublicId());
+		lblImagePreview.setIcon(menuController.getImage(menu,340, 340 / 3 * 2, 0));
+		txtDescription.setText(menu.getDescription());
+		cmbStatus.setSelectedItem(menu.getStatus().getDisplayName());
 		sizeTableModel.setRowCount(0);
 		optionTableModel.setRowCount(0);
-		for (MenuSize size : modelMenu.getSizes()) {
+		for (MenuSize size : menu.getSizes()) {
 			sizeTableModel.addRow(new Object[] { size.getSizeName(), size.getPriceChange() });
 		}
-		for (MenuOption option : modelMenu.getOptions()) {
+		for (MenuOption option : menu.getOptions()) {
 			optionTableModel.addRow(new Object[] { option.getOptionName(), option.getPriceChange() });
 		}
 	}
@@ -577,8 +578,8 @@ public class InputFormUpdateMenu extends PopupFormBasic implements InputPopupFor
 	}
 
 	public Object[] getData() {
-		return new Object[] {modelMenu.getId(), txtName.getText(), EnumMenuStatus.fromDisplayName(cmbStatus.getSelectedItem().toString()),
-				EnumMenuCategory.fromDisplayName(cmbCategory.getSelectedItem().toString()),
+		return new Object[] {menu.getId(), txtName.getText(), MenuStatusEnum.fromDisplayName(cmbStatus.getSelectedItem().toString()),
+				MenuCategoryEnum.fromDisplayName(cmbCategory.getSelectedItem().toString()),
 				txtOriginalPrice.getDoubleValue(), txtSalePrice.getDoubleValue(), getSizesFromTable(),
 				getOptionsFromTable(), txtImagePath.getText().contains("\\") ? txtImagePath.getText().trim() : null, txtDescription.getText() };
 	}

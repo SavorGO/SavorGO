@@ -4,12 +4,13 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.EnumTableStatus;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.TableStatusEnum;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Table;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.service.TableService;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.service.impl.TableServiceImpl;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.table.ThumbnailCell;
 
-public class ControllerTable {
+public class TableController {
     private TableService serviceTable = new TableServiceImpl();
 
     /**
@@ -55,7 +56,7 @@ public class ControllerTable {
     public void updateTable(Object[] tableData) throws IOException {
         Table table = serviceTable.getTableById((long) tableData[0]);
         table.setName(tableData[1].toString());
-        table.setStatus(EnumTableStatus.fromDisplayName(tableData[2].toString()));
+        table.setStatus(TableStatusEnum.fromDisplayName(tableData[2].toString()));
         table.setReservedTime((LocalDateTime) tableData[3]);
         serviceTable.updateTable(table);
     }
@@ -89,5 +90,23 @@ public class ControllerTable {
      */
     public List<Table> searchTables(String search) throws IOException {
         return serviceTable.searchTables(search);
+    }
+
+    /**
+     * Converts a Table object to an array of objects for table display.
+     * 
+     * @param table The Table object to convert.
+     * @return An array of objects suitable for table display.
+     */
+    public Object[] toTableRow(Table table) {
+        return new Object[]{
+            false, // Checkbox for selection
+            table.getId(),
+            new ThumbnailCell("table", table.getName(), table.getStatus().getDisplayName(), null), // ThumbnailCell representation
+            table.isReserved(), // Check if the table is reserved
+            table.getReservedTime(), // Reserved time
+            table.getCreatedTime(), // Created time
+            table.getModifiedTime() // Modified time
+        };
     }
 }

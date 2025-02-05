@@ -2,8 +2,8 @@ package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scroll
 
 import com.formdev.flatlaf.FlatClientProperties;
 
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.ControllerTable;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.EnumTableStatus;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.TableController;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.TableStatusEnum;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Table;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.InputPopupForm;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.PopupFormBasic;
@@ -22,11 +22,11 @@ import java.util.Arrays;
 import javax.swing.*;
 
 public class InputFormUpdateTable extends PopupFormBasic<Table> implements InputPopupForm {
-    private ControllerTable controllerTable; // Controller to manage table data
+    private TableController tableController; // Controller to manage table data
     private Table modelTable; // Model representing the table
     private JTextField txtName; // Input field for table name
 	private JLabel lblNameError = new JLabel(); // Declare lblNameError to access the value outside
-    private JComboBox<String> cmbStatus = new JComboBox<>(EnumTableStatus.getDisplayNames()); // Dropdown for table status
+    private JComboBox<String> cmbStatus = new JComboBox<>(TableStatusEnum.getDisplayNames()); // Dropdown for table status
     private JFormattedTextField txtReservedTime; // Input field for reserved time
     private JFormattedTextField txtReservedDate; // Input field for reserved date
 	private JLabel lblReservedDateTimeError = new JLabel(); // Declare lblNameError to access the value outside
@@ -42,8 +42,8 @@ public class InputFormUpdateTable extends PopupFormBasic<Table> implements Input
      */
     public InputFormUpdateTable(long id) throws IOException {
         super(); // Call the constructor of the parent class
-        controllerTable = new ControllerTable(); // Initialize the controller
-        this.modelTable = controllerTable.getTableById(id); // Retrieve the table data
+        tableController = new TableController(); // Initialize the controller
+        this.modelTable = tableController.getTableById(id); // Retrieve the table data
         init(); // Initialize the form components
     }
 
@@ -148,7 +148,7 @@ public class InputFormUpdateTable extends PopupFormBasic<Table> implements Input
             return null;
         }
         LocalDateTime reservedTime = LocalDateTime.of(datePicker.getSelectedDate(), timePicker.getSelectedTime());
-        Table table = controllerTable.getTableById(modelTable.getId());
+        Table table = tableController.getTableById(modelTable.getId());
         if(!reservedTime.equals(table.getReservedTime()) && reservedTime.isAfter(LocalDateTime.now().plusDays(7))) throw new BusinessException("Cannot reserve after 7 days");
 		if(!reservedTime.equals(table.getReservedTime()) && reservedTime.isBefore(LocalDateTime.now())) throw new BusinessException("Cannot change reserve time before now");
         // If both are not null, return LocalDateTime
@@ -197,6 +197,6 @@ public class InputFormUpdateTable extends PopupFormBasic<Table> implements Input
     }
     @Override
 	public Object[] getData() throws BusinessException, IOException {
-		return new Object[] { modelTable.getId(), txtName.getText(), EnumTableStatus.fromDisplayName(cmbStatus.getSelectedItem().toString()) , getReservedTime() };
+		return new Object[] { modelTable.getId(), txtName.getText(), TableStatusEnum.fromDisplayName(cmbStatus.getSelectedItem().toString()) , getReservedTime() };
 	}
 }

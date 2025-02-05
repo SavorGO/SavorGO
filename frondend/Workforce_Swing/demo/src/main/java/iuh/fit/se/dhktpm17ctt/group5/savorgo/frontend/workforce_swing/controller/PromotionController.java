@@ -5,7 +5,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.EnumDiscountType;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.PromotionDiscountTypeEnum;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Menu;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Promotion;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.service.PromotionService;
@@ -13,11 +13,11 @@ import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.service.im
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.table.ThumbnailCell;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.BusinessException;
 
-public class ControllerPromotion {
+public class PromotionController {
 
     // Using a service implementation for handling promotion operations
     private PromotionService servicePromotion = new PromotionServiceImpl();
-    private ControllerMenu controllerMenu = new ControllerMenu();
+    private MenuController menuController = new MenuController();
 
     /**
      * Retrieves the basic row data for a promotion.
@@ -26,15 +26,15 @@ public class ControllerPromotion {
      * @return An array containing the basic row data for the promotion.
      * @throws IOException if there is an issue during the process.
      */
-    public Object[] getBasicRow(Promotion promotion) throws IOException {
-        Menu menu = controllerMenu.getMenuById(promotion.getMenuId());
+    public Object[] getTableRow(Promotion promotion) throws IOException {
+        Menu menu = menuController.getMenuById(promotion.getMenuId());
         String discountValue = null;
         String discountedValue = null;
 
-        if (promotion.getDiscountType() == EnumDiscountType.PERCENT) {
+        if (promotion.getPromotionDiscountTypeEnum() == PromotionDiscountTypeEnum.PERCENT) {
             discountValue = promotion.getDiscountValue() + "%";
             discountedValue = menu.getSalePrice() - (menu.getSalePrice() * promotion.getDiscountValue() / 100) + "";
-        } else if (promotion.getDiscountType() == EnumDiscountType.FLAT) {
+        } else if (promotion.getPromotionDiscountTypeEnum() == PromotionDiscountTypeEnum.FLAT) {
             discountValue = promotion.getDiscountValue() + "";
             discountedValue = menu.getSalePrice() - promotion.getDiscountValue() + "";
         }
@@ -46,7 +46,7 @@ public class ControllerPromotion {
             discountValue,
             promotion.getStartDate(),
             promotion.getEndDate(),
-            menu.getThumbnailCell(),
+            menuController.getThumbnailCell(menu),
             menu.getOriginalPrice(),
             menu.getSalePrice(),
             discountedValue,
@@ -87,7 +87,7 @@ public class ControllerPromotion {
         List<Promotion> promotions = promotionData.parallelStream().map(promo ->
             Promotion.builder()
                 .menuId((String) promo[0])
-                .discountType(EnumDiscountType.fromDisplayName((String) promo[1]))
+                .promotionDiscountTypeEnum(PromotionDiscountTypeEnum.fromDisplayName((String) promo[1]))
                 .discountValue((Double) promo[2])
                 .startDate((LocalDate) promo[4])
                 .endDate((LocalDate) promo[5])
@@ -109,7 +109,7 @@ public class ControllerPromotion {
     public void updatePromotion(Object[] promotionData) throws IOException, BusinessException {
         Promotion promotion = getPromotionById((long) promotionData[0]);
         promotion.setName((String) promotionData[1]);
-        promotion.setDiscountType((EnumDiscountType) promotionData[2]);
+        promotion.setPromotionDiscountTypeEnum((PromotionDiscountTypeEnum) promotionData[2]);
         promotion.setDiscountValue((Double) promotionData[3]);
         promotion.setStartDate((LocalDate) promotionData[4]);
         promotion.setEndDate((LocalDate) promotionData[5]);

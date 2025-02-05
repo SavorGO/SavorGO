@@ -2,8 +2,9 @@ package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scroll
 
 import com.formdev.flatlaf.FlatClientProperties;
 
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.EnumDiscountType;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.EnumStatusPromotion;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.MenuController;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.PromotionDiscountTypeEnum;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.StatusPromotionEnum;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Menu;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Promotion;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.InputPopupForm;
@@ -24,8 +25,8 @@ import java.time.LocalDate;
 
 public class InputFormUpdatePromotion extends PopupFormBasic<Promotion> implements InputPopupForm {
 	private Promotion modelPromotion; // The promotion model to update
-	private Menu modelMenu;
-
+	private Menu menu;
+	private MenuController menuController = new MenuController();
 	// Các control được khởi tạo ngay tại phần khai báo
 	private JTextField txtName = new JTextField();
 	private JTextField txtThumbnail = new JTextField();
@@ -50,7 +51,7 @@ public class InputFormUpdatePromotion extends PopupFormBasic<Promotion> implemen
 	public InputFormUpdatePromotion(Promotion promotion, Menu menu) {
 		super();
 		this.modelPromotion = promotion;
-		this.modelMenu = menu;
+		this.menu = menu;
 		init();
 	}
 
@@ -74,9 +75,9 @@ public class InputFormUpdatePromotion extends PopupFormBasic<Promotion> implemen
 
 	@Override
 	protected void createFields() {
-		if (modelMenu.getThumbnailCell() != null) {
+		if (menuController.getThumbnailCell(menu) != null) {
 			// Hiển thị panel thumbnail chiếm 3 cột, cách dòng 5px
-			contentPanel.add(DefaultComponent.createThumbnailPanel(modelMenu.getThumbnailCell(), true),
+			contentPanel.add(DefaultComponent.createThumbnailPanel(menuController.getThumbnailCell(menu), true),
 					"span 3, gapy 5 0, wrap");
 		}
 
@@ -163,9 +164,9 @@ public class InputFormUpdatePromotion extends PopupFormBasic<Promotion> implemen
 	private void setValue() {
 		// Gán giá trị từ modelPromotion và modelMenu cho các control tương ứng
 		txtName.setText(modelPromotion.getName());
-		txtOriginalPrice.setValue(modelMenu.getOriginalPrice());
-		txtSalePrice.setValue(modelMenu.getSalePrice());
-		cmbDiscountType.setSelectedItem(modelPromotion.getDiscountType().getDisplayName());
+		txtOriginalPrice.setValue(menu.getOriginalPrice());
+		txtSalePrice.setValue(menu.getSalePrice());
+		cmbDiscountType.setSelectedItem(modelPromotion.getPromotionDiscountTypeEnum().getDisplayName());
 		txtDiscountValue.setValue(modelPromotion.getDiscountValue());
 
 		// Nếu có giá trị, gán ngày bắt đầu và kết thúc; nếu null thì control giữ trống
@@ -208,7 +209,7 @@ public class InputFormUpdatePromotion extends PopupFormBasic<Promotion> implemen
 			String discountType = cmbDiscountType.getSelectedItem().toString();
 
 			// Trường hợp chiết khấu theo phần trăm (PERCENT)
-			if (discountType.equals(EnumDiscountType.PERCENT.getDisplayName())) {
+			if (discountType.equals(PromotionDiscountTypeEnum.PERCENT.getDisplayName())) {
 				if (discountValue > 100) {
 					lblDiscountValueError.setText("Discount value cannot be greater than 100%.");
 					lblDiscountValueError.setForeground(Color.red);
@@ -230,7 +231,7 @@ public class InputFormUpdatePromotion extends PopupFormBasic<Promotion> implemen
 			}
 
 			// Trường hợp chiết khấu theo số tiền cụ thể (FLAT)
-			else if (discountType.equals(EnumDiscountType.FLAT.getDisplayName())) {
+			else if (discountType.equals(PromotionDiscountTypeEnum.FLAT.getDisplayName())) {
 				double maxDiscount = txtSalePrice.getDoubleValue() - txtOriginalPrice.getDoubleValue();
 				isDiscountValueValid = true;
 				if (discountValue > maxDiscount) {
@@ -292,6 +293,6 @@ public class InputFormUpdatePromotion extends PopupFormBasic<Promotion> implemen
 	}
 
 	public Object[] getData() {
-		return new Object[] {(long) modelPromotion.getId(), txtName.getText(), EnumDiscountType.fromDisplayName(cmbDiscountType.getSelectedItem().toString()), txtDiscountValue.getDoubleValue(), startDatePicker.getSelectedDate(), endDatePicker.getSelectedDate() };
+		return new Object[] {(long) modelPromotion.getId(), txtName.getText(), PromotionDiscountTypeEnum.fromDisplayName(cmbDiscountType.getSelectedItem().toString()), txtDiscountValue.getDoubleValue(), startDatePicker.getSelectedDate(), endDatePicker.getSelectedDate() };
 	}
 }

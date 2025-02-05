@@ -1,5 +1,6 @@
 package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.card;
 
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.MenuController;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Menu;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.component.MyImageIcon;
 import net.miginfocom.swing.MigLayout;
@@ -12,9 +13,9 @@ import java.time.format.DateTimeFormatter;
  * Class representing a card for a menu item.
  */
 public class CardMenu extends CardBasic<Menu> {
-
-    public CardMenu(Menu modelMenu){
-        super(modelMenu);
+	private MenuController menuController = new MenuController();
+    public CardMenu(Menu menu){
+        super(menu);
     }
 
     @Override
@@ -24,7 +25,7 @@ public class CardMenu extends CardBasic<Menu> {
 
         JLabel label = new JLabel();
         try {
-            label.setIcon(model.getImage(130, 130, 20));
+            label.setIcon(menuController.getImage(model,130, 130, 20));
         } catch (IOException e) {
             label.setIcon(null);
         }

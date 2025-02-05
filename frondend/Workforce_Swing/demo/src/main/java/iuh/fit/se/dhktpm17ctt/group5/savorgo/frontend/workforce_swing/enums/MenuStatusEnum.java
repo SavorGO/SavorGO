@@ -3,7 +3,7 @@ package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public enum EnumMenuStatus {
+public enum MenuStatusEnum {
     AVAILABLE("Available"),       // Món ăn có sẵn, có thể gọi
     OUT_OF_STOCK("Out of Stock"), // Món ăn hết nguyên liệu, không thể gọi
     DISCONTINUED("Discontinued"), // Món ăn đã ngừng cung cấp
@@ -12,7 +12,7 @@ public enum EnumMenuStatus {
     private final String displayName;
 
     // Constructor
-    EnumMenuStatus(String displayName) {
+    MenuStatusEnum(String displayName) {
         this.displayName = displayName;
     }
     @JsonValue
@@ -22,8 +22,8 @@ public enum EnumMenuStatus {
     }
     @JsonCreator
     // Phương thức chuyển từ tên hiển thị sang enum
-    public static EnumMenuStatus fromDisplayName(String displayName) {
-        for (EnumMenuStatus status : EnumMenuStatus.values()) {
+    public static MenuStatusEnum fromDisplayName(String displayName) {
+        for (MenuStatusEnum status : MenuStatusEnum.values()) {
             if (status.getDisplayName().equalsIgnoreCase(displayName)) {
                 return status;
             }
@@ -32,9 +32,9 @@ public enum EnumMenuStatus {
     }
     // return String[]
     public static String[] getDisplayNames() {
-        return java.util.Arrays.stream(EnumMenuStatus.values())
-                .filter(status -> status != EnumMenuStatus.DELETED) // Bỏ qua Deleted
-                .map(EnumMenuStatus::getDisplayName)                // Lấy displayName
+        return java.util.Arrays.stream(MenuStatusEnum.values())
+                .filter(status -> status != MenuStatusEnum.DELETED) // Bỏ qua Deleted
+                .map(MenuStatusEnum::getDisplayName)                // Lấy displayName
                 .toArray(String[]::new);                            // Chuyển thành mảng
     }
 }

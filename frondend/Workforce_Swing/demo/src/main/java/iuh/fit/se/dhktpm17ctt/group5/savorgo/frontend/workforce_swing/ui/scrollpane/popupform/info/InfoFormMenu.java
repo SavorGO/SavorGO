@@ -2,7 +2,7 @@ package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scroll
 
 import com.formdev.flatlaf.FlatClientProperties;
 
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.ControllerMenu;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.MenuController;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Menu;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.PopupFormBasic;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.DefaultComponent;
@@ -14,12 +14,12 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class InfoFormMenu extends PopupFormBasic {
-    private ControllerMenu controllerMenu;
-    private Menu modelMenu;
+    private MenuController menuController;
+    private Menu menu;
 
     public InfoFormMenu(String id) throws IOException {
-        controllerMenu = new ControllerMenu();
-        modelMenu = controllerMenu.getMenuById(id);
+        menuController = new MenuController();
+        menu = menuController.getMenuById(id);
         init();
     }
 
@@ -46,20 +46,20 @@ public class InfoFormMenu extends PopupFormBasic {
      */
     @Override
     protected void createFields() {
-    	if (modelMenu.getThumbnailCell() != null) {
-			contentPanel.add(DefaultComponent.createThumbnailPanel(modelMenu.getThumbnailCell(), true), "gapy 5 0");
+    	if (menuController.getThumbnailCell(menu) != null) {
+			contentPanel.add(DefaultComponent.createThumbnailPanel(menuController.getThumbnailCell(menu), true), "gapy 5 0");
 		}
-        addField("Menu ID:", modelMenu.getId());
-        addField("Menu Name:", modelMenu.getName());
-        addField("Category:", modelMenu.getCategory().getDisplayName());
-        addField("Description:", modelMenu.getDescription());
-        addField("Original Price:", String.valueOf(modelMenu.getOriginalPrice()));
-        addField("Sale Price:", String.valueOf(modelMenu.getSalePrice()));
-        addField("Status:", modelMenu.getStatus().toString());
-        addListField("Sizes:", modelMenu.getSizes());
-        addListField("Options:", modelMenu.getOptions());
-        addField("Created At:", modelMenu.getCreatedTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        addField("Updated At:", modelMenu.getModifiedTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        addField("Menu ID:", menu.getId());
+        addField("Menu Name:", menu.getName());
+        addField("Category:", menu.getCategory().getDisplayName());
+        addField("Description:", menu.getDescription());
+        addField("Original Price:", String.valueOf(menu.getOriginalPrice()));
+        addField("Sale Price:", String.valueOf(menu.getSalePrice()));
+        addField("Status:", menu.getStatus().toString());
+        addListField("Sizes:", menu.getSizes());
+        addListField("Options:", menu.getOptions());
+        addField("Created At:", menu.getCreatedTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        addField("Updated At:", menu.getModifiedTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
     }
 
     /** 
