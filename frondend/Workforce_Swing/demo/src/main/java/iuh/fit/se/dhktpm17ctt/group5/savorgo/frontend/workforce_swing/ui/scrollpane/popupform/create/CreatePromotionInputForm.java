@@ -43,7 +43,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-public class InputFormCreatePromotion extends PopupFormBasic<List<Object[]>> implements InputPopupForm {
+public class CreatePromotionInputForm extends PopupFormBasic<List<Object[]>> implements InputPopupForm {
     private List<String> menuIds;
     private JPanel promotionPanel;
     private JPanel listContainer;
@@ -56,7 +56,7 @@ public class InputFormCreatePromotion extends PopupFormBasic<List<Object[]>> imp
      *
      * @param menuIds List of menu IDs to initialize the promotion form with.
      */
-    public InputFormCreatePromotion(List<String> menuIds) {
+    public CreatePromotionInputForm(List<String> menuIds) {
         super();
         this.menuIds = menuIds;
         init();
@@ -177,7 +177,7 @@ public class InputFormCreatePromotion extends PopupFormBasic<List<Object[]>> imp
                 .sorted(Comparator.comparing(Menu::getName))  // Sort by name
                 .collect(Collectors.toList());  // Collect results into a list
         } catch (IOException e) {
-            Toast.show(InputFormCreatePromotion.this, Toast.Type.ERROR, "Failed to get menus: " + e.getMessage());
+            Toast.show(CreatePromotionInputForm.this, Toast.Type.ERROR, "Failed to get menus: " + e.getMessage());
             return new ArrayList<>();  // Return empty list if there is an error
         }
     }
@@ -195,7 +195,7 @@ public class InputFormCreatePromotion extends PopupFormBasic<List<Object[]>> imp
         try {
             menu = menuController.getMenuById(menuId);
         } catch (IOException e) {
-            Toast.show(InputFormCreatePromotion.this, Toast.Type.ERROR, "Failed to get menu: " + e.getMessage());
+            Toast.show(CreatePromotionInputForm.this, Toast.Type.ERROR, "Failed to get menu: " + e.getMessage());
             return;
         }
 
@@ -265,10 +265,10 @@ public class InputFormCreatePromotion extends PopupFormBasic<List<Object[]>> imp
      */
     private void deleteSelectedPromotions() {
         if (getSelectedTableIndex().isEmpty()) {
-            Toast.show(InputFormCreatePromotion.this, Toast.Type.ERROR, "Please select a promotion to delete");
+            Toast.show(CreatePromotionInputForm.this, Toast.Type.ERROR, "Please select a promotion to delete");
             return;
         } else {
-            Toast.show(InputFormCreatePromotion.this, Toast.Type.SUCCESS,
+            Toast.show(CreatePromotionInputForm.this, Toast.Type.SUCCESS,
                     "Delete promotions index" + getSelectedTableIndex() + " successfully");
         }
         promotionRows.removeIf(row -> row.isSelected());

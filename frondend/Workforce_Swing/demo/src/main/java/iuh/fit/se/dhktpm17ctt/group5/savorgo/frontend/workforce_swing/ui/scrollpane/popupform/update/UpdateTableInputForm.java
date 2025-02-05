@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import javax.swing.*;
 
-public class InputFormUpdateTable extends PopupFormBasic<Table> implements InputPopupForm {
+public class UpdateTableInputForm extends PopupFormBasic<Table> implements InputPopupForm {
     private TableController tableController; // Controller to manage table data
     private Table modelTable; // Model representing the table
     private JTextField txtName; // Input field for table name
@@ -40,7 +40,7 @@ public class InputFormUpdateTable extends PopupFormBasic<Table> implements Input
      * @param id The ID of the table to be updated.
      * @throws IOException If there is an error retrieving the table data.
      */
-    public InputFormUpdateTable(long id) throws IOException {
+    public UpdateTableInputForm(long id) throws IOException {
         super(); // Call the constructor of the parent class
         tableController = new TableController(); // Initialize the controller
         this.modelTable = tableController.getTableById(id); // Retrieve the table data

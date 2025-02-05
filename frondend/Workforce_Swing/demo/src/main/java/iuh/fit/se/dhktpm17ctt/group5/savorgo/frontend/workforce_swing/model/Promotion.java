@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.PromotionDiscountTypeEnum;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.StatusPromotionEnum;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.PromotionStatusEnum;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.table.ThumbnailCell;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -41,6 +41,6 @@ public class Promotion extends ModelBasic{
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate endDate; // Ngày kết thúc
 
-    private StatusPromotionEnum status; // Trạng thái (AVAILABLE, ENDED, DELETED)
+    private PromotionStatusEnum status; // Trạng thái (AVAILABLE, ENDED, DELETED)
 
 }

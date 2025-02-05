@@ -2,7 +2,7 @@ package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.
 
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.MenuController;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.PromotionDiscountTypeEnum;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.StatusPromotionEnum;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.PromotionStatusEnum;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Menu;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Promotion;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.component.MyImageIcon;
@@ -26,8 +26,9 @@ public class CardPromotion extends CardBasic<Promotion> {
 	@Override
 	protected void init() {
 		// TODO Auto-generated method stub
+		menuController = new MenuController();
 		try {
-			menu = new MenuController().getMenuById(model.getMenuId());
+			menu = menuController.getMenuById(model.getMenuId());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 		}
@@ -41,6 +42,7 @@ public class CardPromotion extends CardBasic<Promotion> {
 
 	@Override
 	protected JPanel createHeader() {
+		
 		JPanel header = new JPanel(new MigLayout("fill,insets 0", "[fill]", "[top]"));
 		header.putClientProperty(FlatClientProperties.STYLE, "background:null");
 

@@ -6,10 +6,10 @@ import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Menu
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.card.CardMenu;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.form.MenuFormUI;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.form.PromotionFormUI;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.create.InputFormCreateMenu;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.create.InputFormCreatePromotion;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.info.InfoFormMenu;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.update.InputFormUpdateMenu;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.create.CreateMenuInputForm;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.create.CreatePromotionInputForm;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.info.MenuInfoForm;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.update.UpdateMenuInputForm;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.simple.SimpleMessageModal;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.BusinessException;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.DefaultComponent;
@@ -274,7 +274,7 @@ public class FormMenuController {
             if (!validateSingleCardSelection(idHolder, "view details"))
                 return;
         }
-        InfoFormMenu infoFormMenu = createInfoFormMenu(idHolder[0]);
+        MenuInfoForm infoFormMenu = createInfoFormMenu(idHolder[0]);
         ModalDialog.showModal(formMenu, new AdaptSimpleModalBorder(infoFormMenu, "Menu details information", AdaptSimpleModalBorder.DEFAULT_OPTION, (controller, action) -> {}), DefaultComponent.getInfoForm());
     }
 
@@ -282,7 +282,7 @@ public class FormMenuController {
      * Displays a modal dialog for creating a new menu.
      */
     private void showCreateModal() {
-        InputFormCreateMenu inputFormCreateMenu = new InputFormCreateMenu();
+        CreateMenuInputForm inputFormCreateMenu = new CreateMenuInputForm();
         ModalDialog.showModal(formMenu, new AdaptSimpleModalBorder(inputFormCreateMenu, "Create menu", AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
             if (action == AdaptSimpleModalBorder.YES_OPTION) {
                 handleCreateMenu(inputFormCreateMenu);
@@ -294,7 +294,7 @@ public class FormMenuController {
      * Displays a modal dialog for creating a new promotion.
      */
     private void showCreatePromotionModal() {
-        InputFormCreatePromotion inputFormCreatePromotion = new InputFormCreatePromotion(getSelectedMenuIds());
+        CreatePromotionInputForm inputFormCreatePromotion = new CreatePromotionInputForm(getSelectedMenuIds());
         ModalDialog.showModal(formMenu, new AdaptSimpleModalBorder(inputFormCreatePromotion, "Create promotion", AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
             if (action == AdaptSimpleModalBorder.YES_OPTION) {
                 handleCreatePromotion(inputFormCreatePromotion);
@@ -307,7 +307,7 @@ public class FormMenuController {
      * 
      * @param inputFormCreatePromotion The input form containing the promotion data.
      */
-    private void handleCreatePromotion(InputFormCreatePromotion inputFormCreatePromotion) {
+    private void handleCreatePromotion(CreatePromotionInputForm inputFormCreatePromotion) {
         try {
             promotionController.createPromotions(inputFormCreatePromotion.getData());
         } catch (IOException e) {
@@ -321,7 +321,7 @@ public class FormMenuController {
      * 
      * @param inputFormCreateMenu The input form containing the menu data.
      */
-    private void handleCreateMenu(InputFormCreateMenu inputFormCreateMenu) {
+    private void handleCreateMenu(CreateMenuInputForm inputFormCreateMenu) {
         Object[] menuData = inputFormCreateMenu.getData();
         try {
             menuController.createMenu(menuData);
@@ -351,7 +351,7 @@ public class FormMenuController {
         } catch (IOException e) {
             Toast.show(formMenu, Toast.Type.ERROR, "Failed to find menu to edit: " + e.getMessage());
         }
-        InputFormUpdateMenu inputFormUpdateMenu = createInputFormUpdateMenu(menu);
+        UpdateMenuInputForm inputFormUpdateMenu = createInputFormUpdateMenu(menu);
         ModalDialog.showModal(formMenu, new AdaptSimpleModalBorder(inputFormUpdateMenu, "Update menu", AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
             if (action == AdaptSimpleModalBorder.YES_OPTION) {
                 handleUpdateMenu(inputFormUpdateMenu);
@@ -404,9 +404,9 @@ public class FormMenuController {
      * @param menu The Menu object to update.
      * @return The created InputFormUpdateMenu, or null if an error occurs.
      */
-    private InputFormUpdateMenu createInputFormUpdateMenu(Menu menu) {
+    private UpdateMenuInputForm createInputFormUpdateMenu(Menu menu) {
         try {
-            return new InputFormUpdateMenu(menu);
+            return new UpdateMenuInputForm(menu);
         } catch (IOException e) {
             Toast.show(formMenu, Toast.Type.ERROR, "Failed to find menu to edit: " + e.getMessage());
             return null;
@@ -419,9 +419,9 @@ public class FormMenuController {
      * @param menuId The ID of the menu to display.
      * @return The created InfoFormMenu, or null if an error occurs.
      */
-    private InfoFormMenu createInfoFormMenu(String menuId) {
+    private MenuInfoForm createInfoFormMenu(String menuId) {
         try {
-            return new InfoFormMenu(menuId);
+            return new MenuInfoForm(menuId);
         } catch (IOException e) {
             Toast.show(formMenu, Toast.Type.ERROR, "Failed to find menu to view details: " + e.getMessage());
             return null;
@@ -433,7 +433,7 @@ public class FormMenuController {
      * 
      * @param inputFormUpdateMenu The input form containing the updated menu information.
      */
-    private void handleUpdateMenu(InputFormUpdateMenu inputFormUpdateMenu) {
+    private void handleUpdateMenu(UpdateMenuInputForm inputFormUpdateMenu) {
         Object[] menuData = inputFormUpdateMenu.getData();
         try {
             menuController.updateMenu(menuData);

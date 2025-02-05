@@ -4,7 +4,7 @@ import com.formdev.flatlaf.FlatClientProperties;
 
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.MenuController;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.PromotionDiscountTypeEnum;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.StatusPromotionEnum;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.PromotionStatusEnum;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Menu;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Promotion;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.InputPopupForm;
@@ -23,7 +23,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.time.LocalDate;
 
-public class InputFormUpdatePromotion extends PopupFormBasic<Promotion> implements InputPopupForm {
+public class UpdatePromotionInputForm extends PopupFormBasic<Promotion> implements InputPopupForm {
 	private Promotion modelPromotion; // The promotion model to update
 	private Menu menu;
 	private MenuController menuController = new MenuController();
@@ -48,7 +48,7 @@ public class InputFormUpdatePromotion extends PopupFormBasic<Promotion> implemen
 	private JLabel lblStartDateError = new JLabel();
 	private JLabel lblEndDateError = new JLabel();
 
-	public InputFormUpdatePromotion(Promotion promotion, Menu menu) {
+	public UpdatePromotionInputForm(Promotion promotion, Menu menu) {
 		super();
 		this.modelPromotion = promotion;
 		this.menu = menu;

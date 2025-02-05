@@ -9,11 +9,11 @@ import javax.swing.*;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 
-public class InfoFormTable extends PopupFormBasic<Table> {
+public class TableInfoForm extends PopupFormBasic<Table> {
     private TableController controllerTable;
     private Table modelTable;
 
-    public InfoFormTable(long id) throws IOException {
+    public TableInfoForm(long id) throws IOException {
         controllerTable = new TableController();
         modelTable = controllerTable.getTableById(id);
         init();
