@@ -4,9 +4,9 @@ import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Table;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.card.CardTable;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.form.TableFormUI;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.create.InputFormCreateTable;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.info.InfoFormTable;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.update.InputFormUpdateTable;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.create.CreateTableInputForm;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.info.TableInfoForm;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.update.UpdateTableInputForm;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.simple.SimpleMessageModal;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.system.FormManager;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.BusinessException;
@@ -270,7 +270,7 @@ public class FormTableController {
             if (!validateSingleCardSelection(idHolder, "view details"))
                 return;
         }
-        InfoFormTable infoFormTable = createInfoFormTable(idHolder[0]);
+        TableInfoForm infoFormTable = createInfoFormTable(idHolder[0]);
         ModalDialog.showModal(formTableUI, new AdaptSimpleModalBorder(infoFormTable, "Table details information",
                 AdaptSimpleModalBorder.DEFAULT_OPTION, (controller, action) -> {
                 }), DefaultComponent.getInfoForm());
@@ -280,7 +280,7 @@ public class FormTableController {
      * Shows the create modal for adding a new table.
      */
     private void showCreateModal() {
-        InputFormCreateTable inputFormCreateTable = new InputFormCreateTable();
+        CreateTableInputForm inputFormCreateTable = new CreateTableInputForm();
         ModalDialog.showModal(formTableUI, new AdaptSimpleModalBorder(inputFormCreateTable, "Create table",
                 AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
                     if (action == AdaptSimpleModalBorder.YES_OPTION) {
@@ -295,9 +295,9 @@ public class FormTableController {
      * @param tableId the ID of the table to create the info form for
      * @return the created InfoFormTable
      */
-    private InfoFormTable createInfoFormTable(long tableId) {
+    private TableInfoForm createInfoFormTable(long tableId) {
         try {
-            return new InfoFormTable(tableId);
+            return new TableInfoForm(tableId);
         } catch (IOException e) {
             Toast.show(formTableUI, Toast.Type.ERROR, "Failed to find table to view details: " + e.getMessage());
             return null;
@@ -309,7 +309,7 @@ public class FormTableController {
      * 
      * @param inputFormCreateTable the form containing the new table data
      */
-    private void handleCreateTable(InputFormCreateTable inputFormCreateTable) {
+    private void handleCreateTable(CreateTableInputForm inputFormCreateTable) {
         try {
             tableController.createTable(inputFormCreateTable.getData());
             Toast.show(formTableUI, Toast.Type.SUCCESS, "Create table successfully");
@@ -338,7 +338,7 @@ public class FormTableController {
         } catch (IOException e) {
             Toast.show(formTableUI, Toast.Type.ERROR, "Failed to find table to edit: " + e.getMessage());
         }
-        InputFormUpdateTable inputFormUpdateTable = createInputFormUpdateTable(idHolder[0]);
+        UpdateTableInputForm inputFormUpdateTable = createInputFormUpdateTable(idHolder[0]);
         ModalDialog.showModal(formTableUI, new AdaptSimpleModalBorder(inputFormUpdateTable, "Update table",
                 AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
                     if (action == AdaptSimpleModalBorder.YES_OPTION) {
@@ -392,9 +392,9 @@ public class FormTableController {
      * @param tableId the ID of the table to create the update form for
      * @return the created InputFormUpdateTable
      */
-    private InputFormUpdateTable createInputFormUpdateTable(long tableId) {
+    private UpdateTableInputForm createInputFormUpdateTable(long tableId) {
         try {
-            return new InputFormUpdateTable(tableId);
+            return new UpdateTableInputForm(tableId);
         } catch (IOException e) {
             Toast.show(formTableUI, Toast.Type.ERROR, "Failed to find table to edit: " + e.getMessage());
             return null;
@@ -406,7 +406,7 @@ public class FormTableController {
      * 
      * @param inputFormUpdateTable the form containing the updated table data
      */
-    private void handleUpdateTable(InputFormUpdateTable inputFormUpdateTable) {
+    private void handleUpdateTable(UpdateTableInputForm inputFormUpdateTable) {
         try {
             tableController.updateTable(inputFormUpdateTable.getData());
             Toast.show(formTableUI, Toast.Type.SUCCESS, "Update table successfully");

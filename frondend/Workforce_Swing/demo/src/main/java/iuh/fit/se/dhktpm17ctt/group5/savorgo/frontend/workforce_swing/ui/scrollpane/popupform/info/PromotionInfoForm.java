@@ -17,12 +17,12 @@ import java.awt.MenuContainer;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 
-public class InfoFormPromotion extends PopupFormBasic<Promotion> {
+public class PromotionInfoForm extends PopupFormBasic<Promotion> {
     private MenuController menuController;
     private PromotionController promotionController;
     private Promotion promotion;
 
-    public InfoFormPromotion(long id) throws IOException {
+    public PromotionInfoForm(long id) throws IOException {
     	menuController = new MenuController();
     	promotionController = new PromotionController();
         promotion = promotionController.getPromotionById(id); // Assuming you have a method to get promotion by id

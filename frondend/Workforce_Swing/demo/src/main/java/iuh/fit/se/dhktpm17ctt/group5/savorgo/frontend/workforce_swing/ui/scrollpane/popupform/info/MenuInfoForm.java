@@ -13,11 +13,11 @@ import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-public class InfoFormMenu extends PopupFormBasic {
+public class MenuInfoForm extends PopupFormBasic {
     private MenuController menuController;
     private Menu menu;
 
-    public InfoFormMenu(String id) throws IOException {
+    public MenuInfoForm(String id) throws IOException {
         menuController = new MenuController();
         menu = menuController.getMenuById(id);
         init();

@@ -16,7 +16,7 @@ import java.awt.event.KeyEvent;
 
 import javax.swing.*;
 
-public class InputFormCreateTable extends PopupFormBasic<Table> implements InputPopupForm {
+public class CreateTableInputForm extends PopupFormBasic<Table> implements InputPopupForm {
 
     private JTextField txtName = new JTextField(); // Declare txtName to access the value outside
     private JLabel lblNameError = new JLabel(); // Declare lblNameError to access the value outside
@@ -26,7 +26,7 @@ public class InputFormCreateTable extends PopupFormBasic<Table> implements Input
      * Constructor for InputFormCreateTable. Initializes the form by calling the
      * init method.
      */
-    public InputFormCreateTable() {
+    public CreateTableInputForm() {
         init();
     }
 

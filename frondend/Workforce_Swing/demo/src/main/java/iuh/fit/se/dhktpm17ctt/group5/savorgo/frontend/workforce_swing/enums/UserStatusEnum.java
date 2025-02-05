@@ -2,25 +2,24 @@ package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums;
 
 import java.util.Arrays;
 
-public enum PromotionStatusEnum {
-    AVAILABLE("Available"), // Khuyến mãi đang hoạt động
-    ENDED("Ended"),         // Khuyến mãi đã kết thúc
-    DELETED("Deleted");     // Khuyến mãi đã bị xóa
+public enum UserStatusEnum {
+    OK("OK"),
+    DELETED("Deleted");
 
     private final String displayName;
 
     // Constructor
-    PromotionStatusEnum(String displayName) {
+    UserStatusEnum(String displayName) {
         this.displayName = displayName;
     }
 
-    // Getter cho tên hiển thị
+    // Getter for display name
     public String getDisplayName() {
         return displayName;
     }
 
-    public static PromotionStatusEnum fromDisplayName(String displayName) {
-        for (PromotionStatusEnum status : PromotionStatusEnum.values()) {
+    public static UserStatusEnum fromDisplayName(String displayName) {
+        for (UserStatusEnum status : UserStatusEnum.values()) {
             if (status.getDisplayName().equalsIgnoreCase(displayName)) {
                 return status;
             }
@@ -29,8 +28,8 @@ public enum PromotionStatusEnum {
     }
 
     public static String[] getDisplayNames() {
-        return Arrays.stream(PromotionStatusEnum.values())
-                .map(PromotionStatusEnum::getDisplayName)
+        return Arrays.stream(UserStatusEnum.values())
+                .map(UserStatusEnum::getDisplayName)
                 .toArray(String[]::new);
     }
 }

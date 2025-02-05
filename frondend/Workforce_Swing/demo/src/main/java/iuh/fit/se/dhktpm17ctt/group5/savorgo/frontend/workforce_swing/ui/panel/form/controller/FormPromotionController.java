@@ -2,14 +2,14 @@ package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.
 
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.MenuController;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.PromotionController;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.StatusPromotionEnum;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.PromotionStatusEnum;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Menu;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Promotion;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.card.CardPromotion;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.form.PromotionFormUI;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.create.InputFormCreatePromotion;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.info.InfoFormPromotion;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.update.InputFormUpdatePromotion;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.create.CreatePromotionInputForm;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.info.PromotionInfoForm;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.update.UpdatePromotionInputForm;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.simple.SimpleMessageModal;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.BusinessException;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.DefaultComponent;
@@ -293,7 +293,7 @@ public class FormPromotionController {
             if (!validateSingleCardSelection(idHolder, "view details"))
                 return;
         }
-        InfoFormPromotion infoFormPromotion = createInfoFormPromotion(idHolder[0]);
+        PromotionInfoForm infoFormPromotion = createInfoFormPromotion(idHolder[0]);
         ModalDialog.showModal(formPromotion, new AdaptSimpleModalBorder(infoFormPromotion, "Promotion details information", AdaptSimpleModalBorder.DEFAULT_OPTION, (controller, action) -> {}), DefaultComponent.getInfoForm());
     }
 
@@ -301,7 +301,7 @@ public class FormPromotionController {
      * Shows the create modal for adding a new promotion.
      */
     private void showCreateModal() {
-        InputFormCreatePromotion inputFormCreatePromotion = new InputFormCreatePromotion(null);
+        CreatePromotionInputForm inputFormCreatePromotion = new CreatePromotionInputForm(null);
         ModalDialog.showModal(formPromotion, new AdaptSimpleModalBorder(inputFormCreatePromotion, "Create promotions", AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
             if (action == AdaptSimpleModalBorder.YES_OPTION) {
                 handleCreatePromotion(inputFormCreatePromotion);
@@ -314,7 +314,7 @@ public class FormPromotionController {
      * 
      * @param inputFormCreatePromotion the form containing the promotion data
      */
-    private void handleCreatePromotion(InputFormCreatePromotion inputFormCreatePromotion) {
+    private void handleCreatePromotion(CreatePromotionInputForm inputFormCreatePromotion) {
         try {
             promotionController.createPromotions(inputFormCreatePromotion.getData());
             Toast.show(formPromotion, Toast.Type.SUCCESS, "Create promotion successfully");
@@ -353,12 +353,12 @@ public class FormPromotionController {
             return;
         }
 
-        if (promotion.getStatus().equals(StatusPromotionEnum.DELETED)) {
+        if (promotion.getStatus().equals(PromotionStatusEnum.DELETED)) {
             Toast.show(formPromotion, Toast.Type.ERROR, "Cannot edit deleted promotion");
             return;
         }
 
-        InputFormUpdatePromotion inputFormUpdatePromotion = createInputFormUpdatePromotion(promotion.getId());
+        UpdatePromotionInputForm inputFormUpdatePromotion = createInputFormUpdatePromotion(promotion.getId());
         ModalDialog.showModal(formPromotion, new AdaptSimpleModalBorder(inputFormUpdatePromotion, "Update promotion", AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
             if (action == AdaptSimpleModalBorder.YES_OPTION) {
                 handleUpdatePromotion(inputFormUpdatePromotion);
@@ -411,7 +411,7 @@ public class FormPromotionController {
      * @param promotionId the ID of the promotion to create the update form for
      * @return the created InputFormUpdatePromotion
      */
-    private InputFormUpdatePromotion createInputFormUpdatePromotion(long promotionId) {
+    private UpdatePromotionInputForm createInputFormUpdatePromotion(long promotionId) {
         Promotion promotion;
         Menu menu;
         try {
@@ -426,7 +426,7 @@ public class FormPromotionController {
             Toast.show(formPromotion, Toast.Type.ERROR, "Failed to find menu to edit: " + e.getMessage());
             return null;
         }
-        return new InputFormUpdatePromotion(promotion, menu);
+        return new UpdatePromotionInputForm(promotion, menu);
     }
 
     /**
@@ -435,9 +435,9 @@ public class FormPromotionController {
      * @param promotionId the ID of the promotion to create the info form for
      * @return the created InfoFormPromotion
      */
-    private InfoFormPromotion createInfoFormPromotion(long promotionId) {
+    private PromotionInfoForm createInfoFormPromotion(long promotionId) {
         try {
-            return new InfoFormPromotion(promotionId);
+            return new PromotionInfoForm(promotionId);
         } catch (IOException e) {
             Toast.show(formPromotion, Toast.Type.ERROR, "Failed to find promotion to view details: " + e.getMessage());
             return null;
@@ -449,7 +449,7 @@ public class FormPromotionController {
      * 
      * @param inputFormUpdatePromotion the form containing the updated promotion data
      */
-    private void handleUpdatePromotion(InputFormUpdatePromotion inputFormUpdatePromotion) {
+    private void handleUpdatePromotion(UpdatePromotionInputForm inputFormUpdatePromotion) {
         Object[] promotionData = inputFormUpdatePromotion.getData();
         try {
             promotionController.updatePromotion(promotionData);

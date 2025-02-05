@@ -13,13 +13,14 @@ import java.time.format.DateTimeFormatter;
  * Class representing a card for a menu item.
  */
 public class CardMenu extends CardBasic<Menu> {
-	private MenuController menuController = new MenuController();
+	private MenuController menuController;
     public CardMenu(Menu menu){
         super(menu);
     }
 
     @Override
     protected JPanel createHeader() {
+    	menuController = new MenuController();
         JPanel header = new JPanel(new MigLayout("fill,insets 0", "[fill]", "[top]"));
         header.putClientProperty(FlatClientProperties.STYLE, "background:null");
 

@@ -40,7 +40,7 @@ import java.util.Set;
  * input various details about the menu item, including its name, category,
  * prices, sizes, options, and an image.
  */
-public class InputFormCreateMenu extends PopupFormBasic implements InputPopupForm {
+public class CreateMenuInputForm extends PopupFormBasic implements InputPopupForm {
 
     private JTextField txtName = new JTextField(); // Text field for menu name
     private CustomFormattedTextField txtOriginalPrice = new CustomFormattedTextField(); // Formatted text field for original price
@@ -62,7 +62,7 @@ public class InputFormCreateMenu extends PopupFormBasic implements InputPopupFor
     private JLabel lblOptionsError = new JLabel(); // Declare lblNameError to access the value outside;
     private JLabel lblDescriptionError = new JLabel(); // Declare lblNameError to access the value outside;
 
-    public InputFormCreateMenu() {
+    public CreateMenuInputForm() {
         init(); // Initialize the form
     }
 
