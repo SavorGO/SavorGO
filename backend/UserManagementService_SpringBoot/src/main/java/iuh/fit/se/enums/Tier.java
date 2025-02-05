@@ -1,4 +1,4 @@
-package iuh.fit.se.entities;
+package iuh.fit.se.enums;
 
 public enum Tier {
     NONE,COPPER,GOLD,DIAMOND;

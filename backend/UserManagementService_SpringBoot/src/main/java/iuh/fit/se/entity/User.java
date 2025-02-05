@@ -1,5 +1,8 @@
-package iuh.fit.se.entities;
+package iuh.fit.se.entity;
 
+import iuh.fit.se.enums.Role;
+import iuh.fit.se.enums.Status;
+import iuh.fit.se.enums.Tier;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -15,8 +18,8 @@ import java.time.LocalDate;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    int id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    String id;
     String email;
     String password;
     @Column(name = "first_name")
