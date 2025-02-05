@@ -23,7 +23,7 @@ import java.util.Arrays;
 @SystemForm(name = "User Management", description = "User Management is a user interface component", tags = { "user", "management" })
 public class UserFormUI extends Form {
     private UserFormController controller;
-    private final Object columns[] = new Object[] { "SELECT", "ID", "EMAIL", "FIRST NAME", "LAST NAME", "ROLE", "POINTS", "TIER", "CREATED TIME", "MODIFIED TIME" };
+    private final Object columns[] = new Object[] { "SELECT", "#", "EMAIL", "FIRST NAME", "LAST NAME", "ROLE", "POINTS", "TIER", "CREATED TIME", "MODIFIED TIME" };
     private DefaultTableModel tableModel = createTableModel();
     private JTable table = new JTable(tableModel);
     private final ResponsiveLayout responsiveLayout = new ResponsiveLayout(ResponsiveLayout.JustifyContent.FIT_CONTENT, new Dimension(-1, -1), 10, 10);

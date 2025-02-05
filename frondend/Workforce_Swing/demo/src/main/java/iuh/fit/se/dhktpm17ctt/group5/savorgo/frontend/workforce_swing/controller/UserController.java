@@ -144,15 +144,19 @@ public class UserController {
     * @param user The User object to convert.
     * @return An array of objects suitable for table display.
     */
+
    public Object[] toTableRow(User user) {
        return new Object[]{
            false, // Checkbox for selection
            user.getId(),
-           user.getFirstName() + " " + user.getLastName(), // Full name
-           user.getRole().getDisplayName(), // Role display name
            user.getEmail(),
+           user.getFirstName() ,
+            user.getLastName(), // Full name
+           user.getRole().getDisplayName(), // Role display name
            user.getPoints(),
-           user.getTier().getDisplayName() // Tier display name
+           user.getTier().getDisplayName(), // Tier display name
+           user.getCreatedTime(), // Created time
+		   user.getModifiedTime()
        };
    }
 }

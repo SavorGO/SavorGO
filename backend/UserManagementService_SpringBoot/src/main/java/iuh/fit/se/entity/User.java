@@ -8,6 +8,9 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Data
 @NoArgsConstructor
@@ -21,6 +24,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
     String email;
+    @JsonIgnore
     String password;
     @Column(name = "first_name")
     String firstName;
@@ -32,11 +36,14 @@ public class User {
     @Enumerated(EnumType.STRING)
     Tier tier;
     String address;
+    @JsonIgnore
     Status status;
     @Column(name = "created_time")
-    LocalDate createdTime;
+    LocalDateTime createdTime;
     @Column(name = "modified_time")
-    LocalDate modifiedTime;
+    LocalDateTime modifiedTime;
+    @Column(name = "public_id")
+    String publicId;
 
     @PrePersist
     void GenerateValue(){
@@ -44,7 +51,7 @@ public class User {
         this.points = 0;
         this.tier = Tier.NONE;
         this.status = Status.OK;
-        this.createdTime = LocalDate.now();
-        this.modifiedTime = LocalDate.now();
+        this.createdTime = LocalDateTime.now();
+        this.modifiedTime = LocalDateTime.now();
     }
 }

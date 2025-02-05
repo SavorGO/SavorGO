@@ -14,8 +14,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @SuperBuilder
 public class User extends ModelBasic {
-    private int id;
-    private String name;
+    private String id;
     private String email;
     private String firstName;
     private String lastName;

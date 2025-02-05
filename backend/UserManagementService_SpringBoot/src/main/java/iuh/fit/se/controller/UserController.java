@@ -23,6 +23,11 @@ public class UserController {
     public ResponseEntity<List<UserResponse>> getUsers(){
         return ResponseEntity.ok(userService.findUsers());
     }
+    
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponse> getUser(@PathVariable String id){
+	    return ResponseEntity.ok(userService.findById(id));
+    }
 
     @GetMapping("/search/r/{role}")
     public ResponseEntity<List<UserResponse>> getUsersByRole(@PathVariable String role){
