@@ -10,7 +10,11 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.nimbusds.jose.shaded.gson.JsonObject;
+
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @FieldDefaults(makeFinal = true,level = AccessLevel.PRIVATE)
@@ -45,14 +49,21 @@ public class UserController {
         return ResponseEntity.ok(userService.createUser(request));
     }
 
-    @PutMapping("/update/{email}")
-    public ResponseEntity<UserResponse> updateUser(@PathVariable String email, @RequestBody UserUpdateRequest request){
-        return ResponseEntity.ok(userService.updateUser(email,request));
+    @PutMapping("/{id}")
+    public ResponseEntity<UserResponse> updateUser(@PathVariable String id, @RequestBody UserUpdateRequest request){
+        return ResponseEntity.ok(userService.updateUser(id,request));
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable String id){
         userService.deleteUser(id);
         return ResponseEntity.ok("User has been deleted");
+    }
+    
+    @DeleteMapping
+    public ResponseEntity<String> deleteUsers(@RequestBody Map<String, List<String>> requestBody) {
+        List<String> ids = requestBody.get("ids");
+        userService.deleteUsers(ids);
+        return ResponseEntity.ok("Users have been deleted");
     }
 }

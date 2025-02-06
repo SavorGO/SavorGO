@@ -3,7 +3,7 @@ package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums;
 import java.util.Arrays;
 
 public enum UserStatusEnum {
-    OK("OK"),
+    AVAILABLE("Available"),
     DELETED("Deleted");
 
     private final String displayName;

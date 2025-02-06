@@ -6,7 +6,8 @@ import iuh.fit.se.dto.request.UserCreationRequest;
 import iuh.fit.se.dto.request.UserUpdateRequest;
 import iuh.fit.se.dto.response.UserResponse;
 import iuh.fit.se.entity.User;
-import iuh.fit.se.enums.Role;
+import iuh.fit.se.enums.UserRoleEnum;
+import iuh.fit.se.enums.UserStatusEnum;
 import iuh.fit.se.repository.UserRepository;
 import iuh.fit.se.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -32,9 +33,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponse updateUser(String email, UserUpdateRequest request) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+    public UserResponse updateUser(String id, UserUpdateRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
         
         // Cập nhật thông tin từ request
         try {
@@ -43,14 +44,17 @@ public class UserServiceImpl implements UserService {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+        if(request.getPassword()!=null)
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        
         return objectMapper.convertValue(userRepository.save(user), UserResponse.class);
     }
 
     @Override
     public void deleteUser(String id) {
-        userRepository.deleteById(id);
+    	User user = userRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException("User not found with id: " + id)); 
+		user.setStatus(UserStatusEnum.DELETED);
+		userRepository.save(user);
     }
 
     @Override
@@ -68,7 +72,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserResponse> findByRole(String role) {
-        Role roleEnum = Role.valueOf(role.toUpperCase());
+        UserRoleEnum roleEnum = UserRoleEnum.valueOf(role.toUpperCase());
         List<User> users = userRepository.findByRole(roleEnum);
         return objectMapper.convertValue(users, new TypeReference<List<UserResponse>>() {});
     }
@@ -77,5 +81,15 @@ public class UserServiceImpl implements UserService {
 	public UserResponse findById(String id) {
 		Optional<User> user = userRepository.findById(id);
 		return objectMapper.convertValue(user.get(), UserResponse.class);
+	}
+
+	@Override
+	public void deleteUsers(List<String> ids) {
+	    ids.forEach(id -> {
+	        User user = userRepository.findById(id)
+	                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+	        user.setStatus(UserStatusEnum.DELETED);
+	        userRepository.save(user);
+	    });
 	}
 }

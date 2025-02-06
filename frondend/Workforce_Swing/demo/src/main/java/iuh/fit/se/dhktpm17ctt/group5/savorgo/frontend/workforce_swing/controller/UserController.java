@@ -76,41 +76,55 @@ public class UserController {
     }
 
 	/**
-	 * Updates an existing user with the specified details.
+	 * Updates the user information based on the provided data.
+	 *
+	 * @param userData An array of objects containing user information:
+	 *                 - userData[0]: User ID (String)
+	 *                 - userData[1]: First Name (String)
+	 *                 - userData[2]: Last Name (String)
+	 *                 - userData[3]: User Role (User RoleEnum)
+	 *                 - userData[4]: Points (Integer)
+	 *                 - userData[5]: User Tier (User TierEnum)
+	 *                 - userData[6]: Address (String)
+	 *                 - userData[7]: Image path (String, can be null)
+	 *                 - userData[8]: Password (String, can be empty)
 	 * 
-	 * @param userData An array containing the updated details of the user. [0] -
-	 *                 id, [1] - email, [2] - first name, [3] - last name, [4] -
-	 *                 role, [5] - points, [6] - tier, [7] - image path.
-	 * @throws IOException       if there is an issue during the process.
-	 * @throws BusinessException if the user does not exist.
+	 * @throws IOException If an I/O error occurs during image upload.
+	 * @throws BusinessException If there is a business logic error during the update process.
 	 */
-	public void updateUser(Object[] userData) throws IOException, BusinessException {
-		User user = getUserById(userData[0].toString());
-		user.setEmail(userData[1].toString());
-		user.setFirstName(userData[2].toString());
-		user.setLastName(userData[3].toString());
-		user.setRole((UserRoleEnum) userData[4]);
-		user.setPoints((int) userData[5]);
-		user.setTier((UserTierEnum)userData[6]);
+	public void updateUser (Object[] userData) throws IOException, BusinessException {
+	    User user = getUserById(userData[0].toString());
+	    user.setFirstName(userData[1].toString());
+	    user.setLastName(userData[2].toString());
+	    user.setRole((UserRoleEnum) userData[3]);
+	    user.setPoints((int) userData[4]);
+	    user.setTier((UserTierEnum) userData[5]);
+	    user.setAddress(userData[6].toString());
 
-		if (userData[7] != null) {
-			ExecutorService executor = Executors.newSingleThreadExecutor();
-			Future<String> future = executor.submit(() -> {
-				return MyImageIcon.updateImageToCloud("Users", new File(userData[7].toString()));
-			});
-			try {
-				String publicId = future.get(); // Wait for the task to complete
-				user.setPublicId(publicId);
-			} catch (InterruptedException | ExecutionException e) {
-				e.printStackTrace();
-			} finally {
-				executor.shutdown(); // Ensure the ExecutorService is closed
-			}
-		}
+	    if (userData[7] != null) { // Adjusted index for image path
+	        ExecutorService executor = Executors.newSingleThreadExecutor();
+	        Future<String> future = executor.submit(() -> {
+	            return MyImageIcon.updateImageToCloud("Users", new File(userData[7].toString()));
+	        });
+	        try {
+	            String publicId = future.get(); // Wait for the task to complete
+	            user.setPublicId(publicId);
+	        } catch (InterruptedException | ExecutionException e) {
+	            e.printStackTrace();
+	        } finally {
+	            executor.shutdown(); // Ensure the ExecutorService is closed
+	        }
+	    }
 
-		user.setModifiedTime(LocalDateTime.now());
-		serviceUser.updateUser(user);
+	    // Check if the user wants to change the password
+	    if (!userData[8].toString().isEmpty()) { // Adjusted index for password
+	        user.setPassword(userData[8].toString());
+	    }
+
+	    user.setModifiedTime(LocalDateTime.now());
+	    serviceUser .updateUser (user);
 	}
+
 
 	/**
 	 * Deletes a user by its ID.
@@ -174,7 +188,7 @@ public class UserController {
        return new ThumbnailCell(
            user.getPublicId() == null ? null : "SavorGO/Users/" + user.getPublicId(),
            user.getFirstName() + " " + user.getLastName(),
-          "",
+          user.getStatus().getDisplayName(),
            null
        );
    }

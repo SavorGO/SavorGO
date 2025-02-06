@@ -1,8 +1,8 @@
 package iuh.fit.se.dto.request;
 
-import iuh.fit.se.enums.Role;
-import iuh.fit.se.enums.Status;
-import iuh.fit.se.enums.Tier;
+import iuh.fit.se.enums.UserRoleEnum;
+import iuh.fit.se.enums.UserStatusEnum;
+import iuh.fit.se.enums.UserTierEnum;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -23,11 +23,11 @@ public class UserCreationRequest {
     String password;
     String firstName;
     String lastName;
-    Role role;
+    UserRoleEnum role;
     int points;
-    Tier tier;
+    UserTierEnum tier;
     String address;
-    Status status;
+    UserStatusEnum status;
     String publicId;
     LocalDateTime createdTime;
     LocalDateTime modifiedTime;

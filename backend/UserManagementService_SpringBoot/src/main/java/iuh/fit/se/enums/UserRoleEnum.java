@@ -1,5 +1,5 @@
 package iuh.fit.se.enums;
 
-public enum Role {
+public enum UserRoleEnum {
     GUEST,CUSTOMER,STAFF,MANAGER;
 }

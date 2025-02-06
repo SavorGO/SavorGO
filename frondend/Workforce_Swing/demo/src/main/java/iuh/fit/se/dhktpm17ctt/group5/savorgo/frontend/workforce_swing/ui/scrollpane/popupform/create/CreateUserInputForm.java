@@ -261,13 +261,13 @@ public class CreateUserInputForm extends PopupFormBasic implements InputPopupFor
 		}
 
 		// Validate First Name
-		boolean isFirstNameValid = !txtFirstName.getText().isEmpty();
-		lblFirstNameError.setText(isFirstNameValid ? "First Name is valid." : "First Name cannot be empty.");
+		boolean isFirstNameValid = txtFirstName.getText().matches("^[\\p{L} ]+$");
+		lblFirstNameError.setText(isFirstNameValid ? "First Name is valid." : "First Name can only contain letters and spaces.");
 		lblFirstNameError.setForeground(isFirstNameValid ? Color.GREEN : Color.RED);
 
 		// Validate Last Name
-		boolean isLastNameValid = !txtLastName.getText().isEmpty();
-		lblLastNameError.setText(isLastNameValid ? "Last Name is valid." : "Last Name cannot be empty.");
+		boolean isLastNameValid = txtLastName.getText().matches("^[\\p{L} ]+$");
+		lblLastNameError.setText(isLastNameValid ? "Last Name is valid." : "Last Name can only contain letters and spaces.");
 		lblLastNameError.setForeground(isLastNameValid ? Color.GREEN : Color.RED);
 
 		// Validate Password

@@ -1,5 +1,5 @@
 package iuh.fit.se.enums;
 
-public enum Status {
-    OK,DELETED;
+public enum UserStatusEnum {
+    AVAILABLE,DELETED;
 }
