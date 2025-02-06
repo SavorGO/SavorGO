@@ -2,16 +2,19 @@ package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controlle
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.*;
 
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.UserRoleEnum;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.UserTierEnum;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Menu;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.User;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.service.UserService;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.service.impl.UserServiceImpl;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.component.MyImageIcon;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.table.ThumbnailCell;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.BusinessException;
 
 public class UserController {
@@ -48,10 +51,10 @@ public class UserController {
      *                  [3] - role, [4] - points, [5] - tier, [6] - image path.
      * @throws IOException if there is an issue during the process.
      */
-    public void createUser (Object[] userData) throws IOException {
+	public void createUser (Object[] userData) throws IOException {
         String publicId = null;
         try {
-            publicId = MyImageIcon.updateImageToCloud("Users", new File(userData[6].toString()));
+            publicId = MyImageIcon.updateImageToCloud("Users", new File(userData[7].toString()));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -62,8 +65,10 @@ public class UserController {
                 .lastName(userData[2].toString())
                 .role((UserRoleEnum) userData[3])
                 .points((int) userData[4])
-                .tier((UserTierEnum)userData[5])
+                .tier((UserTierEnum) userData[5])
+                .address(userData[6].toString()) // Set the address
                 .publicId(publicId)
+                .password(userData[8].toString()) // Set the password
                 .createdTime(LocalDateTime.now())
                 .modifiedTime(LocalDateTime.now())
                 .build();
@@ -149,14 +154,53 @@ public class UserController {
        return new Object[]{
            false, // Checkbox for selection
            user.getId(),
+           getThumbnailCell(user),
            user.getEmail(),
-           user.getFirstName() ,
-            user.getLastName(), // Full name
            user.getRole().getDisplayName(), // Role display name
            user.getPoints(),
            user.getTier().getDisplayName(), // Tier display name
            user.getCreatedTime(), // Created time
 		   user.getModifiedTime()
        };
+   }
+   
+   /**
+    * Retrieves the thumbnail cell for a user.
+    * 
+    * @param user The User object.
+    * @return The ThumbnailCell for the user.
+    */
+   public ThumbnailCell getThumbnailCell(User user) {
+       return new ThumbnailCell(
+           user.getPublicId() == null ? null : "SavorGO/Users/" + user.getPublicId(),
+           user.getFirstName() + " " + user.getLastName(),
+          "",
+           null
+       );
+   }
+
+   /**
+    * Retrieves the image for a user.
+    * 
+    * @param user The User object.
+    * @param height The desired height of the image.
+    * @param width The desired width of the image.
+    * @param round The rounding for the image corners.
+    * @return The MyImageIcon for the user.
+    * @throws IOException if there is an issue during the process.
+    */
+   public MyImageIcon getImage(User user, int height, int width, int round) throws IOException {
+       if (height == 0 || width == 0) {
+           // Set default values if height or width is zero
+           height = 50;
+           width = 50;
+           round = 0;
+       }
+       try {
+           return MyImageIcon.getMyImageIconFromCloudinaryImageTag("SavorGO/Users/" + user.getPublicId(), height, width, round);
+       } catch (URISyntaxException | IOException e) {
+           // Return a default image if an error occurs
+           return new MyImageIcon("src/main/resources/images/system/no_image_found.png", 55, 55, 10);
+       }
    }
 }

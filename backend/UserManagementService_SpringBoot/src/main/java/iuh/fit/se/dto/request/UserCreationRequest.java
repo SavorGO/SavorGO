@@ -7,13 +7,18 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+
 public class UserCreationRequest {
+	String id;
     String email;
     String password;
     String firstName;
@@ -23,6 +28,7 @@ public class UserCreationRequest {
     Tier tier;
     String address;
     Status status;
-    LocalDate createdTime;
-    LocalDate modifiedTime;
+    String publicId;
+    LocalDateTime createdTime;
+    LocalDateTime modifiedTime;
 }

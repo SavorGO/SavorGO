@@ -5,6 +5,8 @@ import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.layout.
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.form.controller.UserFormController;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.table.CheckBoxTableHeaderRenderer;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.table.TableHeaderAlignment;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.table.TableThumbnailRenderer;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.table.ThumbnailCell;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.SystemForm;
 import net.miginfocom.swing.MigLayout;
 
@@ -23,7 +25,7 @@ import java.util.Arrays;
 @SystemForm(name = "User Management", description = "User Management is a user interface component", tags = { "user", "management" })
 public class UserFormUI extends Form {
     private UserFormController controller;
-    private final Object columns[] = new Object[] { "SELECT", "#", "EMAIL", "FIRST NAME", "LAST NAME", "ROLE", "POINTS", "TIER", "CREATED TIME", "MODIFIED TIME" };
+    private final Object columns[] = new Object[] { "SELECT", "#","THUMBNAIL", "EMAIL", "ROLE", "POINTS", "TIER", "CREATED TIME", "MODIFIED TIME" };
     private DefaultTableModel tableModel = createTableModel();
     private JTable table = new JTable(tableModel);
     private final ResponsiveLayout responsiveLayout = new ResponsiveLayout(ResponsiveLayout.JustifyContent.FIT_CONTENT, new Dimension(-1, -1), 10, 10);
@@ -106,6 +108,7 @@ public class UserFormUI extends Form {
         configureTableProperties();
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        styleTableWithFlatLaf(scrollPane);
         panel.add(createTableTitle("User Management"), "gapx 20");
         panel.add(createHeaderActionPanel());
         panel.add(scrollPane);
@@ -130,12 +133,11 @@ public class UserFormUI extends Form {
         table.getColumnModel().getColumn(1).setPreferredWidth(50);
         table.getColumnModel().getColumn(2).setPreferredWidth(200);
         table.getColumnModel().getColumn(3).setPreferredWidth(150);
-        table.getColumnModel().getColumn(4).setPreferredWidth(150);
+        table.getColumnModel().getColumn(4).setPreferredWidth(100);
         table.getColumnModel().getColumn(5).setPreferredWidth(100);
-        table.getColumnModel().getColumn(6).setPreferredWidth(100);
-        table.getColumnModel().getColumn(7).setPreferredWidth(100);
-        table.getColumnModel().getColumn(8).setPreferredWidth(200);
-        table.getColumnModel().getColumn(9).setPreferredWidth(200);
+        table.getColumnModel().getColumn(6).setPreferredWidth(200);
+        table.getColumnModel().getColumn(7).setPreferredWidth(200);
+        table.setDefaultRenderer(ThumbnailCell.class, new TableThumbnailRenderer(table));
         table.getColumnModel().getColumn(0).setHeaderRenderer(new CheckBoxTableHeaderRenderer(table, 0));
         table.getTableHeader().setDefaultRenderer(new TableHeaderAlignment(table) {
             @Override
@@ -161,6 +163,18 @@ public class UserFormUI extends Form {
                 }
             }
         });
+    }
+    
+    /**
+     * Styles the table with FlatLaf properties.
+     * 
+     * @param scrollPane the JScrollPane containing the table
+     */
+    private void styleTableWithFlatLaf(JScrollPane scrollPane) {
+        panelCard.putClientProperty(FlatClientProperties.STYLE, "" + "arc:20;" + "background:$Table.background;");
+        table.getTableHeader().putClientProperty(FlatClientProperties.STYLE, "" + "height:30;" + "hoverBackground:null;" + "pressedBackground:null;" + "separatorColor:$TableHeader.background;");
+        table.putClientProperty(FlatClientProperties.STYLE, "" + "rowHeight:70;" + "showHorizontalLines:true;" + "intercellSpacing:0,1;" + "cellFocusColor:$TableHeader.hoverBackground;" + "selectionBackground:$TableHeader.hoverBackground;" + "selectionInactiveBackground:$TableHeader.hoverBackground;" + "selectionForeground:$Table.foreground;");
+        scrollPane.getVerticalScrollBar().putClientProperty(FlatClientProperties.STYLE, "" + "trackArc:$ScrollBar.thumbArc;" + "trackInsets:3,3,3,3;" + "thumbInsets:3,3,3,3;" + "background:$Table.background;");
     }
 
     /**
@@ -283,7 +297,11 @@ public class UserFormUI extends Form {
 
             @Override
             public Class<?> getColumnClass(int columnIndex) {
-                if (columnIndex == 0) return Boolean.class; // Select column
+                if (columnIndex == 0)
+                    return Boolean.class;
+                if (columnIndex == 2) {
+                    return ThumbnailCell.class;
+                }
                 return super.getColumnClass(columnIndex);
             }
         };
@@ -319,7 +337,8 @@ public class UserFormUI extends Form {
     /**
      * Refreshes the table data by reloading it.
      */
-    public void refreshTable() {
+    @Override
+    public void formRefresh() {
         controller.loadData("");
     }
 }

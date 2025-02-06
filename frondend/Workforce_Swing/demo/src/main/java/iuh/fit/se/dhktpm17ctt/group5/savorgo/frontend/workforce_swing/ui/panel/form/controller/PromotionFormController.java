@@ -37,7 +37,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-public class FormPromotionController {
+public class PromotionFormController {
     private PromotionFormUI formPromotion;
     private static final int DEBOUNCE_DELAY = 1000; // Debounce delay in milliseconds
     private Timer debounceTimer;
@@ -49,7 +49,7 @@ public class FormPromotionController {
      * 
      * @param formPromotion the PromotionFormUI to control
      */
-    public FormPromotionController(PromotionFormUI formPromotion) {
+    public PromotionFormController(PromotionFormUI formPromotion) {
         this.formPromotion = formPromotion;
     }
 

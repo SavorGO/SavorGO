@@ -3,7 +3,7 @@ package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.layout.ResponsiveLayout;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.form.controller.FormMenuController;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.form.controller.MenuFormController;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.table.CheckBoxTableHeaderRenderer;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.table.TableHeaderAlignment;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.table.TableThumbnailRenderer;
@@ -26,7 +26,7 @@ import java.util.Arrays;
 
 @SystemForm(name = "Menu", description = "Menu is a user interface component", tags = { "list" })
 public class MenuFormUI extends Form {
-    private FormMenuController controller;
+    private MenuFormController controller;
     private final Object columns[] = new Object[] { "SELECT", "#", "THUMBNAIL", "CATEGORY", "ORIGINAL PRICE", "SALE PRICE", "CREATED TIME", "UPDATED TIME" };
     private DefaultTableModel tableModel = createTableModel();
     private JTable table = new JTable(tableModel);
@@ -40,7 +40,7 @@ public class MenuFormUI extends Form {
      * Constructs a MenuFormUI and initializes the controller.
      */
     public MenuFormUI() {
-        controller = new FormMenuController(this);
+        controller = new MenuFormController(this);
         init();
     }
 
@@ -398,7 +398,8 @@ public class MenuFormUI extends Form {
     /**
      * Refreshes the table data by reloading it.
      */
-    public void refreshTable() {
+    @Override
+    public void formRefresh() {
         controller.loadData("");
     }
 }

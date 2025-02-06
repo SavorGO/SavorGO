@@ -23,4 +23,5 @@ public class User extends ModelBasic {
     private UserTierEnum tier;
     private String address;
     private String publicId;
+    private String password;
 }
