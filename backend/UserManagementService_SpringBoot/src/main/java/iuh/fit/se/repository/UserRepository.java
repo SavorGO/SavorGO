@@ -1,7 +1,7 @@
 package iuh.fit.se.repository;
 
 import iuh.fit.se.entity.User;
-import iuh.fit.se.enums.Role;
+import iuh.fit.se.enums.UserRoleEnum;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,5 +11,5 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User,String> {
      Optional<User> findByEmail(String email);
-     List<User> findByRole(Role role);
+     List<User> findByRole(UserRoleEnum role);
 }

@@ -1,8 +1,8 @@
 package iuh.fit.se.entity;
 
-import iuh.fit.se.enums.Role;
-import iuh.fit.se.enums.Status;
-import iuh.fit.se.enums.Tier;
+import iuh.fit.se.enums.UserRoleEnum;
+import iuh.fit.se.enums.UserStatusEnum;
+import iuh.fit.se.enums.UserTierEnum;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -31,13 +31,12 @@ public class User {
     @Column(name = "last_name")
     String lastName;
     @Enumerated(EnumType.STRING)
-    Role role;
+    UserRoleEnum role;
     int points;
     @Enumerated(EnumType.STRING)
-    Tier tier;
+    UserTierEnum tier;
     String address;
-    @JsonIgnore
-    Status status;
+    UserStatusEnum status;
     @Column(name = "created_time")
     LocalDateTime createdTime;
     @Column(name = "modified_time")
@@ -47,10 +46,10 @@ public class User {
 
     @PrePersist
     void GenerateValue(){
-        this.role = Role.CUSTOMER;
+        this.role = UserRoleEnum.CUSTOMER;
         this.points = 0;
-        this.tier = Tier.NONE;
-        this.status = Status.OK;
+        this.tier = UserTierEnum.NONE;
+        this.status = UserStatusEnum.AVAILABLE;
         this.createdTime = LocalDateTime.now();
         this.modifiedTime = LocalDateTime.now();
     }
