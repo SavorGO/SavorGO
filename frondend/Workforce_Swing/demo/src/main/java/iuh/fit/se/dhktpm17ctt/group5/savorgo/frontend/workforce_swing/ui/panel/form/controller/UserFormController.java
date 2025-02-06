@@ -163,6 +163,7 @@ public class UserFormController {
     private void handleCreateUser (CreateUserInputForm  inputFormCreateUser ) {
         Object[] userData;
 		userData = inputFormCreateUser .getData();
+		System.out.println(userData);
         try {
             userController .createUser (userData);
             Toast.show(formUser , Toast.Type.SUCCESS, "User  created successfully");

@@ -61,6 +61,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void createUser (User user) throws IOException {
         String jsonBody = JsonUtil.toJson(user);
+        System.out.println(jsonBody);
         Response response = HttpUtil.post(API_URL, jsonBody);
         if (!response.isSuccessful()) {
             throw new IOException("Unexpected code " + response);

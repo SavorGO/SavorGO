@@ -4,7 +4,7 @@ import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.layout.ResponsiveLayout;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.form.controller.FormTableController;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.form.controller.TableFormController;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.table.CheckBoxTableHeaderRenderer;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.table.TableHeaderAlignment;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.table.TableThumbnailRenderer;
@@ -26,7 +26,7 @@ import java.util.Arrays;
 
 @SystemForm(name = "Table", description = "Table is a user interface component", tags = { "list" })
 public class TableFormUI extends Form {
-    private FormTableController controller;
+    private TableFormController controller;
     private final Object columns[] = new Object[] { "SELECT", "#", "THUMBNAIL", "IS RESERVED", "CREATED TIME", "UPDATED TIME" };
     private DefaultTableModel tableModel = createTableModel();
     private JTable table = new JTable(tableModel);
@@ -40,7 +40,7 @@ public class TableFormUI extends Form {
      * Constructs a TableFormUI and initializes the controller.
      */
     public TableFormUI() {
-        controller = new FormTableController(this);
+        controller = new TableFormController(this);
         init();
     }
 
@@ -396,7 +396,8 @@ public class TableFormUI extends Form {
     /**
      * Refreshes the table data by reloading it.
      */
-    public void refreshTable() {
+    @Override
+    public void formRefresh() {
         controller.loadData("");
     }
 }

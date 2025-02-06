@@ -36,7 +36,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-public class FormMenuController {
+public class MenuFormController {
     private MenuFormUI formMenu;
     private MenuController menuController = new MenuController();
     private PromotionController promotionController = new PromotionController();
@@ -49,7 +49,7 @@ public class FormMenuController {
      * 
      * @param formMenu The MenuFormUI instance to control.
      */
-    public FormMenuController(MenuFormUI formMenu) {
+    public MenuFormController(MenuFormUI formMenu) {
         this.formMenu = formMenu;
     }
 
