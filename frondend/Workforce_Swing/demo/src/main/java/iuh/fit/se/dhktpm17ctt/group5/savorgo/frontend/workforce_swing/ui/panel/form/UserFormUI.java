@@ -71,15 +71,15 @@ public class UserFormUI extends Form {
     }
 
     /**
-     * Creates a tab panel with the user table.
+     * Creates a tab panel with basic and grid tables.
      * 
      * @return the created JTabbedPane containing the user table
      */
     private Component createTabPanel() {
         JTabbedPane tabb = new JTabbedPane();
         tabb.putClientProperty(FlatClientProperties.STYLE, "" + "tabType:card");
-        tabb.addTab("User Table", createBorder(createUserTable()));
-        tabb.addChangeListener(e -> {
+        tabb.addTab("Basic Table", createBorder(createBasicTable()));
+        tabb.addTab("Grid table", createBorder(createGridTable()));        tabb.addChangeListener(e -> {
             controller.loadData("");
             selectedTitle = tabb.getTitleAt(tabb.getSelectedIndex());
         });
@@ -103,7 +103,7 @@ public class UserFormUI extends Form {
      * 
      * @return the created JPanel containing the user table
      */
-    private Component createUserTable() {
+    private Component createBasicTable() {
         JPanel panel = new JPanel(new MigLayout("fillx,wrap,insets 10 10 10 10", "[fill]", "[][]0[fill,grow]"));
         configureTableProperties();
         JScrollPane scrollPane = new JScrollPane(table);
@@ -188,7 +188,44 @@ public class UserFormUI extends Form {
         titleLabel.putClientProperty(FlatClientProperties.STYLE, "font:bold +2");
         return titleLabel;
     }
-
+    
+    /**
+     * Creates the grid table panel.
+     * 
+     * @return the created JPanel containing the grid table
+     */
+    private Component createGridTable() {
+        JPanel panel = new JPanel(new MigLayout("fillx,wrap,insets 10 10 10 10", "[fill]", "[][]0[fill,grow]"));
+        configurePanelCardStyle();
+        JScrollPane scrollPane = createScrollPaneForPanelCard();
+        panel.add(createTableTitle("Grid Menu"), "gapx 20");
+        panel.add(createHeaderActionPanel());
+        panel.add(scrollPane);
+        controller.loadData("");
+        return panel;
+    }
+    
+    /**
+     * Configures the style of the panel card.
+     */
+    private void configurePanelCardStyle() {
+        panelCard.putClientProperty(FlatClientProperties.STYLE, "border:10,10,10,10;");
+    }
+    
+    /**
+     * Creates a scroll pane for the panel card.
+     * 
+     * @return the created JScrollPane containing the panel card
+     */
+    private JScrollPane createScrollPaneForPanelCard() {
+        JScrollPane scrollPane = new JScrollPane(panelCard);
+        scrollPane.getHorizontalScrollBar().setUnitIncrement(10);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(10);
+        scrollPane.getHorizontalScrollBar().putClientProperty(FlatClientProperties.STYLE, "trackArc:$ScrollBar.thumbArc; thumbInsets:0,0,0,0; width:5;");
+        scrollPane.getVerticalScrollBar().putClientProperty(FlatClientProperties.STYLE, "trackArc:$ScrollBar.thumbArc; thumbInsets:0,0,0,0; width:5;");
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        return scrollPane;
+    }
     /**
      * Creates a header action panel with buttons and search field.
      * 
@@ -341,4 +378,15 @@ public class UserFormUI extends Form {
     public void formRefresh() {
         controller.loadData("");
     }
+    
+    /**
+     * Gets the panel card that contains the CardTable components.
+     * 
+     * @return the JPanel containing the CardTable components
+     */
+    public JPanel getPanelCard() {
+        return panelCard;
+    }
+    
+    
 }

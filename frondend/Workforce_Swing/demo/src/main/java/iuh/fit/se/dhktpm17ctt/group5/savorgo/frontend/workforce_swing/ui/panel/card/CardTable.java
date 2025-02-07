@@ -34,7 +34,7 @@ public class CardTable extends CardBasic<Table> {
 
     @Override
     protected JPanel createBody() {
-        JPanel body = new JPanel(new MigLayout("wrap, align center", "[center]", "[][][][][grow]"));
+        JPanel body = new JPanel(new MigLayout("wrap, align left", "[left]", "[][][][][grow]"));
         body.putClientProperty(FlatClientProperties.STYLE, "background:null;");
 
         addTableName(body);

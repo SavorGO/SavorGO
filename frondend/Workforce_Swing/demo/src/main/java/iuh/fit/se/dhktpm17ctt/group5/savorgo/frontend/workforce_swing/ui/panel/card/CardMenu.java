@@ -36,18 +36,18 @@ public class CardMenu extends CardBasic<Menu> {
 
     @Override
     protected JPanel createBody() {
-        JPanel body = new JPanel(new MigLayout("wrap, align center", "[center]", "[][][][][grow]"));
+        JPanel body = new JPanel(new MigLayout("wrap, align left", "[left]", "[][][][][grow]"));
         body.putClientProperty(FlatClientProperties.STYLE, "background:null;");
-
         addNameLabel(body);
-        addCategoryLabel(body);
         addStatusLabel(body);
+        addCategoryLabel(body);
         addPriceLabel(body);
         addCreateDateLabel(body);
         addUpdateDateLabel(body);
 
         return body;
     }
+
 
     private void addNameLabel(JPanel body) {
         JLabel nameLabel = new JLabel(model.getName());
@@ -56,15 +56,15 @@ public class CardMenu extends CardBasic<Menu> {
     }
 
     private void addCategoryLabel(JPanel body) {
-        JLabel categoryLabel = new JLabel("Category: " + model.getCategory());
+        JLabel categoryLabel = new JLabel("Category: " + model.getCategory().getDisplayName());
         categoryLabel.putClientProperty(FlatClientProperties.STYLE, "font:medium;");
         body.add(categoryLabel);
     }
 
     private void addStatusLabel(JPanel body) {
-        JLabel statusLabel = new JLabel(model.getStatus().toString());
+        JLabel statusLabel = new JLabel(model.getStatus().getDisplayName());
         statusLabel.putClientProperty(FlatClientProperties.STYLE, "font:bold;");
-        statusLabel.setForeground(getStatusColor(model.getStatus().toString())); // Set color based on status
+        statusLabel.setForeground(getStatusColor(model.getStatus().getDisplayName())); // Set color based on status
         body.add(statusLabel);
     }
 
