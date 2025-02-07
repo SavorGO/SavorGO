@@ -59,10 +59,10 @@ public class CardPromotion extends CardBasic<Promotion> {
 
 	@Override
 	protected JPanel createBody() {
-		JPanel body = new JPanel(new MigLayout("wrap, align center", "[center]", "[][][][][][][][][grow]"));
+	    JPanel body = new JPanel(new MigLayout("wrap, align left", "[left]", "[][][][][grow]"));
 		body.putClientProperty(FlatClientProperties.STYLE, "background:null;");
-
 		addNameLabel(body);
+		addStatusLabel(body);
 		addOriginalPriceLabel(body);
 		addSalePriceLabel(body);
 		addDiscountValueLabel(body);
@@ -70,7 +70,6 @@ public class CardPromotion extends CardBasic<Promotion> {
 		addMenuIdLabel(body);
 		addStartDateLabel(body);
 		addEndDateLabel(body);
-		addStatusLabel(body);
 		addCreatedDateLabel(body);
 		addModifiedDateLabel(body);
 
@@ -145,7 +144,7 @@ public class CardPromotion extends CardBasic<Promotion> {
 	}
 
 	private void addStatusLabel(JPanel body) {
-		JLabel statusLabel = new JLabel(model.getStatus().toString());
+		JLabel statusLabel = new JLabel(model.getStatus().getDisplayName());
 		statusLabel.putClientProperty(FlatClientProperties.STYLE, "font:bold;");
 		statusLabel.setForeground(getStatusColor(model.getStatus().getDisplayName()));
 		body.add(statusLabel);

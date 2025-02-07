@@ -76,11 +76,7 @@ public class MenuFormController {
                 }
                 SwingUtilities.invokeLater(() -> {
                     formMenu.getPanelCard().removeAll();
-                    try {
-                        populateCardMenu(menus);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    populateCardMenu(menus);
                 });
             } catch (IOException e) {
                 e.printStackTrace();
@@ -139,58 +135,97 @@ public class MenuFormController {
      * @param menus The list of Menu objects to populate.
      * @throws IOException If an I/O error occurs during population.
      */
-    private void populateCardMenu(List<Menu> menus) throws IOException {
-        List<List<Menu>> groupedMenus = sortAndGroupMenus(menus);
-        for (List<Menu> group : groupedMenus) {
-            for (Menu modelMenu : group) {
-                CardMenu cardMenu = new CardMenu(modelMenu);
-                cardMenu.addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseReleased(MouseEvent e) {
-                        showPopup(e);
-                    }
-
-                    private void showPopup(MouseEvent e) {
-                        if (e.getComponent() instanceof CardMenu) {
-                            if (SwingUtilities.isLeftMouseButton(e)) {
-                                cardMenu.setSelected(!cardMenu.isSelected());
-                                if (cardMenu.isSelected()) {
-                                    cardMenu.setBorder(BorderFactory.createLineBorder(Color.GREEN, 5));
-                                } else {
-                                    cardMenu.setBorder(BorderFactory.createEmptyBorder());
+    private void populateCardMenu(List<Menu> menus) {
+        SwingWorker<Void, CardMenu> cardWorker = new SwingWorker<Void, CardMenu>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                List<List<Menu>> groupedMenus = sortAndGroupMenus(menus);
+                for (List<Menu> group : groupedMenus) {
+                    for (Menu menu : group) {
+                        CardMenu cardMenu = new CardMenu(menu);
+                        System.out.println("Đang load card: " + menu.getName());
+                        
+                        // Thêm MouseListener cho cardMenu
+                        cardMenu.addMouseListener(new MouseAdapter() {
+                            @Override
+                            public void mouseReleased(MouseEvent e) {
+                                if (e.getComponent() instanceof CardMenu) {
+                                    if (SwingUtilities.isLeftMouseButton(e)) {
+                                        cardMenu.setSelected(!cardMenu.isSelected());
+                                        if (cardMenu.isSelected()) {
+                                            cardMenu.setBorder(BorderFactory.createLineBorder(Color.GREEN, 5));
+                                        } else {
+                                            cardMenu.setBorder(BorderFactory.createEmptyBorder());
+                                        }
+                                    } else if (e.isPopupTrigger()) {
+                                        cardMenu.setSelected(true);
+                                        cardMenu.setBorder(BorderFactory.createLineBorder(Color.GREEN, 5));
+                                        formMenu.createPopupMenu().show(e.getComponent(), e.getX(), e.getY());
+                                    }
                                 }
-                            } else if (e.isPopupTrigger()) {
-                                cardMenu.setSelected(true);
-                                cardMenu.setBorder(BorderFactory.createLineBorder(Color.GREEN, 5));
-                                formMenu.createPopupMenu().show(e.getComponent(), e.getX(), e.getY());
                             }
-                        }
+                        });
+
+                        publish(cardMenu); // Gửi cardMenu đến phương thức process
                     }
-                });
-                SwingUtilities.invokeLater(() -> formMenu.getPanelCard().add(cardMenu));
+                }
+                return null;
             }
-        }
-        SwingUtilities.invokeLater(() -> {
-            formMenu.getPanelCard().revalidate();
-            formMenu.getPanelCard().repaint();
-        });
+
+            @Override
+            protected void process(List<CardMenu> chunks) {
+                for (CardMenu cardMenu : chunks) {
+                    formMenu.getPanelCard().add(cardMenu);
+                }
+            }
+
+            @Override
+            protected void done() {
+                SwingUtilities.invokeLater(() -> {
+                    formMenu.getPanelCard().revalidate();
+                    formMenu.getPanelCard().repaint();
+                });
+            }
+        };
+
+        cardWorker.execute();
     }
 
     /** 
-     * Populates the basic menu with the fetched Menu objects.
+     * Populates the basic table with the fetched Menu objects.
      * 
      * @param menus The list of Menu objects to populate.
      */
     private void populateBasicMenu(List<Menu> menus) {
-        List<List<Menu>> groupedMenus = sortAndGroupMenus(menus);
-        SwingUtilities.invokeLater(() -> formMenu.getTableModel().setRowCount(0));
-        groupedMenus.forEach(group -> {
-            group.forEach(menu -> {
-                SwingUtilities.invokeLater(() -> {
+        SwingWorker<Void, Menu> tableWorker = new SwingWorker<Void, Menu>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                List<List<Menu>> groupedMenus = sortAndGroupMenus(menus);
+                for (List<Menu> group : groupedMenus) {
+                    for (Menu menu : group) {
+                        publish(menu); // Gửi menu đến phương thức process
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void process(List<Menu> chunks) {
+                for (Menu menu : chunks) {
+                    System.out.println("Đang load table: " + menu.getName());
                     formMenu.getTableModel().addRow(menuController.toTableRow(menu));
+                }
+            }
+
+            @Override
+            protected void done() {
+                SwingUtilities.invokeLater(() -> {
+                    formMenu.getTableModel().fireTableDataChanged(); // Cập nhật table
                 });
-            });
-        });
+            }
+        };
+
+        tableWorker.execute();
     }
 
     /** 

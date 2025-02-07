@@ -82,7 +82,7 @@ public class MenuFormUI extends Form {
     private Component createTabPanel() {
         JTabbedPane tabb = new JTabbedPane();
         tabb.putClientProperty(FlatClientProperties.STYLE, "" + "tabType:card");
-        tabb.addTab("Basic table", createBorder(createBasicMenu()));
+        tabb.addTab("Basic table", createBorder(createBasicTable()));
         tabb.addTab("Grid table", createBorder(createGridTable()));
         tabb.addChangeListener(e -> {
             controller.loadData("");
@@ -108,7 +108,7 @@ public class MenuFormUI extends Form {
      * 
      * @return the created JPanel containing the basic table
      */
-    private Component createBasicMenu() {
+    private Component createBasicTable() {
         JPanel panel = new JPanel(new MigLayout("fillx,wrap,insets 10 10 10 10", "[fill]", "[][]0[fill,grow]"));
         configureTableProperties();
         JScrollPane scrollPane = new JScrollPane(table);

@@ -13,12 +13,12 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class UserInfoForm  extends PopupFormBasic {
-    private UserController  controllerUser ;
-    private User modelUser ;
-
+    private UserController  userController ;
+    private User user ;
+    
     public UserInfoForm (String id) throws IOException {
-        controllerUser  = new UserController ();
-        modelUser  = controllerUser .getUserById(id);
+        userController  = new UserController ();
+        user  = userController .getUserById(id);
         init();
     }
 
@@ -45,15 +45,18 @@ public class UserInfoForm  extends PopupFormBasic {
      */
     @Override
     protected void createFields() {
-        addField("User  ID:", modelUser .getId()+"");
-        addField("Email:", modelUser .getEmail());
-        addField("First Name:", modelUser .getFirstName());
-        addField("Last Name:", modelUser .getLastName());
-        addField("Role:", modelUser .getRole().toString());
-        addField("Points:", String.valueOf(modelUser .getPoints()));
-        addField("Tier:", modelUser .getTier().toString());
-        addField("Created At:", modelUser .getCreatedTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        addField("Updated At:", modelUser .getModifiedTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+    	if (userController.getThumbnailCell(user) != null) {
+			contentPanel.add(DefaultComponent.createThumbnailPanel(userController.getThumbnailCell(user), true), "gapy 5 0");
+		}
+        addField("User ID:", user .getId()+"");
+        addField("Email:", user .getEmail());
+        addField("First Name:", user .getFirstName());
+        addField("Last Name:", user .getLastName());
+        addField("Role:", user .getRole().toString());
+        addField("Points:", String.valueOf(user .getPoints()));
+        addField("Tier:", user .getTier().toString());
+        addField("Created At:", user .getCreatedTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        addField("Updated At:", user .getModifiedTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
     }
 
     /** 

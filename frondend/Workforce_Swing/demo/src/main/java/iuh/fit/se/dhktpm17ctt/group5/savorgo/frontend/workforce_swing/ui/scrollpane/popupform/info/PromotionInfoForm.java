@@ -79,11 +79,11 @@ public class PromotionInfoForm extends PopupFormBasic<Promotion> {
         addField("Discount Value:", discountValue);
         addField("Discounted Price:", discountedValue);
         if(promotion.getStartDate() != null)
-        addField("Start Date:", promotion.getStartDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        addField("Start Date:", promotion.getStartDate().toString());
 		if(promotion.getEndDate() != null)
-        addField("End Date:", promotion.getEndDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        addField("Created At:", promotion.getCreatedTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        addField("Updated At:", promotion.getModifiedTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        addField("End Date:", promotion.getEndDate().toString());
+        addField("Created At:", promotion.getCreatedTime().toString());
+        addField("Updated At:", promotion.getModifiedTime().toString());
     }
 
     /** 
