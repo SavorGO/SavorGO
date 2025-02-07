@@ -16,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 @Service
@@ -25,51 +26,85 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
     
+    /**
+     * Creates a new user based on the provided UserCreationRequest.
+     *
+     * @param request the UserCreationRequest containing user details
+     * @return UserResponse the created user details
+     */
     @Override
-    public UserResponse createUser(UserCreationRequest request) {
+    public UserResponse createUser (UserCreationRequest request) {
         User user = objectMapper.convertValue(request, User.class);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         return objectMapper.convertValue(userRepository.save(user), UserResponse.class);
     }
 
+    /**
+     * Updates an existing user identified by the given id.
+     *
+     * @param id the id of the user to be updated
+     * @param request the UserUpdateRequest containing updated user details
+     * @return UserResponse the updated user details
+     */
     @Override
-    public UserResponse updateUser(String id, UserUpdateRequest request) {
+    public UserResponse updateUser (String id, UserUpdateRequest request) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("User  not found with id: " + id));
         
-        // Cập nhật thông tin từ request
         try {
-			objectMapper.updateValue(user, request);
-		} catch (JsonMappingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        if(request.getPassword()!=null)
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
+            objectMapper.updateValue(user, request);
+        } catch (JsonMappingException e) {
+            e.printStackTrace();
+        }
+        if (request.getPassword() != null) {
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
         return objectMapper.convertValue(userRepository.save(user), UserResponse.class);
     }
 
+    /**
+     * Deletes a user identified by the given id by marking it as deleted.
+     *
+     * @param id the id of the user to be deleted
+     */
     @Override
-    public void deleteUser(String id) {
-    	User user = userRepository.findById(id)
-				.orElseThrow(() -> new RuntimeException("User not found with id: " + id)); 
-		user.setStatus(UserStatusEnum.DELETED);
-		userRepository.save(user);
+    public void deleteUser (String id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User  not found with id: " + id)); 
+        user.setStatus(UserStatusEnum.DELETED);
+        userRepository.save(user);
     }
 
+    /**
+     * Finds a user by their email address.
+     *
+     * @param email the email address of the user to be found
+     * @return UserResponse the found user details
+     */
     @Override
     public UserResponse findByEmail(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+                .orElseThrow(() -> new RuntimeException("User  not found with email: " + email));
         return objectMapper.convertValue(user, UserResponse.class);
     }
 
+    /**
+     * Retrieves all users.
+     *
+     * @return List<UserResponse> a list of all user details
+     */
     @Override
     public List<UserResponse> findUsers() {
         List<User> users = userRepository.findAll();
         return objectMapper.convertValue(users, new TypeReference<List<UserResponse>>() {});
     }
 
+    /**
+     * Finds users by their role.
+     *
+     * @param role the role of the users to be found
+     * @return List<UserResponse> a list of users with the specified role
+     */
     @Override
     public List<UserResponse> findByRole(String role) {
         UserRoleEnum roleEnum = UserRoleEnum.valueOf(role.toUpperCase());
@@ -77,19 +112,53 @@ public class UserServiceImpl implements UserService {
         return objectMapper.convertValue(users, new TypeReference<List<UserResponse>>() {});
     }
 
-	@Override
-	public UserResponse findById(String id) {
-		Optional<User> user = userRepository.findById(id);
-		return objectMapper.convertValue(user.get(), UserResponse.class);
-	}
+    /**
+     * Finds a user by their id.
+     *
+     * @param id the id of the user to be found
+     * @return UserResponse the found user details
+     */
+    @Override
+    public UserResponse findById(String id) {
+        Optional<User> user = userRepository.findById(id);
+        return objectMapper.convertValue(user.get(), UserResponse.class);
+    }
 
-	@Override
-	public void deleteUsers(List<String> ids) {
-	    ids.forEach(id -> {
-	        User user = userRepository.findById(id)
-	                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
-	        user.setStatus(UserStatusEnum.DELETED);
-	        userRepository.save(user);
-	    });
-	}
+    /**
+     * Deletes multiple users identified by their ids by marking them as deleted.
+     *
+     * @param ids a list of user ids to be deleted
+     */
+    @Override
+    public void deleteUsers(List<String> ids) {
+        ids.forEach(id -> {
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("User   not found with id: " + id));
+            user.setStatus(UserStatusEnum.DELETED);
+            userRepository.save(user);
+        });
+    }
+
+    /**
+     * Searches for users based on a search query.
+     *
+     * @param searchQuery the query string to search for users
+     * @return List<UserResponse> a list of users matching the search criteria
+     */
+    @Override
+    public List<UserResponse> searchUsers(String searchQuery) {
+        List<User> users = userRepository.findAll();
+        String searchLower = searchQuery.toLowerCase();
+        List<User> filteredUsers = users.stream()
+                .filter(user -> user.getId().contains(searchQuery) ||
+                                user.getEmail().contains(searchQuery) ||
+                                user.getFirstName().toLowerCase().contains(searchLower) ||
+                                user.getLastName().toLowerCase().contains(searchLower) ||
+                                user.getAddress().toLowerCase().contains(searchLower) ||
+                                (user.getFirstName().toLowerCase() + " " + user.getLastName().toLowerCase()).contains(searchLower) ||
+                                (user.getLastName().toLowerCase() + " " + user.getFirstName().toLowerCase()).contains(searchLower)
+                )
+                .collect(Collectors.toList());
+        return objectMapper.convertValue(filteredUsers, new TypeReference<List<UserResponse>>() {});
+    }
 }

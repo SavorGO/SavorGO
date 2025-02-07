@@ -15,4 +15,5 @@ public interface UserService {
     List<UserResponse> findUsers();
     List<UserResponse> findByRole(String role);
 	void deleteUsers(List<String> ids);
+	List<UserResponse> searchUsers(String searchQuery);
 }
