@@ -18,20 +18,23 @@ export const DesktopMenu: React.FC<MenuProps> = ({ links }) => {
       >
         <img src="/logo.png" alt="Logo" className="" />
       </Link>
-      <ul className="col-start-2 flex items-center gap-10 md:text-[1.25rem] ">
-        {links.map((link: MenuItemType) => {
-          return (
-            <Link key={link.id} href={link.url} className="">
-              {link.title}
-            </Link>
-          );
-        })}
+      <ul className="col-start-2 flex items-center gap-10 md:text-[1.25rem]">
+        {links.map((link: MenuItemType) => (
+          <Link key={link.id} href={link.url} className="">
+            {link.title}
+          </Link>
+        ))}
       </ul>
-
-      <Cart />
+      <div className="col-start-3 flex items-center gap-4 ml-auto">
+        <Link href="/register">
+          <img src="/user.png" alt="User" className="w-20 h-20" />
+        </Link>
+        <Cart />
+      </div>
     </>
   );
 };
+
 
 export const MobileMenu: React.FC<MenuProps> = ({ links }) => {
   const [isOpened, setOpen] = useState(false);
