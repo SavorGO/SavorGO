@@ -6,6 +6,7 @@ import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 
 import iuh.fit.se.dto.request.AuthenticationRequest;
+import iuh.fit.se.dto.request.ChangePasswordRequest;
 import iuh.fit.se.dto.request.TokenRequest;
 import iuh.fit.se.dto.response.AuthenticationResponse;
 import iuh.fit.se.dto.response.UserResponse;
@@ -80,4 +81,23 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         return objectMapper.convertValue(user, UserResponse.class);
     }
+    @Override
+    public void changePassword(String jwtToken, ChangePasswordRequest request) {
+        // Lấy email từ token JWT
+        String email = jwtUtil.extractEmail(jwtToken);
+        
+        // Tìm người dùng trong database
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        // Kiểm tra mật khẩu cũ
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Old password is incorrect");
+        }
+
+        // Cập nhật mật khẩu mới
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+    }
+
 }

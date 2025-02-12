@@ -422,7 +422,7 @@ public class TableFormController {
 	 */
 	private void showDeleteModal() {
 		List<Long> findSelectedTableIds = getSelectedTableIdsForDeletion();
-		if (findSelectedTableIds.isEmpty() && (formTableUI.getTable().getSelectedRow() == -1)) {
+		if (findSelectedTableIds.isEmpty()) {
 			Toast.show(formTableUI, Toast.Type.ERROR, "You have to select at least one table to delete");
 			return;
 		}

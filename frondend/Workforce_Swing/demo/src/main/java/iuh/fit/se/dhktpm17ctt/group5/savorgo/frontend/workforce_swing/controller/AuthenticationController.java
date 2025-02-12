@@ -27,13 +27,26 @@ public class AuthenticationController {
         if (encryptedToken == null || encryptedToken.isEmpty()) {
             return null;
         }
-
         // Giải mã token
         String decryptedToken = null;
 			decryptedToken = TokenManager.decryptToken(encryptedToken);
+	        System.out.println(decryptedToken);
 
         // Gọi phương thức verifyJwtToken từ AuthenticationService để xác thực token đã giải mã
 			return authenticationService.verifyJwtToken(decryptedToken);
     }
-
+    
+    public void changePassword(Object[] data) throws Exception {
+    	String oldPassword = (String) data[0];
+		String newPassword = (String) data[1];
+    	String encryptedToken = TokenManager.readEncryptedTokenFromFile();
+        if (encryptedToken == null || encryptedToken.isEmpty()) {
+            return;
+        }
+        // Giải mã token
+        String decryptedToken = null;
+			decryptedToken = TokenManager.decryptToken(encryptedToken);
+	        System.out.println(decryptedToken);
+    	authenticationService.changePassword(decryptedToken, oldPassword, newPassword);
+    }
 }

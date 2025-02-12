@@ -95,6 +95,30 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 throw new AuthenticationException("Error " + response.code() + ": " + errorMessage);
         }
     }
+
+    @Override
+    public void changePassword(String token, String oldPassword, String newPassword) throws IOException {
+        // Tạo request body với cả oldPassword và newPassword
+        String requestBody = String.format("{\"old_password\":\"%s\", \"new_password\":\"%s\"}", oldPassword, newPassword);
+        System.out.println("Request JSON: " + requestBody);
+
+        // Tạo headers với Authorization token
+        Headers headers = new Headers.Builder()
+            .add("Authorization", "Bearer " + token)
+            .build();
+
+        // Gửi request POST với body và headers
+        Response response = HttpUtil.post(API_URL + "/change-password", requestBody, headers);
+
+        // Kiểm tra phản hồi từ server
+        if (!response.isSuccessful()) {
+            handleErrorResponse(response);
+        } else {
+            System.out.println("Password changed successfully.");
+        }
+    }
+
+
 }
 
 class AuthenticationException extends RuntimeException {

@@ -78,7 +78,7 @@ public class UserFormUI extends Form {
     private Component createTabPanel() {
         JTabbedPane tabb = new JTabbedPane();
         tabb.putClientProperty(FlatClientProperties.STYLE, "" + "tabType:card");
-        tabb.addTab("Basic Table", createBorder(createBasicTable()));
+        tabb.addTab("Basic table", createBorder(createBasicTable()));
         tabb.addTab("Grid table", createBorder(createGridTable()));        tabb.addChangeListener(e -> {
             controller.loadData("");
             selectedTitle = tabb.getTitleAt(tabb.getSelectedIndex());

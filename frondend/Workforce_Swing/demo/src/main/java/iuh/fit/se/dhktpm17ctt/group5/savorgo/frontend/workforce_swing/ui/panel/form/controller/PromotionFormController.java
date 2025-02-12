@@ -464,8 +464,8 @@ public class PromotionFormController {
      * Shows the delete modal for the selected promotions.
      */
     private void showDeleteModal() {
-        List<Long> findSelectedPromotionIds = getSelectedPromotionIdsForDeletion();
-        if (findSelectedPromotionIds.isEmpty() && (formPromotion.getTable().getSelectedRow() == -1)) {
+        List<Long> findSelectedPromotionIds = findSelectedPromotionIdsForDeletion();
+        if (findSelectedPromotionIds.isEmpty()) {
             Toast.show(formPromotion, Toast.Type.ERROR, "You have to select at least one promotion to delete");
             return;
         }
@@ -477,7 +477,7 @@ public class PromotionFormController {
      * 
      * @return a list of selected promotion IDs
      */
-    private List<Long> getSelectedPromotionIdsForDeletion() {
+    private List<Long> findSelectedPromotionIdsForDeletion() {
         if (formPromotion.getSelectedTitle().equals("Basic table")) {
             return findSelectedPromotionIds();
         } else if (formPromotion.getSelectedTitle().equals("Grid table")) {

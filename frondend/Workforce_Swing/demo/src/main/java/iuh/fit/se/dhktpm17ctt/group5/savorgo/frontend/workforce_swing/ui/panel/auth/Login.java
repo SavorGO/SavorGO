@@ -106,7 +106,7 @@ public class Login extends Form {
             Toast.show(FormManager.getFrame(), Toast.Type.ERROR, "Login failed: " + e.getMessage());
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+            Toast.show(FormManager.getFrame(), Toast.Type.ERROR, "Login failed: " + e.getMessage());
 		}
 	}
 
