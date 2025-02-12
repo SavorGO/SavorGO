@@ -43,17 +43,23 @@ public class Demo extends JFrame {
     }
 
     /**
-     * The main method that serves as the entry point for the application.
-     * Initializes preferences, sets up the look and feel, and makes the main window visible.
-     *
-     * @param args Command line arguments (not used).
+     * Initializes the application environment and starts the UI.
      */
-    public static void main(String[] args) {
+    public static void launchApplication() {
         DemoPreferences.init(); // Initialize demo preferences
         FlatRobotoFont.install(); // Install the Roboto font
         FlatLaf.registerCustomDefaultsSource("iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.themes"); // Register custom look and feel defaults
         UIManager.put("defaultFont", new Font(FlatRobotoFont.FAMILY, Font.PLAIN, 13)); // Set the default font for the UI
         DemoPreferences.setupLaf(); // Set up the look and feel based on preferences
-        EventQueue.invokeLater(() -> new Demo().setVisible(true)); // Create and show the main application window on the Event Dispatch Thread
+        SwingUtilities.invokeLater(() -> new Demo().setVisible(true)); // Run the UI on the Event Dispatch Thread
+    }
+
+    /**
+     * The main method that serves as the entry point for the application.
+     *
+     * @param args Command line arguments (not used).
+     */
+    public static void main(String[] args) {
+        launchApplication();
     }
 }

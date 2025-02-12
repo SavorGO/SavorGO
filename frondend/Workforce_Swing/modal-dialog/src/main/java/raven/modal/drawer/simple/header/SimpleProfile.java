@@ -10,16 +10,16 @@ import javax.swing.*;
 /**
  * @author Raven
  */
-public class SimpleHeader extends AbstractMenuElement {
+public class SimpleProfile extends AbstractMenuElement {
 
     public static final int PROFILE_STYLE = 0;
     public static final int LABEL_TITLE_STYLE = 1;
     public static final int LABEL_DESCRIPTION_STYLE = 2;
 
-    private SimpleHeaderData simpleHeaderData;
+    private SimpleProfileData simpleHeaderData;
     protected MigLayout layout;
 
-    public SimpleHeader(SimpleHeaderData simpleHeaderData) {
+    public SimpleProfile(SimpleProfileData simpleHeaderData) {
         this.simpleHeaderData = simpleHeaderData;
         initDefault();
         initComponent();
@@ -62,11 +62,11 @@ public class SimpleHeader extends AbstractMenuElement {
         add(panel);
     }
 
-    public SimpleHeaderData getSimpleHeaderData() {
+    public SimpleProfileData getSimpleHeaderData() {
         return simpleHeaderData;
     }
 
-    public void setSimpleHeaderData(SimpleHeaderData simpleHeaderData) {
+    public void setSimpleHeaderData(SimpleProfileData simpleHeaderData) {
         this.simpleHeaderData = simpleHeaderData;
 
         if (profile != null)

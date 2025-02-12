@@ -3,198 +3,203 @@ package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.menu;
 import com.formdev.flatlaf.FlatClientProperties;
 
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.Demo;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.AuthenticationController;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.UserController;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.User;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.form.*;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.system.AllForms;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.system.FormManager;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.util.TokenManager;
 import raven.modal.drawer.DrawerPanel;
 import raven.modal.drawer.data.Item;
 import raven.modal.drawer.data.MenuItem;
 import raven.modal.drawer.menu.*;
 import raven.modal.drawer.renderer.DrawerStraightDotLineStyle;
 import raven.modal.drawer.simple.SimpleDrawerBuilder;
-import raven.modal.drawer.simple.footer.LightDarkButtonFooter;
-import raven.modal.drawer.simple.footer.SimpleFooterData;
-import raven.modal.drawer.simple.header.SimpleHeaderData;
+import raven.modal.drawer.simple.header.SimpleProfileData;
 import raven.extras.AvatarIcon;
 import raven.modal.option.Option;
 
 import javax.swing.*;
+
+import org.fife.ui.rsyntaxtextarea.Token;
+
 import java.awt.*;
+import java.io.IOException;
 import java.util.Arrays;
 
 public class MyDrawerBuilder extends SimpleDrawerBuilder {
 
-    private final int SHADOW_SIZE = 12;
+	private final int SHADOW_SIZE = 12;
 
-    public MyDrawerBuilder() {
-        super(createSimpleMenuOption());
-        LightDarkButtonFooter lightDarkButtonFooter = (LightDarkButtonFooter) footer;
-        lightDarkButtonFooter.addModeChangeListener(isDarkMode -> {
-            // event for light dark mode changed
-        });
-    }
+	public MyDrawerBuilder() {
+		super(createSimpleMenuOption());
+	}
 
-    @Override
-    public SimpleHeaderData getSimpleHeaderData() {
-        AvatarIcon icon = new AvatarIcon(getClass().getResource("/raven/modal/demo/drawer/image/profile.png"), 50, 50, 3.5f);
-        icon.setType(AvatarIcon.Type.MASK_SQUIRCLE);
-        icon.setBorder(2, 2);
+	@Override
+	public SimpleProfileData getSimpleHeaderData() {
+		AvatarIcon icon = new AvatarIcon(getClass().getResource("/logos/png/SavorGO.png"), 50, 50, 3.5f);
+		icon.setType(AvatarIcon.Type.MASK_SQUIRCLE);
+		icon.setBorder(2, 2);
 
-        changeAvatarIconBorderColor(icon);
+		changeAvatarIconBorderColor(icon);
 
-        UIManager.addPropertyChangeListener(evt -> {
-            if (evt.getPropertyName().equals("lookAndFeel")) {
-                changeAvatarIconBorderColor(icon);
-            }
-        });
+		UIManager.addPropertyChangeListener(evt -> {
+			if (evt.getPropertyName().equals("lookAndFeel")) {
+				changeAvatarIconBorderColor(icon);
+			}
+		});
 
-        return new SimpleHeaderData()
-                .setIcon(icon)
-                .setTitle("Thái Gõ")
-                .setDescription("luongquocthai.thaigo.2003@gmail.com");
-    }
+		return new SimpleProfileData().setIcon(icon).setTitle("SavorGO").setDescription("Book Fast, Savor More!");
+	}
 
-    private void changeAvatarIconBorderColor(AvatarIcon icon) {
-        icon.setBorderColor(new AvatarIcon.BorderColor(UIManager.getColor("Component.accentColor"), 0.7f));
-    }
+	private void changeAvatarIconBorderColor(AvatarIcon icon) {
+		icon.setBorderColor(new AvatarIcon.BorderColor(UIManager.getColor("Component.accentColor"), 0.7f));
+	}
 
-    @Override
-    public SimpleFooterData getSimpleFooterData() {
-        return new SimpleFooterData()
-                .setTitle("Swing Modal Dialog")
-                .setDescription("Version " + Demo.DEMO_VERSION);
-    }
+	private AuthenticationController authenticationController;
+	private UserController userController;
+	private User currentUser;
+
+	private void login() {
+	    try {
+	        authenticationController = new AuthenticationController();
+	        userController = new UserController();
+
+	        // Gọi phương thức verifyJwtToken mà không cần phải truyền token
+	        currentUser = authenticationController.verifyJwtToken();
+
+	        if (currentUser == null) {
+	            return;
+	        }
+
+	        // Nếu xác thực thành công, bạn có thể tiếp tục với đăng nhập
+	    } catch (SecurityException e) {
+	        System.err.println("Lỗi bảo mật khi giải mã token: " + e.getMessage());
+	    } catch (Exception e) {
+	        System.err.println("Lỗi không xác định khi đăng nhập: " + e.getMessage());
+	    }
+	}
 
 
-    public static MenuOption createSimpleMenuOption() {
+	@Override
+	public SimpleProfileData getSimpleFooterData() {
+		System.out.println("debug 1");
+		login();
+		if (currentUser == null) {
+			return new SimpleProfileData().setTitle("Guest").setDescription("Book Fast, Savor More!");
+		}
+		AvatarIcon icon;
+		try {
+			icon = new AvatarIcon(userController.getImage(currentUser, 50, 50, 30).getIcon(), 50, 50, 3.5f);
+			if (icon == null)
+				throw new IOException("User avatar is null");
+		} catch (IOException e) {
+			e.printStackTrace();
+			icon = new AvatarIcon(getClass().getResource("/logos/png/default-avatar.png"), 50, 50, 3.5f);
+		}
 
-        // create simple menu option
-        MenuOption simpleMenuOption = new MenuOption();
+		icon.setType(AvatarIcon.Type.MASK_SQUIRCLE);
+		icon.setBorder(2, 2);
+		changeAvatarIconBorderColor(icon);
+		final AvatarIcon finalIcon = icon;
+		UIManager.addPropertyChangeListener(evt -> {
+			if ("lookAndFeel".equals(evt.getPropertyName())) {
+				changeAvatarIconBorderColor(finalIcon);
+			}
+		});
 
-        MenuItem items[] = new MenuItem[]{
-                new Item.Label("MAIN"),
-                new Item("Dashboard", "dashboard.svg", FormDashboard.class),
-                new Item.Label("Management"),
-                new Item("Manage Tables", "table.svg", TableFormUI.class),
-                new Item("Manage Users", "user.svg", UserFormUI.class),
-                new Item("Manage Menus", "menu.svg", MenuFormUI.class),
-                new Item("Manage Promotions", "promotion.svg", PromotionFormUI.class),
-                new Item.Label("SWING UI"),
-                new Item("Components", "components.svg")
-                        .subMenu("Toast", FormToast.class)
-                        .subMenu("Date Time", FormDateTime.class)
-                        .subMenu("Avatar Icon", FormAvatarIcon.class)
-                        .subMenu("Slide Pane", FormSlidePane.class),
-                new Item("Email", "email.svg")
-                        .subMenu("Inbox")
-                        .subMenu(
-                                new Item("Group Read")
-                                        .subMenu("Read 1")
-                                        .subMenu("Read 2")
-                                        .subMenu(
-                                                new Item("Group Item")
-                                                        .subMenu("Item 1")
-                                                        .subMenu("Item 2")
-                                                        .subMenu("Item 3")
-                                                        .subMenu("Item 4")
-                                                        .subMenu("Item 5")
-                                                        .subMenu("Item 6")
-                                        )
-                                        .subMenu("Read 3")
-                                        .subMenu("Read 4")
-                                        .subMenu("Read 5")
-                        )
-                        .subMenu("Compost"),
-                new Item("Chat", "chat.svg"),
-                new Item("Calendar", "calendar.svg"),
-                new Item.Label("OTHER"),
-                new Item("Plugin", "plugin.svg")
-                        .subMenu("Plugin 1")
-                        .subMenu("Plugin 2")
-                        .subMenu("Plugin 3"),
-                new Item("Setting", "setting.svg", FormSetting.class),
-                new Item("About", "about.svg"),
-                new Item("Logout", "logout.svg")
-        };
+		return new SimpleProfileData().setIcon(icon).setTitle(currentUser.getRole().getDisplayName() + ": "
+				+ currentUser.getFirstName() + " " + currentUser.getLastName()).setDescription(currentUser.getEmail());
+	}
 
-        simpleMenuOption.setMenuStyle(new MenuStyle() {
+	public static MenuOption createSimpleMenuOption() {
 
-            @Override
-            public void styleMenu(JComponent component) {
-                component.putClientProperty(FlatClientProperties.STYLE, getDrawerBackgroundStyle());
-            }
-        });
+		// create simple menu option
+		MenuOption simpleMenuOption = new MenuOption();
 
-        simpleMenuOption.getMenuStyle().setDrawerLineStyleRenderer(new DrawerStraightDotLineStyle());
-        simpleMenuOption.setMenuItemAutoSelectionMode(MenuOption.MenuItemAutoSelectionMode.SELECT_SUB_MENU_LEVEL);
-        simpleMenuOption.addMenuEvent(new MenuEvent() {
-            @Override
-            public void selected(MenuAction action, int[] index) {
-                System.out.println("Drawer menu selected " + Arrays.toString(index));
-                Class<?> itemClass = action.getItem().getItemClass();
-                int i = index[0];
-                if (i == 8) {
-                    action.consume();
-                    FormManager.showAbout();
-                    return;
-                } else if (i == 9) {
-                    action.consume();
-                    FormManager.logout();
-                    return;
-                }
-                if (itemClass == null || !Form.class.isAssignableFrom(itemClass)) {
-                    action.consume();
-                    return;
-                }
-                Class<? extends Form> formClass = (Class<? extends Form>) itemClass;
-                FormManager.showForm(AllForms.getForm(formClass));
-            }
-        });
+		MenuItem items[] = new MenuItem[] { new Item.Label("MAIN"),
+				new Item("Dashboard", "dashboard.svg", FormDashboard.class), new Item("About", "about.svg"),
+				new Item.Label("Management"), new Item("Manage Tables", "table.svg", TableFormUI.class),
+				new Item("Manage Users", "user.svg", UserFormUI.class),
+				new Item("Manage Menus", "menu.svg", MenuFormUI.class),
+				new Item("Manage Promotions", "promotion.svg", PromotionFormUI.class), new Item.Label("OTHER"),
+				new Item("General Setting", "setting.svg").subMenu("Theme",SettingFormUI.class).subMenu("Language").subMenu("Account",AccountFormUI.class),
+		};
 
-        simpleMenuOption.setMenus(items)
-                .setBaseIconPath("icons/svg")
-                .setIconScale(0.05f);
+		simpleMenuOption.setMenuStyle(new MenuStyle() {
 
-        return simpleMenuOption;
-    }
+			@Override
+			public void styleMenu(JComponent component) {
+				component.putClientProperty(FlatClientProperties.STYLE, getDrawerBackgroundStyle());
+			}
+		});
 
-    @Override
-    public int getDrawerWidth() {
-        return 270 + SHADOW_SIZE;
-    }
+		simpleMenuOption.getMenuStyle().setDrawerLineStyleRenderer(new DrawerStraightDotLineStyle());
+		simpleMenuOption.setMenuItemAutoSelectionMode(MenuOption.MenuItemAutoSelectionMode.SELECT_SUB_MENU_LEVEL);
+		simpleMenuOption.addMenuEvent(new MenuEvent() {
+			@Override
+			public void selected(MenuAction action, int[] index) {
+				System.out.println("Drawer menu selected " + Arrays.toString(index));
+				Class<?> itemClass = action.getItem().getItemClass();
+				int i = index[0];
+				if (i == 1) {
+					action.consume();
+					FormManager.showAbout();
+					return;
+				} else if (i == 9) {
+					action.consume();
+					FormManager.logout();
+					return;
+				}
+				if (itemClass == null || !Form.class.isAssignableFrom(itemClass)) {
+					action.consume();
+					return;
+				}
+				Class<? extends Form> formClass = (Class<? extends Form>) itemClass;
+				FormManager.showForm(AllForms.getForm(formClass));
+			}
+		});
 
-    @Override
-    public int getDrawerCompactWidth() {
-        return 80 + SHADOW_SIZE;
-    }
+		simpleMenuOption.setMenus(items).setBaseIconPath("icons/svg").setIconScale(0.7f);
 
-    @Override
-    public int getOpenDrawerAt() {
-        return 1000;
-    }
+		return simpleMenuOption;
+	}
 
-    @Override
-    public Option getOption() {
-        Option option = super.getOption();
-        option.setOpacity(0.3f);
-        option.getBorderOption()
-                .setShadowSize(new Insets(0, 0, 0, SHADOW_SIZE));
-        return option;
-    }
+	@Override
+	public int getDrawerWidth() {
+		return 270 + SHADOW_SIZE;
+	}
 
-    @Override
-    public boolean openDrawerAtScale() {
-        return false;
-    }
+	@Override
+	public int getDrawerCompactWidth() {
+		return 80 + SHADOW_SIZE;
+	}
 
-    @Override
-    public void build(DrawerPanel drawerPanel) {
-        drawerPanel.putClientProperty(FlatClientProperties.STYLE, getDrawerBackgroundStyle());
-    }
+	@Override
+	public int getOpenDrawerAt() {
+		return 1000;
+	}
 
-    private static String getDrawerBackgroundStyle() {
-        return "" +
-                "[light]background:tint($Panel.background,20%);" +
-                "[dark]background:tint($Panel.background,5%);";
-    }
+	@Override
+	public Option getOption() {
+		Option option = super.getOption();
+		option.setOpacity(0.3f);
+		option.getBorderOption().setShadowSize(new Insets(0, 0, 0, SHADOW_SIZE));
+		return option;
+	}
+
+	@Override
+	public boolean openDrawerAtScale() {
+		return false;
+	}
+
+	@Override
+	public void build(DrawerPanel drawerPanel) {
+		drawerPanel.putClientProperty(FlatClientProperties.STYLE, getDrawerBackgroundStyle());
+	}
+
+	private static String getDrawerBackgroundStyle() {
+		return "" + "[light]background:tint($Panel.background,20%);" + "[dark]background:tint($Panel.background,5%);";
+	}
 }

@@ -1,81 +1,83 @@
 package iuh.fit.se.service.impl;
 
-import com.nimbusds.jose.*;
-import com.nimbusds.jose.crypto.MACSigner;
-import com.nimbusds.jwt.JWTClaimsSet;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.FirebaseToken;
+
 import iuh.fit.se.dto.request.AuthenticationRequest;
+import iuh.fit.se.dto.request.TokenRequest;
 import iuh.fit.se.dto.response.AuthenticationResponse;
+import iuh.fit.se.dto.response.UserResponse;
 import iuh.fit.se.entity.User;
 import iuh.fit.se.repository.UserRepository;
+import iuh.fit.se.service.AuthenticationService;
+import iuh.fit.se.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.experimental.NonFinal;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.UUID;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
-@FieldDefaults(makeFinal = true, level = lombok.AccessLevel.PRIVATE)
-public class AuthenticationServiceImpl {
-    UserRepository userRepository;
+public class AuthenticationServiceImpl implements AuthenticationService {
 
-    @NonFinal
-    @Value("${jwt.signerKey}")
-    protected String SIGNER_KEY;
+    private final UserRepository userRepository;
+    private final ObjectMapper objectMapper;
+    private final JwtUtil jwtUtil;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthenticationResponse authenticate(AuthenticationRequest request){
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
-        var user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found with email: " + request.getEmail()));
+    // Xác thực ID Token từ Google, tạo JWT và trả về AuthenticationResponse
+    @Override
+    public AuthenticationResponse verifyGoogleToken(TokenRequest tokenRequest) throws FirebaseAuthException {
+        String idToken = tokenRequest.getToken();
 
-        boolean authenticated = passwordEncoder.matches(request.getPassword(),
-                user.getPassword());
+        // Xác minh ID Token với Firebase
+        FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
 
-        if (!authenticated)
-            throw new RuntimeException("Invalid password");
+        // Lấy email từ token
+        String email = decodedToken.getEmail();
 
-//        var token = generateToken(user);
+        // Kiểm tra người dùng trong database
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with email: " + email));
 
-        return AuthenticationResponse.builder()
-//                .token(token)
-                .authenticated(true)
-                .build();
+        // Tạo JWT từ user
+        String jwtToken = jwtUtil.generateToken(user);
+
+        return new AuthenticationResponse(jwtToken, "Login successful");
+    }
+    
+    @Override
+    public AuthenticationResponse loginWithEmailPassword(AuthenticationRequest request) {
+        String email = request.getEmail();
+        String password = request.getPassword();
+
+        // Tìm user trong database
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with email: " + email));
+
+        // Kiểm tra mật khẩu
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
+        }
+
+        // Tạo JWT token
+        String jwtToken = jwtUtil.generateToken(user);
+
+        return new AuthenticationResponse(jwtToken, "Login successful");
     }
 
-    public String generateToken(String email) {
-        JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
+    // Xác thực JWT và trả về thông tin người dùng
+    @Override
+    public UserResponse verifyJwtToken(String jwtToken) {
+        String email = jwtUtil.extractEmail(jwtToken);
+        
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
-        JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
-                .subject(user.getFirstName()+" "+user.getLastName())
-                .issuer("SavorGo")
-                .issueTime(new Date())
-                .expirationTime(new Date(
-                        Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli()
-                ))
-                .jwtID(UUID.randomUUID().toString())
-//                .claim("scope", buildScope(user))
-                .build();
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        Payload payload = new Payload(jwtClaimsSet.toJSONObject());
-
-        JWSObject jwsObject = new JWSObject(header, payload);
-
-        try {
-            jwsObject.sign(new MACSigner(SIGNER_KEY.getBytes()));
-            return jwsObject.serialize();
-        } catch (JOSEException e) {
-            log.error("Cannot create token", e);
-            throw new RuntimeException(e);
-        }
+        return objectMapper.convertValue(user, UserResponse.class);
     }
 }

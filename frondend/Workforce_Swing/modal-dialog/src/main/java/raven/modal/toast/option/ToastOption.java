@@ -69,7 +69,7 @@ public class ToastOption {
     private boolean pauseDelayOnHover = true;
     private boolean autoClose = true;
     private boolean closeOnClick;
-    private int duration = 350;
+    private int duration = 1000;
     private int delay = 3000;
 
     public ToastOption setLayoutOption(ToastLayoutOption layoutOption) {

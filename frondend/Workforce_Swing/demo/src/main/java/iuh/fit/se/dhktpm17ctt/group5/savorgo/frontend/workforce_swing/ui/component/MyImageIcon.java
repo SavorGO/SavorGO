@@ -19,6 +19,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 
 import javax.imageio.ImageIO;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 import com.cloudinary.*;
@@ -28,6 +29,10 @@ public class MyImageIcon extends ImageIcon {
 
 	private BufferedImage bufferedImage;
 	private int height, width;
+	
+	public Icon getIcon() {
+		return this;
+	}
 
 	public BufferedImage getBufferedImage() {
 		return bufferedImage;

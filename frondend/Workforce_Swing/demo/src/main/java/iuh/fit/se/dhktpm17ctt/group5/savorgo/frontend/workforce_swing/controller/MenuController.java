@@ -196,7 +196,7 @@ public class MenuController {
         }
         try {
             return MyImageIcon.getMyImageIconFromCloudinaryImageTag("SavorGO/Menus/" + menu.getPublicId(), height, width, round);
-        } catch (URISyntaxException | IOException e) {
+        } catch (URISyntaxException e) {
             // Return a default image if an error occurs
             return new MyImageIcon("src/main/resources/images/system/no_image_found.png", 55, 55, 10);
         }

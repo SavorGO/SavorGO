@@ -26,9 +26,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 
 @SystemForm(name = "Setting", description = "application setting and configuration", tags = {"themes", "options"})
-public class FormSetting extends Form {
+public class SettingFormUI extends Form {
 
-    public FormSetting() {
+    public SettingFormUI() {
         init();
     }
 
