@@ -3,6 +3,7 @@ package iuh.fit.se.controller;
 import com.google.firebase.auth.FirebaseAuthException;
 
 import iuh.fit.se.dto.request.AuthenticationRequest;
+import iuh.fit.se.dto.request.ChangePasswordRequest;
 import iuh.fit.se.dto.request.TokenRequest;
 import iuh.fit.se.dto.response.AuthenticationResponse;
 import iuh.fit.se.dto.response.UserResponse;
@@ -45,6 +46,14 @@ public class AuthenticationController {
         UserResponse userResponse = authenticationService.verifyJwtToken(token.replace("Bearer ", ""));
         return ResponseEntity.ok(userResponse);
     }
+    
+    @PostMapping("/change-password")
+    public ResponseEntity<String> changePassword(@RequestHeader("Authorization") String token,
+                                                 @RequestBody ChangePasswordRequest request) {
+        authenticationService.changePassword(token.replace("Bearer ", ""), request);
+        return ResponseEntity.ok("Password changed successfully");
+    }
+
     
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<Map<String, String>> handleResponseStatusException(ResponseStatusException ex) {

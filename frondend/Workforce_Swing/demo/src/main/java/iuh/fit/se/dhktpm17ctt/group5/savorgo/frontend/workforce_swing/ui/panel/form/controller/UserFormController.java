@@ -4,6 +4,7 @@ import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Menu;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.User;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.card.CardMenu;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.card.CardTable;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.card.CardUser;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.form.UserFormUI;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.create.CreateMenuInputForm;
@@ -24,11 +25,17 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class UserFormController {
 	private UserFormUI formUserUI;
@@ -355,29 +362,174 @@ public class UserFormController {
 	 * Displays a modal dialog for deleting selected users.
 	 */
 	private void showDeleteModal() {
-		List<String> selectedUserIds = getSelectedUserIds();
+		List<String> selectedUserIds = getSelectedUserIdsForDeletion();
 		if (selectedUserIds.isEmpty()) {
-			Toast.show(formUserUI, Toast.Type.ERROR, "You must select at least one user to delete");
+			Toast.show(formUserUI, Toast.Type.ERROR, "You have to select at least one user to delete");
 			return;
 		}
 		confirmDeletion(selectedUserIds);
 	}
 
 	/**
-	 * Gets the IDs of the selected users for deletion.
+	 * Finds the selected user IDs from the basic table.
 	 * 
-	 * @return The list of selected user IDs.
+	 * @return a list of selected user IDs
 	 */
-	private List<String> getSelectedUserIds() {
-		List<String> selectedUserIds = new ArrayList<>();
+	public List<String> findSelectedUserIds() {
 		int rowCount = formUserUI.getTable().getRowCount();
-		for (int i = 0; i < rowCount; i++) {
-			if ((Boolean) formUserUI.getTable().getValueAt(i, 0)) { // Assuming the first column is a checkbox
-				selectedUserIds.add(formUserUI.getTable().getValueAt(i, 1).toString()); // Assuming the second column is
-																						// the user ID
+		Set<String> tableIdsToDelete = Collections.synchronizedSet(new HashSet<>());
+		List<List<String>> chunks = createChunks(rowCount);
+		ExecutorService executorService = Executors.newFixedThreadPool(4);
+		List<Callable<Set<String>>> tasks = new ArrayList<>();
+
+		for (List<String> chunk : chunks) {
+			tasks.add(() -> new HashSet<>(processChunk(chunk)));
+		}
+
+		try {
+			List<Future<Set<String>>> results = executorService.invokeAll(tasks);
+			for (Future<Set<String>> result : results) {
+				tableIdsToDelete.addAll(result.get());
+			}
+		} catch (InterruptedException | ExecutionException e) {
+			e.printStackTrace();
+		} finally {
+			executorService.shutdown();
+		}
+		return new ArrayList<>(tableIdsToDelete);
+	}
+	
+	/**
+	 * Processes a chunk of rows to find selected user IDs.
+	 * 
+	 * @param chunk the chunk of row IDs to process
+	 * @return a list of selected user IDs
+	 */
+	private List<String> processChunk(List<String> chunk) {
+		List<String> tableIdsToDelete = new ArrayList<>();
+
+		for (String userId : chunk) {
+			int rowIndex = findRowIndexById(userId);
+			Boolean isChecked = (Boolean) formUserUI.getTable().getValueAt(rowIndex, 0);
+			if (isChecked != null && isChecked) {
+				tableIdsToDelete.add(userId);
 			}
 		}
+
+		return tableIdsToDelete;
+	}
+	
+	/**
+	 * Finds the row index by the specified user ID.
+	 * 
+	 * @param userId the ID of the table to find
+	 * @return the index of the row, or -1 if not found
+	 */
+	private int findRowIndexById(String userId) {
+		for (int i = 0; i < formUserUI.getTable().getRowCount(); i++) {
+			if (formUserUI.getTable().getValueAt(i, 1).equals(userId)) {
+				return i;
+			}
+		}
+		return -1;
+	}
+	
+	/**
+	 * Creates chunks of rows for processing.
+	 * 
+	 * @param rowCount the total number of rows
+	 * @return a list of chunks containing row IDs
+	 */
+	private List<List<String>> createChunks(int rowCount) {
+		List<List<String>> chunks = new ArrayList<>();
+		List<String> currentChunk = new ArrayList<>();
+
+		for (int i = 0; i < rowCount; i++) {
+			String tableId = (String) formUserUI.getTable().getValueAt(i, 1);
+			currentChunk.add(tableId);
+
+			if (currentChunk.size() == 4) {
+				chunks.add(new ArrayList<>(currentChunk));
+				currentChunk.clear();
+			}
+		}
+
+		if (!currentChunk.isEmpty()) {
+			chunks.add(currentChunk);
+		}
+
+		return chunks;
+	}
+
+	/**
+	 * Finds the selected user IDs from the specified panel.
+	 * 
+	 * @param panelCard the panel containing card users
+	 * @return a list of selected user IDs
+	 */
+	public List<String> findSelectedUserIds(JPanel panelCard) {
+		List<String> selectedUserIds = new ArrayList<>();
+		Component[] components = panelCard.getComponents();
+		List<List<Component>> chunks = createComponentChunks(components);
+		ExecutorService executorService = Executors.newFixedThreadPool(4);
+		List<Callable<List<String>>> tasks = new ArrayList<>();
+
+		for (List<Component> chunk : chunks) {
+			tasks.add(() -> processComponentChunk(chunk));
+		}
+
+		try {
+			List<Future<List<String>>> results = executorService.invokeAll(tasks);
+			for (Future<List<String>> result : results) {
+				selectedUserIds.addAll(result.get());
+			}
+		} catch (InterruptedException | ExecutionException e) {
+			e.printStackTrace();
+		} finally {
+			executorService.shutdown();
+		}
+
 		return selectedUserIds;
+	}
+	
+	/**
+	 * Creates chunks of components for processing.
+	 * 
+	 * @param components the array of components to chunk
+	 * @return a list of chunks containing components
+	 */
+	private List<List<Component>> createComponentChunks(Component[] components) {
+		List<List<Component>> chunks = new ArrayList<>();
+		List<Component> currentChunk = new ArrayList<>();
+
+		for (Component component : components) {
+			currentChunk.add(component);
+
+			if (currentChunk.size() == 4) {
+				chunks.add(new ArrayList<>(currentChunk));
+				currentChunk.clear();
+			}
+		}
+
+		if (!currentChunk.isEmpty()) {
+			chunks.add(currentChunk);
+		}
+
+		return chunks;
+	}
+	
+	/**
+	 * Gets the selected user IDs for deletion.
+	 * 
+	 * @return a list of selected user IDs
+	 */
+	private List<String> getSelectedUserIdsForDeletion() {
+		if (formUserUI.getSelectedTitle().equals("Basic table")) {
+			return findSelectedUserIds();
+		} else if (formUserUI.getSelectedTitle().equals("Grid table")) {
+			return findSelectedUserIds(formUserUI.getPanelCard());
+		}
+		return new ArrayList<>();
 	}
 
 	/**
@@ -456,5 +608,25 @@ public class UserFormController {
 			Toast.show(formUserUI, Toast.Type.ERROR, "Failed to find user to view details: " + e.getMessage());
 			return null;
 		}
+	}
+	/**
+	 * Processes a chunk of components to find selected user IDs.
+	 * 
+	 * @param chunk the chunk of components to process
+	 * @return a list of selected table IDs
+	 */
+	private List<String> processComponentChunk(List<Component> chunk) {
+		List<String> selectedIds = new ArrayList<>();
+
+		for (Component component : chunk) {
+			if (component instanceof CardUser) {
+				CardUser cardUser = (CardUser) component;
+				if (cardUser.isSelected()) {
+					selectedIds.add(cardUser.getModel().getId());
+				}
+			}
+		}
+
+		return selectedIds;
 	}
 }

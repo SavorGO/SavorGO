@@ -5,11 +5,15 @@ import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.UserController;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.User;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.component.MyImageIcon;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.create.CreateUserInputForm;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.update.UpdatePasswordInputForm;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.system.FormManager;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.DefaultComponent;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.SystemForm;
 import net.miginfocom.swing.MigLayout;
+import raven.modal.ModalDialog;
 import raven.modal.Toast;
+import raven.modal.component.AdaptSimpleModalBorder;
 
 import javax.swing.*;
 import java.awt.*;
@@ -147,7 +151,25 @@ public class AccountFormUI extends Form {
 	}
 
 	private void changePasswordAction() {
-		JOptionPane.showMessageDialog(this, "Redirecting to Change Password Form...");
-		// Example: FormManager.showChangePasswordForm(user);
+	UpdatePasswordInputForm updatePasswordInputForm = new UpdatePasswordInputForm();
+		ModalDialog.showModal(this, new AdaptSimpleModalBorder(updatePasswordInputForm, "Update password",
+				AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
+					if (action == AdaptSimpleModalBorder.YES_OPTION) {
+						handleUpdatePassword(updatePasswordInputForm);
+					}
+				}), DefaultComponent.getInputForm());
+	}
+	
+	private void handleUpdatePassword(UpdatePasswordInputForm updatePasswordInputForm) {
+		Object[] data = updatePasswordInputForm.getData();
+		if (data == null) {
+			return;
+		}
+		try {
+			authenticationController.changePassword(data);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			Toast.show(this, Toast.Type.ERROR, "Failed to update password: " + e.getMessage());
+		}
 	}
 }

@@ -11,4 +11,6 @@ public interface AuthenticationService {
 	String loginWithGoogle(String idToken) throws IOException;
 
 	String loginWithEmailPassword(String email, String password) throws IOException;
+
+	void changePassword(String token, String oldPassword, String newPassword) throws IOException;
 }

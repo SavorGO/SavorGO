@@ -329,7 +329,7 @@ public class MenuFormController {
      * Displays a modal dialog for creating a new promotion.
      */
     private void showCreatePromotionModal() {
-        CreatePromotionInputForm inputFormCreatePromotion = new CreatePromotionInputForm(getSelectedMenuIds());
+        CreatePromotionInputForm inputFormCreatePromotion = new CreatePromotionInputForm(getSelectedMenuIdsForDeletion());
         ModalDialog.showModal(formMenu, new AdaptSimpleModalBorder(inputFormCreatePromotion, "Create promotion", AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
             if (action == AdaptSimpleModalBorder.YES_OPTION) {
                 handleCreatePromotion(inputFormCreatePromotion);
@@ -483,7 +483,7 @@ public class MenuFormController {
      * Displays a modal dialog for deleting selected menus.
      */
     private void showDeleteModal() {
-        List<String> findSelectedMenuIds = getSelectedMenuIds();
+        List<String> findSelectedMenuIds = getSelectedMenuIdsForDeletion();
         if (findSelectedMenuIds.isEmpty()) {
             Toast.show(formMenu, Toast.Type.ERROR, "You have to select at least one menu to delete");
             return;
@@ -496,7 +496,7 @@ public class MenuFormController {
      * 
      * @return The list of selected menu IDs.
      */
-    private List<String> getSelectedMenuIds() {
+    private List<String> getSelectedMenuIdsForDeletion() {
         if (formMenu.getSelectedTitle().equals("Basic table")) {
             return findSelectedMenuIds();
         } else if (formMenu.getSelectedTitle().equals("Grid table")) {
