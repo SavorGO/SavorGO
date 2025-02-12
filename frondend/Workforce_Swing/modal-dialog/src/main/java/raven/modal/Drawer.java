@@ -32,6 +32,7 @@ public class Drawer {
 
     private Drawer() {
     }
+    
 
     public static void installDrawer(Component parentComponent, DrawerBuilder drawerBuilder) {
         initInstance();

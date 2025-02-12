@@ -5,7 +5,7 @@ import javax.swing.*;
 /**
  * @author Raven
  */
-public class SimpleHeaderData {
+public class SimpleProfileData {
 
     public Icon getIcon() {
         return icon;
@@ -19,7 +19,7 @@ public class SimpleHeaderData {
         return description;
     }
 
-    public SimpleHeaderStyle getSimpleHeaderStyle() {
+    public SimpleProfileStyle getSimpleHeaderStyle() {
         return simpleHeaderStyle;
     }
 
@@ -27,24 +27,24 @@ public class SimpleHeaderData {
     protected String title;
     protected String description;
 
-    protected SimpleHeaderStyle simpleHeaderStyle;
+    protected SimpleProfileStyle simpleHeaderStyle;
 
-    public SimpleHeaderData setIcon(Icon icon) {
+    public SimpleProfileData setIcon(Icon icon) {
         this.icon = icon;
         return this;
     }
 
-    public SimpleHeaderData setTitle(String title) {
+    public SimpleProfileData setTitle(String title) {
         this.title = title;
         return this;
     }
 
-    public SimpleHeaderData setDescription(String description) {
+    public SimpleProfileData setDescription(String description) {
         this.description = description;
         return this;
     }
 
-    public SimpleHeaderData setHeaderStyle(SimpleHeaderStyle simpleHeaderStyle) {
+    public SimpleProfileData setHeaderStyle(SimpleProfileStyle simpleHeaderStyle) {
         this.simpleHeaderStyle = simpleHeaderStyle;
         return this;
     }

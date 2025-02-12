@@ -5,7 +5,7 @@ import javax.swing.*;
 /**
  * @author Raven
  */
-public abstract class SimpleHeaderStyle {
+public abstract class SimpleProfileStyle {
 
     public void styleHeader(JComponent component) {
     }
