@@ -1,16 +1,14 @@
-package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.update;
+package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.InputPopupForm;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.PopupFormBasic;
 import raven.modal.component.AdaptSimpleModalBorder;
 import com.formdev.flatlaf.FlatClientProperties;
 
-public class UpdatePasswordInputForm extends PopupFormBasic implements InputPopupForm {
+public class ChangePasswordInputForm extends PopupFormBasic implements InputPopupForm {
     private JPasswordField txtOldPassword = new JPasswordField();
     private JPasswordField txtNewPassword = new JPasswordField();
     private JPasswordField txtConfirmNewPassword = new JPasswordField();
@@ -19,7 +17,7 @@ public class UpdatePasswordInputForm extends PopupFormBasic implements InputPopu
     private JLabel lblConfirmNewPasswordError = new JLabel();
     private boolean isInputsValid = false;
 
-    public UpdatePasswordInputForm() {
+    public ChangePasswordInputForm() {
         super();
         init();
     }
