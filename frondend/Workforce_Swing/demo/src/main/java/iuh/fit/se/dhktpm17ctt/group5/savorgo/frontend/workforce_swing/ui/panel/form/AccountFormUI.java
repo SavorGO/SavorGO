@@ -5,8 +5,8 @@ import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.UserController;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.User;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.component.MyImageIcon;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.ChangePasswordInputForm;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.create.CreateUserInputForm;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.update.UpdatePasswordInputForm;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.system.FormManager;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.DefaultComponent;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.SystemForm;
@@ -151,7 +151,7 @@ public class AccountFormUI extends Form {
 	}
 
 	private void changePasswordAction() {
-	UpdatePasswordInputForm updatePasswordInputForm = new UpdatePasswordInputForm();
+	ChangePasswordInputForm updatePasswordInputForm = new ChangePasswordInputForm();
 		ModalDialog.showModal(this, new AdaptSimpleModalBorder(updatePasswordInputForm, "Update password",
 				AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
 					if (action == AdaptSimpleModalBorder.YES_OPTION) {
@@ -160,7 +160,7 @@ public class AccountFormUI extends Form {
 				}), DefaultComponent.getInputForm());
 	}
 	
-	private void handleUpdatePassword(UpdatePasswordInputForm updatePasswordInputForm) {
+	private void handleUpdatePassword(ChangePasswordInputForm updatePasswordInputForm) {
 		Object[] data = updatePasswordInputForm.getData();
 		if (data == null) {
 			return;
