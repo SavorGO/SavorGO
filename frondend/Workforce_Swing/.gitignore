@@ -33,3 +33,6 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+demo/src/main/resources/encrypted_token.txt
+
