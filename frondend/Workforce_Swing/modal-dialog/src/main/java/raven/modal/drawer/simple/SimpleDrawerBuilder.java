@@ -6,10 +6,8 @@ import raven.modal.drawer.DrawerPanel;
 import raven.modal.drawer.menu.AbstractMenuElement;
 import raven.modal.drawer.menu.DrawerMenu;
 import raven.modal.drawer.menu.MenuOption;
-import raven.modal.drawer.simple.footer.LightDarkButtonFooter;
-import raven.modal.drawer.simple.footer.SimpleFooterData;
-import raven.modal.drawer.simple.header.SimpleHeader;
-import raven.modal.drawer.simple.header.SimpleHeaderData;
+import raven.modal.drawer.simple.header.SimpleProfile;
+import raven.modal.drawer.simple.header.SimpleProfileData;
 import raven.modal.option.LayoutOption;
 import raven.modal.option.Location;
 import raven.modal.option.Option;
@@ -38,11 +36,11 @@ public abstract class SimpleDrawerBuilder implements DrawerBuilder {
     }
 
     private void init() {
-        header = new SimpleHeader(getSimpleHeaderData());
+        header = new SimpleProfile(getSimpleHeaderData());
         MenuOption simpleMenuOption = getSimpleMenuOption();
         menu = new DrawerMenu(simpleMenuOption);
         menuScroll = createScroll(menu);
-        footer = new LightDarkButtonFooter(getSimpleFooterData());
+        footer = new SimpleProfile(getSimpleFooterData());
         option = new Option();
         option.setDuration(300);
         option.getBorderOption()
@@ -166,7 +164,7 @@ public abstract class SimpleDrawerBuilder implements DrawerBuilder {
         return menuOption;
     }
 
-    public abstract SimpleHeaderData getSimpleHeaderData();
+    public abstract SimpleProfileData getSimpleHeaderData();
 
-    public abstract SimpleFooterData getSimpleFooterData();
+    public abstract SimpleProfileData getSimpleFooterData();
 }

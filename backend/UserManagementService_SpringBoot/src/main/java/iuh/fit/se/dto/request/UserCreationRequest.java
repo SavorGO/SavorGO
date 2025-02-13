@@ -1,28 +1,34 @@
 package iuh.fit.se.dto.request;
 
-import iuh.fit.se.enums.Role;
-import iuh.fit.se.enums.Status;
-import iuh.fit.se.enums.Tier;
+import iuh.fit.se.enums.UserRoleEnum;
+import iuh.fit.se.enums.UserStatusEnum;
+import iuh.fit.se.enums.UserTierEnum;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+
 public class UserCreationRequest {
+	String id;
     String email;
     String password;
     String firstName;
     String lastName;
-    Role role;
+    UserRoleEnum role;
     int points;
-    Tier tier;
+    UserTierEnum tier;
     String address;
-    Status status;
-    LocalDate createdTime;
-    LocalDate modifiedTime;
+    UserStatusEnum status;
+    String publicId;
+    LocalDateTime createdTime;
+    LocalDateTime modifiedTime;
 }

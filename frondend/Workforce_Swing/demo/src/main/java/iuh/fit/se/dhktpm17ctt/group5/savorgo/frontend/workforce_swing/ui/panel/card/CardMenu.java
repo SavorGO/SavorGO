@@ -1,5 +1,6 @@
 package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.card;
 
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.MenuController;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Menu;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.component.MyImageIcon;
 import net.miginfocom.swing.MigLayout;
@@ -12,19 +13,20 @@ import java.time.format.DateTimeFormatter;
  * Class representing a card for a menu item.
  */
 public class CardMenu extends CardBasic<Menu> {
-
-    public CardMenu(Menu modelMenu){
-        super(modelMenu);
+	private MenuController menuController;
+    public CardMenu(Menu menu){
+        super(menu);
     }
 
     @Override
     protected JPanel createHeader() {
+    	menuController = new MenuController();
         JPanel header = new JPanel(new MigLayout("fill,insets 0", "[fill]", "[top]"));
         header.putClientProperty(FlatClientProperties.STYLE, "background:null");
 
         JLabel label = new JLabel();
         try {
-            label.setIcon(model.getImage(130, 130, 20));
+            label.setIcon(menuController.getImage(model,130, 130, 20));
         } catch (IOException e) {
             label.setIcon(null);
         }
@@ -34,18 +36,18 @@ public class CardMenu extends CardBasic<Menu> {
 
     @Override
     protected JPanel createBody() {
-        JPanel body = new JPanel(new MigLayout("wrap, align center", "[center]", "[][][][][grow]"));
+        JPanel body = new JPanel(new MigLayout("wrap, align left", "[left]", "[][][][][grow]"));
         body.putClientProperty(FlatClientProperties.STYLE, "background:null;");
-
         addNameLabel(body);
-        addCategoryLabel(body);
         addStatusLabel(body);
+        addCategoryLabel(body);
         addPriceLabel(body);
         addCreateDateLabel(body);
         addUpdateDateLabel(body);
 
         return body;
     }
+
 
     private void addNameLabel(JPanel body) {
         JLabel nameLabel = new JLabel(model.getName());
@@ -54,15 +56,15 @@ public class CardMenu extends CardBasic<Menu> {
     }
 
     private void addCategoryLabel(JPanel body) {
-        JLabel categoryLabel = new JLabel("Category: " + model.getCategory());
+        JLabel categoryLabel = new JLabel("Category: " + model.getCategory().getDisplayName());
         categoryLabel.putClientProperty(FlatClientProperties.STYLE, "font:medium;");
         body.add(categoryLabel);
     }
 
     private void addStatusLabel(JPanel body) {
-        JLabel statusLabel = new JLabel(model.getStatus().toString());
+        JLabel statusLabel = new JLabel(model.getStatus().getDisplayName());
         statusLabel.putClientProperty(FlatClientProperties.STYLE, "font:bold;");
-        statusLabel.setForeground(getStatusColor(model.getStatus().toString())); // Set color based on status
+        statusLabel.setForeground(getStatusColor(model.getStatus().getDisplayName())); // Set color based on status
         body.add(statusLabel);
     }
 

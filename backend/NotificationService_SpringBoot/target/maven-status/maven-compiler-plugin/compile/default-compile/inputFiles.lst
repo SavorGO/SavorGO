@@ -1,0 +1,9 @@
+D:\KTPM\SavorGO\backend\NotificationService_SpringBoot\src\main\java\iuh\fit\se\controller\EmailController.java
+D:\KTPM\SavorGO\backend\NotificationService_SpringBoot\src\main\java\iuh\fit\se\dto\reponse\EmailReponse.java
+D:\KTPM\SavorGO\backend\NotificationService_SpringBoot\src\main\java\iuh\fit\se\dto\request\EmailRequest.java
+D:\KTPM\SavorGO\backend\NotificationService_SpringBoot\src\main\java\iuh\fit\se\dto\request\Recipient.java
+D:\KTPM\SavorGO\backend\NotificationService_SpringBoot\src\main\java\iuh\fit\se\dto\request\SendEmailRequest.java
+D:\KTPM\SavorGO\backend\NotificationService_SpringBoot\src\main\java\iuh\fit\se\dto\request\Sender.java
+D:\KTPM\SavorGO\backend\NotificationService_SpringBoot\src\main\java\iuh\fit\se\NotificationServiceSpringBootApplication.java
+D:\KTPM\SavorGO\backend\NotificationService_SpringBoot\src\main\java\iuh\fit\se\repository\httpclient\EmailClient.java
+D:\KTPM\SavorGO\backend\NotificationService_SpringBoot\src\main\java\iuh\fit\se\service\EmailService.java

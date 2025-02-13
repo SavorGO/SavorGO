@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Login</title>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDjAfnswae6_XOdAwRd5wwdkBvTIdnCFko",
+            authDomain: "savorgo-2003.firebaseapp.com",
+            projectId: "savorgo-2003",
+            storageBucket: "savorgo-2003.firebasestorage.app",
+            messagingSenderId: "870117107429",
+            appId: "1:870117107429:web:e48a533477b49f82a0960c"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        function loginWithGoogle() {
+            signInWithPopup(auth, provider)
+                .then(async (result) => {
+                    const idToken = await result.user.getIdToken(true); // Refresh token if needed
+
+                    // Update body content instead of alert
+                    document.body.innerHTML = `
+                        <h2>Login successful!</h2>
+                        <p>Welcome, ${result.user.displayName}!</p>
+                        <p>You can now proceed. Redirecting...</p>
+                    `;
+
+                    // Redirect to backend
+                    window.location.href = `http://localhost:5000/callback?token=${idToken}`;
+                })
+                .catch((error) => {
+                    console.error("Login failed:", error);
+                    document.body.innerHTML = `<h2>Login failed. Please try again.</h2>`;
+                });
+        }
+
+        window.onload = () => loginWithGoogle();
+    </script>
+</head>
+<body>
+    <h2>Logging in...</h2>
+</body>
+</html>

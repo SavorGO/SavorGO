@@ -34,13 +34,4 @@ public abstract class ModelBasic {
      */
     @JsonProperty("modified_time")
     private LocalDateTime modifiedTime;
-
-    /**
-     * Abstract method to convert the object into a basic table row representation.
-     * Subclasses must implement this method to provide specific conversion logic.
-     * 
-     * @return An array of objects representing the table row.
-     * @throws IOException if an error occurs during the conversion process.
-     */
-    protected abstract Object[] toTableRowBasic() throws IOException; 
 }

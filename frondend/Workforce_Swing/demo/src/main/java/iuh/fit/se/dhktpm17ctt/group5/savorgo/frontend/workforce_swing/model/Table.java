@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.EnumTableStatus;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.TableStatusEnum;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.table.ThumbnailCell;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.CustomDateDeserializer;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.CustomDateSerializer;
@@ -26,7 +26,7 @@ import lombok.experimental.SuperBuilder;
 public class Table extends ModelBasic {
 	private long id;
 	private String name;
-	private EnumTableStatus status = EnumTableStatus.OUT_OF_SERVICE;
+	private TableStatusEnum status = TableStatusEnum.OUT_OF_SERVICE;
 	
 	/**
 	 * @return true if reservedTime is after now
@@ -42,9 +42,4 @@ public class Table extends ModelBasic {
     @JsonDeserialize(using = CustomDateDeserializer.class) // Dùng custom deserializer
     @JsonSerialize(using = CustomDateSerializer.class) // Dùng custom serializer
 	private LocalDateTime reservedTime;
-	@Override
-	public Object[] toTableRowBasic() {
-		return new Object[]{ false, this.getId(), new ThumbnailCell("table",this.getName(),this.getStatus().getDisplayName(), null), this.isReserved(), this.getReservedTime(), this.getCreatedTime(), this.getModifiedTime()};
-	}
-	//fullconstructor: id, name, status, isReserved, reservedTime, createdTime, modifiedTime
 }

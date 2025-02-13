@@ -3,10 +3,10 @@ package iuh.fit.se.dto.request;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-@Setter
-@Getter
-@NoArgsConstructor
+@Data
+@Builder
 @AllArgsConstructor
+@NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AuthenticationRequest {
     String email;

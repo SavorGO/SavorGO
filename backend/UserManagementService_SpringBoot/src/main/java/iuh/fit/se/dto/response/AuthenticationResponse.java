@@ -1,13 +1,15 @@
 package iuh.fit.se.dto.response;
-import lombok.*;
-import lombok.experimental.FieldDefaults;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
-@FieldDefaults(level = AccessLevel.PRIVATE)
+@AllArgsConstructor
+@NoArgsConstructor
 public class AuthenticationResponse {
-    String token;
-    boolean authenticated;
+    private String jwtToken;
+    private String message;
 }

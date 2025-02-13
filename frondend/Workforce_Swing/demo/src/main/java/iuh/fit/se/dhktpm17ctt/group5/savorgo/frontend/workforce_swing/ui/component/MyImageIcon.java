@@ -19,6 +19,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 
 import javax.imageio.ImageIO;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 import com.cloudinary.*;
@@ -28,6 +29,10 @@ public class MyImageIcon extends ImageIcon {
 
 	private BufferedImage bufferedImage;
 	private int height, width;
+	
+	public Icon getIcon() {
+		return this;
+	}
 
 	public BufferedImage getBufferedImage() {
 		return bufferedImage;
@@ -144,49 +149,37 @@ public class MyImageIcon extends ImageIcon {
 	public static MyImageIcon getMyImageIconFromCloudinaryImageTag(String publicID, int width, int height, int radius)
 	        throws URISyntaxException, IOException {
 	    String urlString = null;
-	    int retryCount = 3;  // Số lần thử lại
-	    boolean success = false;
 	    MyImageIcon icon = null;
 
-	    while (retryCount > 0 && !success) {
+	    try {
+	        // Create URL from Cloudinary
+	        urlString = cloudinary.url()
+	                .transformation(new Transformation().height(height).width(width).crop("scale").chain().radius(radius))
+	                .generate(publicID);
+
+	        // Check URL
+	        if (urlString == null || urlString.isEmpty()) {
+	            return new MyImageIcon("src/main/resources/images/png/no_image_found.png", width, height, radius);
+	        }
+
+	        // Open URL to check
+	        URL url = new URL(urlString);
+	        url.openStream().close();
+
+	        // Create MyImageIcon from URL
+	        icon = new MyImageIcon(url);
+
+	    } catch (IOException e) {
+	        // Print error and use default image
+	        System.err.println("public id: " + publicID + " | " + urlString + " | Error generating image URL or loading image: " + e.getMessage());
 	        try {
-	            // Tạo URL từ Cloudinary
-	            urlString = cloudinary.url()
-	                    .transformation(new Transformation().height(height).width(width).crop("scale").chain().radius(radius))
-	                    .generate(publicID);
-
-	            // Kiểm tra URL
-	            if (urlString == null || urlString.isEmpty()) {
-	            	return icon = new MyImageIcon("src/main/resources/images/png/no_image_found.png", width, height, radius);
-	            }
-
-	            // Mở URL để kiểm tra
-	            URL url = new URL(urlString);
-	            url.openStream().close();
-
-	            // Tạo MyImageIcon từ URL
-	            icon = new MyImageIcon(url);
-
-	            // Đánh dấu là tải thành công
-	            success = true;
-
-	        } catch (IOException e) {
-	            // In ra lỗi và giảm số lần thử lại
-	            System.err.println("public id: " + publicID + " | " + urlString + " | Error generating image URL or loading image: " + e.getMessage());
-	            retryCount--;
-
-	            // Nếu hết lần thử, dùng ảnh mặc định
-	            if (retryCount == 0) {
-	                try {
-	                    icon = new MyImageIcon("src/main/resources/images/png/no_image_found.png", width, height, radius);
-	                } catch (IOException e1) {
-	                    e1.printStackTrace();
-	                }
-	            }
+	            icon = new MyImageIcon("src/main/resources/images/png/no_image_found.png", width, height, radius);
+	        } catch (IOException e1) {
+	            e1.printStackTrace();
 	        }
 	    }
 
-	    // Trả về icon sau khi tải xong hoặc ảnh mặc định nếu không thành công
+	    // Return icon after loading or default image if failed
 	    return icon;
 	}
 
