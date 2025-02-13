@@ -119,8 +119,8 @@ public class MyDrawerBuilder extends SimpleDrawerBuilder {
 		MenuOption simpleMenuOption = new MenuOption();
 
 		MenuItem items[] = new MenuItem[] { new Item.Label("MAIN"),
-				new Item("Dashboard", "dashboard.svg", FormDashboard.class), new Item("About", "about.svg"),
-				new Item.Label("Management"), new Item("Manage Tables", "table.svg", TableFormUI.class),
+				new Item("Dashboard", "dashboard.svg", FormDashboard.class),new Item("Make Reservation", "reservation.svg", ReservationFormUI.class), new Item("About", "about.svg"),
+				new Item.Label("Management"),new Item("Manage Invoices", "invoice.svg", InvoiceFormUI.class), new Item("Manage Tables", "table.svg", TableFormUI.class),
 				new Item("Manage Users", "user.svg", UserFormUI.class),
 				new Item("Manage Menus", "menu.svg", MenuFormUI.class),
 				new Item("Manage Promotions", "promotion.svg", PromotionFormUI.class), new Item.Label("OTHER"),
@@ -143,11 +143,11 @@ public class MyDrawerBuilder extends SimpleDrawerBuilder {
 				System.out.println("Drawer menu selected " + Arrays.toString(index));
 				Class<?> itemClass = action.getItem().getItemClass();
 				int i = index[0];
-				if (i == 1) {
+				if (i == 2) {
 					action.consume();
 					FormManager.showAbout();
 					return;
-				} else if (i == 9) {
+				} else if (i == 11) {
 					action.consume();
 					FormManager.logout();
 					return;

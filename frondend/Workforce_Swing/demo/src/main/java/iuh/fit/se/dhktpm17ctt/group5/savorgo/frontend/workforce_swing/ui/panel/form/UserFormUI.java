@@ -71,7 +71,7 @@ public class UserFormUI extends Form {
     }
 
     /**
-     * Creates a tab panel with basic and grid tables.
+     * Creates a tab panel with basic and grid table.
      * 
      * @return the created JTabbedPane containing the user table
      */
@@ -109,7 +109,6 @@ public class UserFormUI extends Form {
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         styleTableWithFlatLaf(scrollPane);
-        panel.add(createTableTitle("User Management"), "gapx 20");
         panel.add(createHeaderActionPanel());
         panel.add(scrollPane);
         controller.loadData("");
@@ -176,18 +175,6 @@ public class UserFormUI extends Form {
         table.putClientProperty(FlatClientProperties.STYLE, "" + "rowHeight:70;" + "showHorizontalLines:true;" + "intercellSpacing:0,1;" + "cellFocusColor:$TableHeader.hoverBackground;" + "selectionBackground:$TableHeader.hoverBackground;" + "selectionInactiveBackground:$TableHeader.hoverBackground;" + "selectionForeground:$Table.foreground;");
         scrollPane.getVerticalScrollBar().putClientProperty(FlatClientProperties.STYLE, "" + "trackArc:$ScrollBar.thumbArc;" + "trackInsets:3,3,3,3;" + "thumbInsets:3,3,3,3;" + "background:$Table.background;");
     }
-
-    /**
-     * Creates a title label for the table.
-     * 
-     * @param title the title of the table
-     * @return the created JLabel with the title
-     */
-    private JLabel createTableTitle(String title) {
-        JLabel titleLabel = new JLabel(title);
-        titleLabel.putClientProperty(FlatClientProperties.STYLE, "font:bold +2");
-        return titleLabel;
-    }
     
     /**
      * Creates the grid table panel.
@@ -198,7 +185,6 @@ public class UserFormUI extends Form {
         JPanel panel = new JPanel(new MigLayout("fillx,wrap,insets 10 10 10 10", "[fill]", "[][]0[fill,grow]"));
         configurePanelCardStyle();
         JScrollPane scrollPane = createScrollPaneForPanelCard();
-        panel.add(createTableTitle("Grid Menu"), "gapx 20");
         panel.add(createHeaderActionPanel());
         panel.add(scrollPane);
         controller.loadData("");

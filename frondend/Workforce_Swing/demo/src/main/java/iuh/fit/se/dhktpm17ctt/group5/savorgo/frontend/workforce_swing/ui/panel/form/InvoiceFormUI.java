@@ -1,17 +1,15 @@
 package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.form;
 
 import com.formdev.flatlaf.FlatClientProperties;
-import com.formdev.flatlaf.extras.FlatSVGIcon;
-
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.layout.ResponsiveLayout;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.form.controller.TableFormController;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.form.controller.InvoiceFormController;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.table.CheckBoxTableHeaderRenderer;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.table.TableHeaderAlignment;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.table.TableThumbnailRenderer;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.table.ThumbnailCell;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.SystemForm;
 import net.miginfocom.swing.MigLayout;
-import raven.modal.Toast;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -24,23 +22,21 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
 
-@SystemForm(name = "Table", description = "Table is a user interface component", tags = { "list" })
-public class TableFormUI extends Form {
-    private TableFormController controller;
-    private final Object columns[] = new Object[] { "SELECT", "#", "THUMBNAIL", "IS RESERVED", "CREATED TIME", "UPDATED TIME" };
+@SystemForm(name = "Invoice Management", description = "Invoice Management is a user interface component", tags = { "invoice", "management" })
+public class InvoiceFormUI extends Form {
+    private InvoiceFormController controller;
+    private final Object columns[] = new Object[] { "SELECT", "#", "CUSTOMER ID", "STAFF ID", "DELIVERY ADDRESS", "ORDER TIME", "STATUS", "CREATED TIME", "MODIFIED TIME" };
     private DefaultTableModel tableModel = createTableModel();
     private JTable table = new JTable(tableModel);
     private final ResponsiveLayout responsiveLayout = new ResponsiveLayout(ResponsiveLayout.JustifyContent.FIT_CONTENT, new Dimension(-1, -1), 10, 10);
     private JPanel panelCard = new JPanel(responsiveLayout);
-    private static final int DEBOUNCE_DELAY = 1000;
-    private Timer debounceTimer;
-    private String selectedTitle = "Basic table";
+    private String selectedTitle = "Invoice Table";
 
     /**
-     * Constructs a TableFormUI and initializes the controller.
+     * Constructs an InvoiceFormUI and initializes the controller.
      */
-    public TableFormUI() {
-        controller = new TableFormController(this);
+    public InvoiceFormUI() {
+        controller = new InvoiceFormController(this);
         init();
     }
 
@@ -49,7 +45,7 @@ public class TableFormUI extends Form {
      */
     private void init() {
         setLayout(new MigLayout("fillx,wrap", "[fill]", "[][fill,grow]"));
-        add(createInfoPanel("Table Management", "This is a user interface component that displays a collection of tables in a structured, tabular format. It allows users to view, sort, and manage data or other resources.", 1));
+        add(createInfoPanel("Invoice Management", "This interface allows users to manage invoices, including viewing, editing, and deleting invoice information.", 1));
         add(createTabPanel(), "gapx 7 7");
     }
 
@@ -75,9 +71,9 @@ public class TableFormUI extends Form {
     }
 
     /**
-     * Creates a tab panel with basic and grid tables.
+     * Creates a tab panel with basic and grid table.
      * 
-     * @return the created JTabbedPane containing the table panels
+     * @return the created JTabbedPane containing the invoice table
      */
     private Component createTabPanel() {
         JTabbedPane tabb = new JTabbedPane();
@@ -104,9 +100,9 @@ public class TableFormUI extends Form {
     }
 
     /**
-     * Creates the basic table panel.
+     * Creates the invoice table panel.
      * 
-     * @return the created JPanel containing the basic table
+     * @return the created JPanel containing the invoice table
      */
     private Component createBasicTable() {
         JPanel panel = new JPanel(new MigLayout("fillx,wrap,insets 10 10 10 10", "[fill]", "[][]0[fill,grow]"));
@@ -131,28 +127,20 @@ public class TableFormUI extends Form {
         table.setRowHeight(50);
         table.setSelectionBackground(new Color(220, 230, 241));
         table.setSelectionForeground(Color.BLACK);
-        table.getTableHeader().setReorderingAllowed(true);
+        table.getTableHeader().setReorderingAllowed(false);
         table.getColumnModel().getColumn(0).setMaxWidth(50);
         table.getColumnModel().getColumn(1).setMaxWidth(50);
-        table.getColumnModel().getColumn(1).setPreferredWidth(250);
+        table.getColumnModel().getColumn(1).setPreferredWidth(50);
         table.getColumnModel().getColumn(2).setPreferredWidth(150);
-        table.getColumnModel().getColumn(3).setMaxWidth(100);
-        table.getColumnModel().getColumn(3).setPreferredWidth(100);
-        table.getColumnModel().getColumn(4).setPreferredWidth(250);
-        table.getColumnModel().getColumn(5).setPreferredWidth(250);
+        table.getColumnModel().getColumn(3).setPreferredWidth(150);
+        table.getColumnModel().getColumn(4).setPreferredWidth(200);
+        table.getColumnModel().getColumn(5).setPreferredWidth(150);
+        table.getColumnModel().getColumn(6).setPreferredWidth(100);
         table.setDefaultRenderer(ThumbnailCell.class, new TableThumbnailRenderer(table));
         table.getColumnModel().getColumn(0).setHeaderRenderer(new CheckBoxTableHeaderRenderer(table, 0));
         table.getTableHeader().setDefaultRenderer(new TableHeaderAlignment(table) {
             @Override
             protected int getAlignment(int column) {
-                int trailing[] = { 4, 5 };
-                int center[] = { 2 };
-                if (Arrays.stream(trailing).anyMatch(value -> value == column)) {
-                    return SwingConstants.TRAILING;
-                }
-                if (Arrays.stream(center).anyMatch(value -> value == column)) {
-                    return SwingConstants.CENTER;
-                }
                 return SwingConstants.LEADING;
             }
         });
@@ -167,6 +155,7 @@ public class TableFormUI extends Form {
                     int row = table.rowAtPoint(e.getPoint());
                     if (!table.isRowSelected(row)) {
                         table.setRowSelectionInterval(row, row);
+                        table.repaint();
                     }
                     table.setValueAt(true, row, 0);
                     createPopupMenu().show(e.getComponent(), e.getX(), e.getY());
@@ -186,6 +175,7 @@ public class TableFormUI extends Form {
         table.putClientProperty(FlatClientProperties.STYLE, "" + "rowHeight:70;" + "showHorizontalLines:true;" + "intercellSpacing:0,1;" + "cellFocusColor:$TableHeader.hoverBackground;" + "selectionBackground:$TableHeader.hoverBackground;" + "selectionInactiveBackground:$TableHeader.hoverBackground;" + "selectionForeground:$Table.foreground;");
         scrollPane.getVerticalScrollBar().putClientProperty(FlatClientProperties.STYLE, "" + "trackArc:$ScrollBar.thumbArc;" + "trackInsets:3,3,3,3;" + "thumbInsets:3,3,3,3;" + "background:$Table.background;");
     }
+
 
     /**
      * Creates the grid table panel.
@@ -255,7 +245,7 @@ public class TableFormUI extends Form {
         JMenuItem detailsMenuItem = new JMenuItem("View Details");
         JMenuItem copyMenuItem = new JMenuItem("Copy cell text");
         JMenuItem editMenuItem = new JMenuItem("Edit");
-        JMenuItem deleteMenuItem = new JMenuItem((controller.findSelectedTableIds().size() == 1 || (controller.findSelectedTableIds(panelCard).size() == 1)) ? "Delete" : "Delete many");
+        JMenuItem deleteMenuItem = new JMenuItem("Delete");
         popupMenu.add(detailsMenuItem);
         popupMenu.add(copyMenuItem);
         popupMenu.add(editMenuItem);
@@ -279,12 +269,12 @@ public class TableFormUI extends Form {
                 StringSelection stringSelection = new StringSelection(value.toString());
                 Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
                 clipboard.setContents(stringSelection, null);
-                Toast.show(this, Toast.Type.SUCCESS, "Copied to clipboard");
+                JOptionPane.showMessageDialog(this, "Copied to clipboard", "Success", JOptionPane.INFORMATION_MESSAGE);
             } else {
-                Toast.show(this, Toast.Type.INFO, "Cell is empty");
+                JOptionPane.showMessageDialog(this, "Cell is empty", "Info", JOptionPane.INFORMATION_MESSAGE);
             }
         } else {
-            Toast.show(this, Toast.Type.ERROR, "Please select a cell to copy");
+            JOptionPane.showMessageDialog(this, "Please select a cell to copy", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -309,7 +299,6 @@ public class TableFormUI extends Form {
     private JTextField createSearchTextField() {
         JTextField txtSearch = new JTextField();
         txtSearch.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Search...");
-        txtSearch.putClientProperty(FlatClientProperties.TEXT_FIELD_LEADING_ICON, new FlatSVGIcon("raven/modal/demo/icons/search.svg", 0.4f));
         txtSearch.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
@@ -328,16 +317,13 @@ public class TableFormUI extends Form {
         return new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 0;
+                return column == 0; // Only the select column is editable
             }
 
             @Override
             public Class<?> getColumnClass(int columnIndex) {
                 if (columnIndex == 0)
                     return Boolean.class;
-                if (columnIndex == 2) {
-                    return ThumbnailCell.class;
-                }
                 return super.getColumnClass(columnIndex);
             }
         };
@@ -362,15 +348,6 @@ public class TableFormUI extends Form {
     }
 
     /**
-     * Gets the panel card that contains the CardTable components.
-     * 
-     * @return the JPanel containing the CardTable components
-     */
-    public JPanel getPanelCard() {
-        return panelCard;
-    }
-
-    /**
      * Gets the title of the selected tab.
      * 
      * @return the title of the selected tab
@@ -385,5 +362,14 @@ public class TableFormUI extends Form {
     @Override
     public void formRefresh() {
         controller.loadData("");
+    }
+
+    /**
+     * Gets the panel card that contains the CardTable components.
+     * 
+     * @return the JPanel containing the CardTable components
+     */
+    public JPanel getPanelCard() {
+        return panelCard;
     }
 }

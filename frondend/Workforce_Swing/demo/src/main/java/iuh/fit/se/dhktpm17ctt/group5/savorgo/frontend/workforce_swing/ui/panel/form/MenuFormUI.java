@@ -114,7 +114,6 @@ public class MenuFormUI extends Form {
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         styleTableWithFlatLaf(scrollPane);
-        panel.add(createTableTitle("Basic Menu"), "gapx 20");
         panel.add(createHeaderActionPanel());
         panel.add(scrollPane);
         controller.loadData("");
@@ -191,18 +190,6 @@ public class MenuFormUI extends Form {
     }
 
     /**
-     * Creates a title label for the table.
-     * 
-     * @param title the title of the table
-     * @return the created JLabel with the title
-     */
-    private JLabel createTableTitle(String title) {
-        JLabel titleLabel = new JLabel(title);
-        titleLabel.putClientProperty(FlatClientProperties.STYLE, "font:bold +2");
-        return titleLabel;
-    }
-
-    /**
      * Creates the grid table panel.
      * 
      * @return the created JPanel containing the grid table
@@ -211,7 +198,6 @@ public class MenuFormUI extends Form {
         JPanel panel = new JPanel(new MigLayout("fillx,wrap,insets 10 10 10 10", "[fill]", "[][]0[fill,grow]"));
         configurePanelCardStyle();
         JScrollPane scrollPane = createScrollPaneForPanelCard();
-        panel.add(createTableTitle("Grid Menu"), "gapx 20");
         panel.add(createHeaderActionPanel());
         panel.add(scrollPane);
         controller.loadData("");
