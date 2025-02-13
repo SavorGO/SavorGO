@@ -10,18 +10,14 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
-<<<<<<< Updated upstream
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-=======
->>>>>>> Stashed changes
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-<<<<<<< Updated upstream
 @JsonIgnoreProperties(value = {"email"})
 public class UserUpdateRequest {
 	String id;
@@ -36,17 +32,4 @@ public class UserUpdateRequest {
     UserStatusEnum status;
     LocalDateTime createdTime;
     LocalDateTime modifiedTime;
-=======
-public class UserUpdateRequest {
-    String password;
-    String firstName;
-    String lastName;
-    Role role;
-    int points;
-    Tier tier;
-    String address;
-    Status status;
-    LocalDate createdTime;
-    LocalDate modifiedTime;
->>>>>>> Stashed changes
 }

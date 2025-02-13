@@ -11,9 +11,5 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User,String> {
      Optional<User> findByEmail(String email);
-<<<<<<< Updated upstream
      List<User> findByRole(UserRoleEnum role);
-=======
-     List<User> findByRole(Role role);
->>>>>>> Stashed changes
 }
