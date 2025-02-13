@@ -8,6 +8,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -20,6 +21,7 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
+    String publicId;
     String email;
     String password;
     @Column(name = "first_name")
@@ -34,9 +36,9 @@ public class User {
     String address;
     Status status;
     @Column(name = "created_time")
-    LocalDate createdTime;
+    LocalDateTime createdTime;
     @Column(name = "modified_time")
-    LocalDate modifiedTime;
+    LocalDateTime modifiedTime;
 
     @PrePersist
     void GenerateValue(){
@@ -44,7 +46,7 @@ public class User {
         this.points = 0;
         this.tier = Tier.NONE;
         this.status = Status.OK;
-        this.createdTime = LocalDate.now();
-        this.modifiedTime = LocalDate.now();
+        this.createdTime = LocalDateTime.now();
+        this.modifiedTime = LocalDateTime.now();
     }
 }
