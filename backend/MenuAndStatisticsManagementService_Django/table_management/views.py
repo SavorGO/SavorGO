@@ -7,8 +7,11 @@ from datetime import datetime, timedelta
 from .serializers import TableSerializer  # Giả sử bạn đã có một serializer cho Table
 from django.utils import timezone  # Để lấy thời gian hiện tại
 from django.db.models import Q
+import logging
+logger = logging.getLogger("myapp.api")  # Logger chỉ dành cho API
 
 class TableViewSet(ViewSet):
+    serializer_class = TableSerializer
     def list(self, request):
         # GET /tables/
         tables = Table.objects.all()
@@ -27,27 +30,17 @@ class TableViewSet(ViewSet):
         return Response(serializer.data)
 
     def create(self, request):
-        # POST /tables/
-        try:
-            # Lấy dữ liệu từ body của request
-            data = request.data
+        """ Xử lý POST /tables/ """
+        logger.info("Received request to create a new table")  # Log khi nhận request
+        serializer = TableSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)  # Middleware sẽ log lỗi nếu có
+        table = serializer.save()
 
-            # Validate trường 'name'
-            name = data.get('name', '').strip()  # Lấy giá trị 'name' hoặc gán giá trị mặc định là chuỗi rỗng
-            if not name:
-                return Response({'error': 'Name cannot be empty.'}, status=status.HTTP_400_BAD_REQUEST)
-            elif len(name) > 255:
-                return Response({'error': 'Name cannot exceed 255 characters.'}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Tạo table mới
-            table = Table.objects.create(
-                name=name,
-                status=data.get('status', 'OUT_OF_SERVICE'),  # Sử dụng giá trị mặc định nếu không được cung cấp
-            )
-            return Response({'message': 'Table created successfully.', 'table_id': table.id}, status=status.HTTP_201_CREATED)
-
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        logger.info(f"Table {table.id} created successfully")  # Log khi tạo thành công
+        return Response({
+            "message": "Table created successfully.",
+            "data": {"table_id": table.id}
+        }, status=status.HTTP_201_CREATED)
 
 
     def update_by_id(self, request, pk=None):
