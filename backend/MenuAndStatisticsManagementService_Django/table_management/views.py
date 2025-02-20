@@ -1,5 +1,6 @@
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.utils import extend_schema, OpenApiParameter, inline_serializer
 from drf_spectacular.types import OpenApiTypes  # Thêm dòng này
+from rest_framework import serializers
 from rest_framework import status
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
@@ -134,7 +135,7 @@ class TableViewSet(ViewSet):
     parameters=[
         OpenApiParameter(name="id", description="Table ID", required=True, type=OpenApiTypes.INT, location=OpenApiParameter.PATH),
     ],
-)
+    )
     def delete_by_id(self, request, pk=None):
         """Xóa mềm bàn bằng cách cập nhật trạng thái thành 'DELETED', có log và tài liệu API"""
         try:
@@ -160,49 +161,54 @@ class TableViewSet(ViewSet):
             status=status.HTTP_200_OK
         )
 
+    from drf_spectacular.utils import extend_schema, OpenApiTypes
+
+    @extend_schema(
+    parameters=[
+        OpenApiParameter(
+            name="ids",
+            description="Danh sách ID của các bàn cần xóa, cách nhau bởi dấu phẩy. VD: ?ids=1,2,3",
+            required=True,
+            type=OpenApiTypes.STR,
+            location=OpenApiParameter.QUERY
+        )
+    ],
+    responses={200: TableSerializer(many=True)}
+)
     def delete_many(self, request):
         """
-        Xóa nhiều bảng từ danh sách ID.
+        Xóa nhiều bàn bằng cách cập nhật trạng thái thành 'DELETED'.
+        Nếu ID không tìm thấy, thêm vào danh sách lỗi.
         """
-        # Lấy danh sách các ID từ request
-        ids = request.data.get('ids', [])
+        ids_param = request.query_params.get("ids")
+        
+        if not ids_param:
+            return Response({"error": "IDs list is required as query parameter."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Chuyển đổi danh sách ID từ chuỗi sang danh sách số nguyên
+        try:
+            ids = list(map(int, ids_param.split(",")))
+        except ValueError:
+            return Response({"error": "Invalid ID format. IDs must be integers."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        existing_tables = Table.objects.filter(id__in=ids)
+        existing_ids = set(existing_tables.values_list("id", flat=True))
+        not_found_ids = set(ids) - existing_ids
 
-        if not ids:
-            return Response({"error": "IDs list is required."}, status=status.HTTP_400_BAD_REQUEST)
+        response_data = {"status": status.HTTP_200_OK, "message": "Tables processed.", "errors": []}
 
-        # Lọc các bảng cần xóa theo ID
-        tables = Table.objects.filter(id__in=ids)
+        for table in existing_tables:
+            if table.status == "DELETED":
+                logger.info(f"Table with ID {table.id} is already deleted.")
+            else:
+                table.status = "DELETED"
+                table.modified_time = timezone.now()
+                table.save()
+                logger.info(f"Table with ID {table.id} has been marked as DELETED.")
 
-        if not tables.exists():
-            return Response({"error": "No tables found with the provided IDs."}, status=status.HTTP_404_NOT_FOUND)
+        response_data["data"] = TableSerializer(existing_tables, many=True).data
 
-        # Cập nhật trạng thái của các bảng thành 'DELETED'
-        tables.update(status='DELETED')
+        if not_found_ids:
+            response_data["errors"] = [{"id": id_, "message": "Table not found."} for id_ in not_found_ids]
 
-        return Response({"message": f"{tables.count()} tables have been marked as DELETED."}, status=status.HTTP_200_OK)
-    def search(self, request):
-        search_query = request.GET.get('q', None)  # Nhận tham số tìm kiếm từ query string (ví dụ: ?q=a)
-
-        # Lấy thời gian hiện tại
-        now = timezone.now()
-
-        if search_query:
-            # Tạo điều kiện tìm kiếm cơ bản
-            query = Q(name__icontains=search_query) | Q(status__icontains=search_query) | Q(reserved_time__icontains=search_query)
-
-            # Kiểm tra xem reserved_time có rỗng không và so sánh reserved_time với thời gian hiện tại
-            if search_query.lower() in "true":
-                # Tạo điều kiện so sánh nếu search_query là "true"
-                reserved_time_comparison = Q(reserved_time__gt=now)
-                query |= reserved_time_comparison
-            elif search_query.lower() in "false":
-                # Tạo điều kiện nếu search_query là "false"
-                reserved_time_comparison = Q(reserved_time__isnull=True)  # Nếu reserved_time rỗng
-                query |= reserved_time_comparison
-
-            # Tìm kiếm theo query đã tạo
-            tables = Table.objects.filter(query)
-            serializer = TableSerializer(tables, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            return Response({"detail": "No search query provided"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(response_data, status=status.HTTP_200_OK)
