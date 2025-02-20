@@ -1,3 +1,5 @@
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes  # Thêm dòng này
 from rest_framework import status
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
@@ -8,15 +10,55 @@ from .serializers import TableSerializer  # Giả sử bạn đã có một seri
 from django.utils import timezone  # Để lấy thời gian hiện tại
 from django.db.models import Q
 import logging
+from rest_framework.pagination import PageNumberPagination
 logger = logging.getLogger("myapp.api")  # Logger chỉ dành cho API
 
 class TableViewSet(ViewSet):
     serializer_class = TableSerializer
+    @extend_schema(
+    parameters=[
+        OpenApiParameter("keyword", OpenApiTypes.STR, OpenApiParameter.QUERY, description="Search by name"),
+        OpenApiParameter("sortBy", OpenApiTypes.STR, OpenApiParameter.QUERY, description="Sort field (default: id)"),
+        OpenApiParameter("sortDirection", OpenApiTypes.STR, OpenApiParameter.QUERY, description="Sort direction (asc/desc)"),
+        OpenApiParameter("page", OpenApiTypes.INT, OpenApiParameter.QUERY, description="Page number"),
+        OpenApiParameter("size", OpenApiTypes.INT, OpenApiParameter.QUERY, description="Items per page"),
+    ],
+    responses={200: TableSerializer(many=True)},
+)
     def list(self, request):
-        # GET /tables/
+        """Lấy danh sách bàn với tìm kiếm, sắp xếp, phân trang và ghi log"""
+        keyword = request.query_params.get("keyword", "").strip()
+        sort_by = request.query_params.get("sortBy", "id")
+        sort_direction = request.query_params.get("sortDirection", "asc").lower()
+        page = request.query_params.get("page", 1)
+        size = request.query_params.get("size", 10)
+
+        if sort_direction not in ["asc", "desc"]:
+            sort_direction = "asc"
+        ordering = f"-{sort_by}" if sort_direction == "desc" else sort_by
+
         tables = Table.objects.all()
-        serializer = TableSerializer(tables, many=True)
-        return Response(serializer.data)
+        if keyword:
+            tables = tables.filter(Q(name__icontains=keyword))
+
+        tables = tables.order_by(ordering)
+
+        paginator = PageNumberPagination()
+        paginator.page_size = size
+        paginated_tables = paginator.paginate_queryset(tables, request)
+
+        serializer = TableSerializer(paginated_tables, many=True)
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "message": "Fetched tables successfully.",
+            "data": serializer.data,
+            "total_items": tables.count(),
+            "total_pages": paginator.page.paginator.num_pages if tables.count() > 0 else 1,
+        }
+
+        logger.info(f"Tables fetched: {len(serializer.data)} items (Page: {page}, Size: {size})")
+
+        return paginator.get_paginated_response(response_data)
 
     def get_by_id(self, request, pk=None):
         # GET /tables/<int:pk>
