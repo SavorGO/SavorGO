@@ -3,6 +3,7 @@ from drf_spectacular.types import OpenApiTypes  # Thêm dòng này
 from rest_framework import status
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
+from rest_framework.exceptions import NotFound
 from .models import Table
 from .serializers import TableSerializer
 from datetime import datetime, timedelta
@@ -24,7 +25,7 @@ class TableViewSet(ViewSet):
         OpenApiParameter("size", OpenApiTypes.INT, OpenApiParameter.QUERY, description="Items per page"),
     ],
     responses={200: TableSerializer(many=True)},
-)
+    )
     def list(self, request):
         """Lấy danh sách bàn với tìm kiếm, sắp xếp, phân trang và ghi log"""
         keyword = request.query_params.get("keyword", "").strip()
@@ -60,16 +61,33 @@ class TableViewSet(ViewSet):
 
         return paginator.get_paginated_response(response_data)
 
+    @extend_schema(
+    parameters=[
+        OpenApiParameter(name="id", description="Table ID", required=True, type=OpenApiTypes.INT, location=OpenApiParameter.PATH),
+    ],
+    responses={
+        200: TableSerializer(),
+        404: OpenApiTypes.OBJECT,
+    },
+)
     def get_by_id(self, request, pk=None):
-        # GET /tables/<int:pk>
+        """Lấy thông tin chi tiết của một bàn dựa trên ID, có log và tài liệu API"""
         try:
             table = Table.objects.get(pk=pk)
         except Table.DoesNotExist:
-            return Response({"error": "Table not found"}, status=status.HTTP_404_NOT_FOUND)
+            logger.warning(f"Table with ID {pk} not found.")
+            raise NotFound(detail={"status": 404, "message": "Table not found", "data": None})
 
-        # Serialize dữ liệu và trả về kết quả
         serializer = TableSerializer(table)
-        return Response(serializer.data)
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "message": "Table retrieved successfully",
+            "data": serializer.data,
+        }
+
+        logger.info(f"Table retrieved: ID {pk}")
+        return Response(response_data, status=status.HTTP_200_OK)
+
 
     def create(self, request):
         """ Xử lý POST /tables/ """
