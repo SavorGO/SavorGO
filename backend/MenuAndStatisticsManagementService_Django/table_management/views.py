@@ -141,7 +141,8 @@ class TableViewSet(ViewSet):
         try:
             table = Table.objects.get(pk=pk)
         except Table.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            logger.warning(f"Table with ID {pk} not found.")
+            raise NotFound("Table not found.")
         serializer = TableSerializer(table)
         if table.status == "DELETED":
             logger.info(f"Table with ID {pk} is already deleted.")
