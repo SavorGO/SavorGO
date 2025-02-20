@@ -24,7 +24,6 @@ class TableViewSet(ViewSet):
         OpenApiParameter("page", OpenApiTypes.INT, OpenApiParameter.QUERY, description="Page number"),
         OpenApiParameter("size", OpenApiTypes.INT, OpenApiParameter.QUERY, description="Items per page"),
     ],
-    responses={200: TableSerializer(many=True)},
     )
     def list(self, request):
         """Lấy danh sách bàn với tìm kiếm, sắp xếp, phân trang và ghi log"""
@@ -65,10 +64,6 @@ class TableViewSet(ViewSet):
     parameters=[
         OpenApiParameter(name="id", description="Table ID", required=True, type=OpenApiTypes.INT, location=OpenApiParameter.PATH),
     ],
-    responses={
-        200: TableSerializer(),
-        404: OpenApiTypes.OBJECT,
-    },
 )
     def get_by_id(self, request, pk=None):
         """Lấy thông tin chi tiết của một bàn dựa trên ID, có log và tài liệu API"""
@@ -135,18 +130,36 @@ class TableViewSet(ViewSet):
         logger.info(f"Table updated: ID {pk}")
         return Response(response_data, status=status.HTTP_200_OK)
 
-    def delete(self, request, pk=None):
-        # DELETE /tables/<int:pk>
+    @extend_schema(
+    parameters=[
+        OpenApiParameter(name="id", description="Table ID", required=True, type=OpenApiTypes.INT, location=OpenApiParameter.PATH),
+    ],
+)
+    def delete_by_id(self, request, pk=None):
+        """Xóa mềm bàn bằng cách cập nhật trạng thái thành 'DELETED', có log và tài liệu API"""
         try:
             table = Table.objects.get(pk=pk)
         except Table.DoesNotExist:
-            return Response({"error": "Table not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        serializer = TableSerializer(table)
+        if table.status == "DELETED":
+            logger.info(f"Table with ID {pk} is already deleted.")
+            return Response(
+                {"status": status.HTTP_200_OK, "message": "Table is already deleted.", "data": serializer.data},
+                status=status.HTTP_200_OK
+            )
 
-        # Cập nhật trạng thái của bảng thành DELETED thay vì xóa khỏi cơ sở dữ liệu
-        table.status = 'DELETED'
+        # Cập nhật trạng thái thành "DELETED" thay vì xóa
+        table.status = "DELETED"
+        table.modified_time = timezone.now()
         table.save()
+        logger.info(f"Table with ID {pk} has been marked as DELETED.")
 
-        return Response({"message": "Table status updated to DELETED."}, status=status.HTTP_200_OK)
+        return Response(
+            {"status": status.HTTP_200_OK, "message": "Table status updated to DELETED.", "data": serializer.data},
+            status=status.HTTP_200_OK
+        )
+
     def delete_many(self, request):
         """
         Xóa nhiều bảng từ danh sách ID.
