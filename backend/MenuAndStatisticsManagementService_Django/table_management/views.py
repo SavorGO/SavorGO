@@ -76,7 +76,7 @@ class TableViewSet(ViewSet):
             table = Table.objects.get(pk=pk)
         except Table.DoesNotExist:
             logger.warning(f"Table with ID {pk} not found.")
-            raise NotFound(detail={"status": 404, "message": "Table not found", "data": None})
+            raise NotFound("Table not found.")
 
         serializer = TableSerializer(table)
         response_data = {
