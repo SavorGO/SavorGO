@@ -72,7 +72,7 @@ class TableViewSet(ViewSet):
             table = Table.objects.get(pk=pk)
         except Table.DoesNotExist:
             logger.warning(f"Table with ID {pk} not found.")
-            raise NotFound(detail={"status": 404, "message": "Table not found", "data": None})
+            raise NotFound("Table not found.")
 
         serializer = TableSerializer(table)
         response_data = {
@@ -99,53 +99,37 @@ class TableViewSet(ViewSet):
         }, status=status.HTTP_201_CREATED)
 
 
+    @extend_schema(
+    parameters=[
+        OpenApiParameter(name="id", description="Table ID", required=True, type=OpenApiTypes.INT, location=OpenApiParameter.PATH),
+    ],
+    request=TableSerializer,
+    responses={
+        200: TableSerializer,
+        400: OpenApiTypes.OBJECT,
+        404: OpenApiTypes.OBJECT,
+    },
+)
     def update_by_id(self, request, pk=None):
+        """Cập nhật thông tin của một bàn dựa trên ID, có kiểm tra dữ liệu và ghi log."""
         try:
             table = Table.objects.get(pk=pk)
         except Table.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            logger.warning(f"Table with ID {pk} not found.")
+            raise NotFound("Table not found")
 
-        # Lấy reservedTime từ request
-        reserved_time = request.data.get('reservedTime')
+        serializer = TableSerializer(table, data=request.data, partial=True)  # Cho phép cập nhật từng phần
+        serializer.is_valid(raise_exception=True)
+        table = serializer.save(modified_time=timezone.now())  # Cập nhật thời gian chỉnh sửa
 
-        # Kiểm tra nếu reservedTime có sự thay đổi
-        if reserved_time:
-            # Chuyển đổi reservedTime từ chuỗi ISO 8601 thành datetime
-            reserved_time = datetime.fromisoformat(reserved_time)
+        response_data = {
+            "status": 200,
+            "message": "Table updated successfully",
+            "data": serializer.data
+        }
 
-            # Nếu reservedTime khác với giá trị hiện tại và sau 7 ngày, trả về lỗi
-            if reserved_time != table.reservedTime:
-                if reserved_time > datetime.now() + timedelta(days=7):
-                    return Response(
-                        {"detail": "Reserved time cannot be more than 7 days in the future."},
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
-
-                # Nếu reservedTime trước thời gian hiện tại, trả về lỗi
-                if reserved_time < datetime.now():
-                    return Response(
-                        {"detail": "Cannot change reserve time before now."},
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
-
-            # Định dạng lại reservedTime (nếu cần)
-            reserved_time = reserved_time.isoformat()
-
-            # Cập nhật reservedTime vào table
-            table.reservedTime = reserved_time
-
-        # Cập nhật modifiedTime
-        table.modifiedTime = datetime.now().isoformat()
-
-        # Cập nhật các trường khác từ request
-        table.name = request.data.get('name', table.name)
-        table.status = request.data.get('status', table.status)
-        # Lưu bảng sau khi cập nhật
-        table.save()
-
-        # Trả về dữ liệu đã cập nhật
-        serializer = TableSerializer(table)
-        return Response(serializer.data)
+        logger.info(f"Table updated: ID {pk}")
+        return Response(response_data, status=status.HTTP_200_OK)
 
     @extend_schema(
     parameters=[
