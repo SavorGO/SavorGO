@@ -109,7 +109,7 @@ public class TableFormUI extends Form {
      * @return the created JPanel containing the basic table
      */
     private Component createBasicTable() {
-        JPanel panel = new JPanel(new MigLayout("fillx,wrap,insets 10 10 10 10", "[fill]", "[][]0[fill,grow]"));
+        JPanel panel = new JPanel(new MigLayout("fillx,wrap,insets 10 10 10 10", "[fill]", "[]0[fill,grow]"));
         configureTableProperties();
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());

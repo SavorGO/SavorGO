@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -41,12 +42,60 @@ INSTALLED_APPS = [
     'django_mongoengine',  # Đảm bảo đã thêm django_mongoengine vào INSTALLED_APPS
     # Thêm app rest_framework
     'rest_framework',
-    
+    'drf_spectacular',
+    'drf_spectacular_sidecar',  # Để có Swagger UI
     # Các app khác của bạn
     'table_management',
     'menu_management',
     'promotion_management',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'EXCEPTION_HANDLER': 'MenuAndStatisticsManagementService_Django.exceptions.custom_exception_handler'
+}
+
+import os
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {message}",
+            "style": "{",
+        },
+        "simple": {
+            "format": "{levelname} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "file": {
+            "level": "DEBUG",
+            "class": "logging.FileHandler",
+            "filename": os.path.join(BASE_DIR, "logs", "api.log"),  # Log API riêng
+            "formatter": "verbose",
+        },
+        "console": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
+        },
+    },
+    "loggers": {
+        "django": {  # Giảm mức log của Django core
+            "handlers": ["file"],
+            "level": "WARNING",  # Chỉ log WARNING trở lên
+            "propagate": False,
+        },
+        "myapp.api": {  # Logger riêng cho API
+            "handlers": ["file", "console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+    },
+}
 
 APPEND_SLASH = False
 
@@ -59,7 +108,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
+    # Thêm middleware bắt lỗi toàn cục
+    'MenuAndStatisticsManagementService_Django.middlewares.GlobalExceptionMiddleware',
 ]
+
 
 ROOT_URLCONF = 'MenuAndStatisticsManagementService_Django.urls'
 

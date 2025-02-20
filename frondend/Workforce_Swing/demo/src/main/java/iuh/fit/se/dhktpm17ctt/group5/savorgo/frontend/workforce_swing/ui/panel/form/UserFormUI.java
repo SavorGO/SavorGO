@@ -104,7 +104,7 @@ public class UserFormUI extends Form {
      * @return the created JPanel containing the user table
      */
     private Component createBasicTable() {
-        JPanel panel = new JPanel(new MigLayout("fillx,wrap,insets 10 10 10 10", "[fill]", "[][]0[fill,grow]"));
+        JPanel panel = new JPanel(new MigLayout("fillx,wrap,insets 10 10 10 10", "[fill]", "[]0[fill,grow]"));
         configureTableProperties();
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
