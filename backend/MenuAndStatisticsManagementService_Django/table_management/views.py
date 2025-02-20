@@ -156,13 +156,7 @@ class TableViewSet(ViewSet):
         table.save()
         logger.info(f"Table with ID {pk} has been marked as DELETED.")
 
-        return Response(
-            {"status": status.HTTP_200_OK, "message": "Table status updated to DELETED.", "data": serializer.data},
-            status=status.HTTP_200_OK
-        )
-
-    from drf_spectacular.utils import extend_schema, OpenApiTypes
-
+        return Response({"message": "Table status updated to DELETED."}, status=status.HTTP_200_OK)
     @extend_schema(
     parameters=[
         OpenApiParameter(
@@ -181,16 +175,16 @@ class TableViewSet(ViewSet):
         Nếu ID không tìm thấy, thêm vào danh sách lỗi.
         """
         ids_param = request.query_params.get("ids")
-        
+
         if not ids_param:
             return Response({"error": "IDs list is required as query parameter."}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         # Chuyển đổi danh sách ID từ chuỗi sang danh sách số nguyên
         try:
             ids = list(map(int, ids_param.split(",")))
         except ValueError:
             return Response({"error": "Invalid ID format. IDs must be integers."}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         existing_tables = Table.objects.filter(id__in=ids)
         existing_ids = set(existing_tables.values_list("id", flat=True))
         not_found_ids = set(ids) - existing_ids
