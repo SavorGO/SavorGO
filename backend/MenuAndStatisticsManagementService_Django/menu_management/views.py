@@ -432,55 +432,79 @@ class MenuViewSet(ViewSet):
             status=status.HTTP_200_OK,
         )
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="ids",
+                description="List of menu IDs to delete, comma-separated. Ex: ?ids=1,2,3",
+                required=True,
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+            )
+        ],
+        responses={
+            200: inline_serializer(
+                name="MenuBulkDeleteResponse",
+                fields={
+                    "status": serializers.IntegerField(default=200),
+                    "message": serializers.CharField(),
+                    "data": MenuSerializer(many=True),
+                    "errors": serializers.DictField(
+                        child=serializers.CharField(),
+                        required=False,
+                        allow_null=True,
+                        default=None,
+                    ),
+                },
+            ),
+            400: inline_serializer(
+                name="MenuBulkDeleteBadRequestResponse",
+                fields={
+                    "status": serializers.IntegerField(default=400),
+                    "message": serializers.CharField(),
+                    "errors": serializers.DictField(
+                        child=serializers.CharField(),
+                        required=False,
+                        allow_null=True,
+                        default=None,
+                    ),
+                    "data": serializers.DictField(
+                        child=serializers.CharField(),
+                        required=False,
+                        allow_null=True,
+                        default=None,
+                    ),
+                },
+            ),
+        },
+    )
     def delete_many(self, request):
-        # DELETE /menus/
-        ids = request.data.get("ids", [])
-        if not ids:
-            return Response(
-                {"error": "IDs list is required."}, status=status.HTTP_400_BAD_REQUEST
-            )
+        """
+        Delete multiple menus by updating status to 'DELETED'.
+        Adds not found IDs to error dictionary.
+        """
+        ids_param = request.query_params.get("ids")
+        if not ids_param:
+            raise ValidationError({"ids": ["IDs list is required as a query parameter."]})
+        ids = ids_param.split(",")
 
-        menus = Menu.objects.filter(id__in=ids)
-        if not menus:
-            return Response(
-                {"error": "No menus found with the provided IDs."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        existing_menus = Menu.objects.filter(id__in=ids)
+        existing_ids = set(str(menu.id) for menu in existing_menus)
 
-        menus.update(status="DELETED")
-        return Response(
-            {"message": f"{menus.count()} menus have been marked as DELETED."},
-            status=status.HTTP_200_OK,
-        )
+        not_found_ids = set(ids) - existing_ids
+        
+        response_data = {"status": status.HTTP_200_OK, "message": "Menus processed.", "errors": {}, "data": []}
+        for menu in existing_menus:
+            if menu.status == "Deleted":
+                logger.info(f"Menu with ID {menu.id} is already deleted.")
+            else:
+                menu.status = "Deleted"
+                menu.modified_time = timezone.now()
+                menu.save()
+                logger.info(f"Menu with ID {menu.id} has been marked as DELETED.")
 
-    def search(self, request):
-        # Nhận query string (ví dụ: ?q=keyword)
-        search_query = request.GET.get("q", None)
-        if not search_query:
-            return Response(
-                {"error": "No search query provided"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        response_data["data"] = MenuSerializer(existing_menus, many=True).data
 
-        # Khởi tạo query trống
-        query = Q()
-
-        # Xử lý tìm kiếm theo ObjectId (nếu hợp lệ)
-        try:
-            obj_id = ObjectId(search_query)
-            query |= Q(id=obj_id)
-        except errors.InvalidId:
-            pass  # Bỏ qua nếu không phải ObjectId hợp lệ
-
-        # Tìm kiếm trong các trường khác
-        query |= (
-            Q(name__icontains=search_query)
-            | Q(category__icontains=search_query)
-            | Q(description__icontains=search_query)
-            | Q(status__icontains=search_query)
-        )
-
-        # Thực hiện tìm kiếm
-        menus = Menu.objects.filter(query)
-        serializer = MenuSerializer(menus, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if not_found_ids:
+            response_data["errors"] = {id_: "Menu not found." for id_ in not_found_ids}
+        return Response(response_data, status=status.HTTP_200_OK)
