@@ -1,18 +1,127 @@
+from drf_spectacular.utils import extend_schema, OpenApiParameter, inline_serializer
+from drf_spectacular.types import OpenApiTypes 
+from rest_framework.exceptions import ValidationError
+from drf_spectacular.types import OpenApiTypes
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import status
 from mongoengine.queryset.visitor import Q
-from datetime import datetime
-from .models import Menu
 from .serializers import MenuSerializer
 from bson import ObjectId, errors
+import logging
+from rest_framework import serializers
+from .models import Menu, Size, Option, Status
+from rest_framework.pagination import PageNumberPagination
+logger = logging.getLogger("myapp.api")
 
 class MenuViewSet(ViewSet):
+    serializer_class = MenuSerializer
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "keyword", OpenApiTypes.STR, OpenApiParameter.QUERY, 
+                description="Search by keyword", default=""
+            ),
+            OpenApiParameter(
+                "statusFilter", OpenApiTypes.STR, OpenApiParameter.QUERY,
+                description="Filter menus by status (all/without_deleted/available)", default="without_deleted"
+            ),
+            OpenApiParameter(
+                "sortBy", OpenApiTypes.STR, OpenApiParameter.QUERY, 
+                description="Sort field", default="id"
+            ),
+            OpenApiParameter(
+                "sortDirection", OpenApiTypes.STR, OpenApiParameter.QUERY, 
+                description="Sort direction (asc/desc)", default="asc"
+            ),
+            OpenApiParameter(
+                "page", OpenApiTypes.INT, OpenApiParameter.QUERY, 
+                description="Page number", default=1
+            ),
+            OpenApiParameter(
+                "size", OpenApiTypes.INT, OpenApiParameter.QUERY, 
+                description="Items per page", default=10
+            ),
+        ],
+        responses={
+            200: inline_serializer(
+                name="MenuPaginatedResponse",
+                fields={
+                    "status": serializers.IntegerField(default=200),
+                    "message": serializers.CharField(
+                        default="Fetched menus successfully."
+                    ),
+                    "errors": serializers.DictField(
+                        child=serializers.CharField(),
+                        required=False,
+                        allow_null=True,
+                        default=None,
+                    ),
+                    "data": inline_serializer(
+                        name="MenuListResponse",
+                        fields={
+                            "total_items": serializers.IntegerField(),
+                            "total_pages": serializers.IntegerField(),
+                            "count": serializers.IntegerField(),
+                            "next": serializers.CharField(allow_null=True),
+                            "previous": serializers.CharField(allow_null=True),
+                            "data": MenuSerializer(many=True),
+                        },
+                    ),
+                },
+            )
+        },
+    )
     def list(self, request):
-        # GET /menus/
+        """Get list of menus with search, sort, pagination and logging"""
+        keyword = request.query_params.get("keyword", "").strip()
+        status_filter = request.query_params.get("statusFilter", "without_deleted").lower()
+        sort_by = request.query_params.get("sortBy", "id")
+        sort_direction = request.query_params.get("sortDirection", "asc").lower()
+        page = request.query_params.get("page", 1)
+        size = request.query_params.get("size", 10)
+        
+        if sort_direction not in ["asc", "desc"]:
+            sort_direction = "asc"
+        ordering = f"-{sort_by}" if sort_direction == "desc" else sort_by
+
         menus = Menu.objects.all()
-        serializer = MenuSerializer(menus, many=True)
-        return Response(serializer.data)
+        
+        if keyword:
+            menus = menus.filter(Q(name__icontains=keyword))
+        if status_filter == "available":
+            menus = menus.filter(status=Status.AVAILABLE.value)
+        elif status_filter == "without_deleted":
+            menus = menus.filter(status__ne=Status.DELETED.value)
+
+        menus = menus.order_by(ordering)
+        
+        paginator = PageNumberPagination()
+        paginator.page_size = size
+        paginated_menus = paginator.paginate_queryset(menus, request)
+        
+        serializer = MenuSerializer(paginated_menus, many=True)
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "message": "Fetched menus successfully.",
+            "errors": None,
+            "data": {
+                "total_items": menus.count(),
+                "total_pages": (
+                    paginator.page.paginator.num_pages if paginator.page else 1
+                ),
+                "count": paginator.page.paginator.count if paginator.page else 0,
+                "next": paginator.get_next_link(),
+                "previous": paginator.get_previous_link(),
+                "data": serializer.data,
+            },
+        }
+
+        logger.info(
+            f"Menus fetched: {len(serializer.data)} items (Page: {page}, Size: {size})"
+        )
+
+        return Response(response_data, status=status.HTTP_200_OK)
 
     def get_by_id(self, request, pk=None):
         # GET /menus/<pk>
