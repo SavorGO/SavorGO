@@ -35,7 +35,9 @@ Lệnh này sẽ cài đặt tất cả thư viện cần thiết cho Django và
 ## 3️⃣ Chạy Server Django
 Sau khi hoàn tất cài đặt, bạn có thể chạy server bằng lệnh:
 ```sh
-python MenuAndStatisticsManagementService_Django/manage.py runserver
+cd backend/MenuAndStatisticsManagementService_Django
+../../venv/Scripts/python.exe manage.py runserver
+
 ```
 
 Server sẽ chạy tại địa chỉ: [http://127.0.0.1:8000](http://127.0.0.1:8000)
