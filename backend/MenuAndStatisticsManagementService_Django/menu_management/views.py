@@ -266,32 +266,90 @@ class MenuViewSet(ViewSet):
             status=status.HTTP_201_CREATED,
         )
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="id",
+                description="Menu ID",
+                required=True,
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.PATH,
+            ),
+        ],
+        request=MenuSerializer,
+        responses={
+            200: inline_serializer(
+                name="MenuUpdateResponse",
+                fields={
+                    "status": serializers.IntegerField(default=200),
+                    "message": serializers.CharField(),
+                    "errors": serializers.DictField(
+                        child=serializers.CharField(),
+                        required=False,
+                        allow_null=True,
+                        default=None,
+                    ),
+                    "data": MenuSerializer(),
+                },
+            ),
+            400: inline_serializer(
+                name="MenuUpdateBadRequestResponse",
+                fields={
+                    "status": serializers.IntegerField(default=400),
+                    "message": serializers.CharField(),
+                    "errors": serializers.DictField(
+                        child=serializers.ListField(child=serializers.CharField())
+                    ),
+                    "data": serializers.DictField(
+                        child=serializers.CharField(),
+                        required=False,
+                        allow_null=True,
+                        default=None,
+                    ),
+                },
+            ),
+            404: inline_serializer(
+                name="MenuUpdateNotFoundResponse",
+                fields={
+                    "status": serializers.IntegerField(default=404),
+                    "message": serializers.CharField(),
+                    "errors": serializers.DictField(
+                        child=serializers.CharField(),
+                        required=False,
+                        allow_null=True,
+                        default=None,
+                    ),
+                    "data": serializers.DictField(
+                        child=serializers.CharField(),
+                        required=False,
+                        allow_null=True,
+                        default=None,
+                    ),
+                },
+            ),
+        },
+    )
     def update_by_id(self, request, pk=None):
-        # PUT /menus/<pk>
+        """Update menu information by ID, with data validation and logging."""
         try:
             menu = Menu.objects.get(pk=pk)
         except Menu.DoesNotExist:
-            return Response(
-                {"error": "Menu not found"}, status=status.HTTP_404_NOT_FOUND
-            )
+            logger.warning(f"Menu with ID {pk} not found.")
+            raise NotFound("Menu not found")
 
-        try:
-            # Update các trường từ request
-            serializer = MenuSerializer(menu, data=request.data, partial=True)
-            if serializer.is_valid():
-                menu = serializer.save()
-                return Response(MenuSerializer(menu).data)
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            # Ghi lại lỗi và trả về thông báo lỗi
-            print(
-                f"An error occurred while updating the menu: {str(e)}"
-            )  # Hoặc sử dụng logging
-            return Response(
-                {"error": "An error occurred while updating the menu."},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+
+        serializer = MenuSerializer(menu, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        menu = serializer.save()
+        response_data = {
+                    "status": 200,
+                    "message": "Menu updated successfully",
+                    "errors": None,
+                    "data": serializer.data,
+        }
+        logger.info(f"Menu updated: ID {pk}")
+        return Response(response_data, status=status.HTTP_200_OK)
+
 
     def delete(self, request, pk=None):
         # DELETE /menus/<pk>
