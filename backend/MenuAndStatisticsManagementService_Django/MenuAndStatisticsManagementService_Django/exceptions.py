@@ -1,7 +1,7 @@
 import logging
 from rest_framework.views import exception_handler
 from rest_framework.response import Response
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ValidationError
 
 logger = logging.getLogger("django")  # Sử dụng logger của Django
 
@@ -13,14 +13,17 @@ def custom_exception_handler(exc, context):
     response = exception_handler(exc, context)
 
     if response is not None:
-        # Kiểm tra nếu lỗi là 404 - Not Found
+        # Mặc định errors là dictionary nếu có lỗi validation
+        errors = response.data if isinstance(response.data, dict) else {"detail": str(response.data)}
+
+        # Xử lý lỗi 404 - Not Found
         if isinstance(exc, NotFound):
             logger.warning(f"Not Found: {context['view'].__class__.__name__} - {context['kwargs']}")
             return Response({
                 "status": 404,
                 "message": "Resource not found",
                 "data": None,
-                "errors": response.data
+                "errors": errors  # Luôn là dictionary
             }, status=404)
 
         # Ghi log lỗi chung
@@ -29,8 +32,9 @@ def custom_exception_handler(exc, context):
         return Response({
             "status": response.status_code,
             "message": "Validation failed" if response.status_code == 400 else "An error occurred",
+            "errors": errors,
             "data": None,
-            "errors": response.data
+            
         }, status=response.status_code)
 
     # Nếu không có response, log lỗi này là lỗi nghiêm trọng
@@ -38,6 +42,6 @@ def custom_exception_handler(exc, context):
     return Response({
         "status": 500,
         "message": "Internal Server Error",
+        "errors": {"detail": str(exc)},
         "data": None,
-        "errors": str(exc)
     }, status=500)
