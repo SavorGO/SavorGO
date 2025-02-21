@@ -12,6 +12,8 @@ import logging
 from rest_framework import serializers
 from .models import Menu, Size, Option, Status
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.exceptions import NotFound
+
 logger = logging.getLogger("myapp.api")
 
 class MenuViewSet(ViewSet):
@@ -123,15 +125,71 @@ class MenuViewSet(ViewSet):
 
         return Response(response_data, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="id",
+                description="Menu ID",
+                required=True,
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.PATH,
+            ),
+        ],
+        responses={
+            200: inline_serializer(
+                name="MenuGetResponse",
+                fields={
+                    "status": serializers.IntegerField(default=200),
+                    "message": serializers.CharField(),
+                    "data": MenuSerializer(),
+                    "errors": serializers.DictField(
+                        child=serializers.CharField(),
+                        required=False,
+                        allow_null=True,
+                        default=None,
+                    ),
+                },
+            ),
+            404: inline_serializer(
+                name="MenuNotFoundResponse",
+                fields={
+                    "status": serializers.IntegerField(default=404),
+                    "message": serializers.CharField(),
+                    "data": serializers.DictField(
+                        child=serializers.CharField(),
+                        required=False,
+                        allow_null=True,
+                        default=None,
+                    ),
+                    "errors": serializers.DictField(
+                        child=serializers.CharField(),
+                        required=False,
+                        allow_null=True,
+                        default=None,
+                    ),
+                },
+            ),
+        },
+    )    
     def get_by_id(self, request, pk=None):
-        # GET /menus/<pk>
-        try:
-            menu = Menu.objects.get(pk=pk)
-        except Menu.DoesNotExist:
-            return Response({"error": "Menu not found"}, status=status.HTTP_404_NOT_FOUND)
+            """Get menu details by ID, with logging and API documentation"""
+            try:
+                menu = Menu.objects.get(pk=pk)
+            except Menu.DoesNotExist:
+                logger.warning(f"Menu with ID {pk} not found.")
+                raise NotFound("Menu not found.")
 
-        serializer = MenuSerializer(menu)
-        return Response(serializer.data)
+
+            serializer = MenuSerializer(menu)
+            response_data = {
+                "status": status.HTTP_200_OK,
+                "message": "Menu retrieved successfully",
+                "errors": None,
+                "data": serializer.data,
+            }
+
+            logger.info(f"Menu retrieved: ID {pk}")
+            return Response(response_data, status=status.HTTP_200_OK)
 
     def create(self, request):
         # POST /menus/
