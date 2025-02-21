@@ -13,7 +13,7 @@ from rest_framework import serializers
 from .models import Menu, Size, Option, Status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.exceptions import NotFound
-
+from django.utils import timezone
 logger = logging.getLogger("myapp.api")
 
 
@@ -350,21 +350,86 @@ class MenuViewSet(ViewSet):
         logger.info(f"Menu updated: ID {pk}")
         return Response(response_data, status=status.HTTP_200_OK)
 
+    @extend_schema(
+            parameters=[
+                OpenApiParameter(
+                    name="id",
+                    description="Menu ID",
+                    required=True,
+                    type=OpenApiTypes.STR,
+                    location=OpenApiParameter.PATH,
+                ),
+            ],
+            responses={
+                200: inline_serializer(
+                    name="MenuDeleteResponse",
+                    fields={
+                        "status": serializers.IntegerField(),
+                        "message": serializers.CharField(),
+                        "errors": serializers.DictField(
+                            child=serializers.CharField(),
+                            required=False,
+                            allow_null=True,
+                            default=None,
+                        ),
+                        "data": MenuSerializer(),
 
-    def delete(self, request, pk=None):
-        # DELETE /menus/<pk>
+                    },
+                ),
+                404: inline_serializer(
+                    name="MenuDeleteNotFoundResponse",
+                    fields={
+                        "status": serializers.IntegerField(default=404),
+                        "message": serializers.CharField(),
+                        "errors": serializers.DictField(
+                            child=serializers.CharField(),
+                            required=False,
+                            allow_null=True,
+                            default=None,
+                        ),
+                        "data": serializers.DictField(
+                            child=serializers.CharField(),
+                            required=False,
+                            allow_null=True,
+                            default=None,
+                        ),
+                    },
+                ),
+            },
+        )
+    def delete_by_id(self, request, pk=None):
+        """Soft delete menu by updating status to 'DELETED', with logging and API documentation"""
         try:
             menu = Menu.objects.get(pk=pk)
         except Menu.DoesNotExist:
-            return Response(
-                {"error": "Menu not found"}, status=status.HTTP_404_NOT_FOUND
+            logger.warning(f"Menu with ID {pk} not found.")
+            raise NotFound("Menu not found.")
+        serializer = MenuSerializer(menu)
+        if menu.status == "DELETED":
+                    logger.info(f"Menu with ID {pk} is already deleted.")
+                    return Response(
+                        {
+                            "status": status.HTTP_200_OK,
+                            "message": "Menu is already deleted.",
+                            "errors": None,
+                            "data": serializer.data,
+                        },
+                        status=status.HTTP_200_OK,
             )
 
-        # Đánh dấu trạng thái là 'DELETED' thay vì xóa thực sự
-        menu.status = "DELETED"
+        # Update status to "DELETED" instead of actual deletion
+        menu.status = "Deleted"
+        menu.modified_time = timezone.now()
         menu.save()
+        logger.info(f"Menu with ID {pk} has been marked as DELETED.")
         return Response(
-            {"message": "Menu status updated to DELETED"}, status=status.HTTP_200_OK
+            {
+                "status": status.HTTP_200_OK,
+                "message": "Menu is already deleted.",
+                "errors": None,
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
         )
 
     def delete_many(self, request):
