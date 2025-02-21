@@ -473,11 +473,13 @@ class TableViewSet(ViewSet):
             ids = list(map(int, ids_param.split(",")))
         except ValueError:
             raise ValidationError({"ids": ["Invalid ID format. IDs must be integers."]})
+
         existing_tables = Table.objects.filter(id__in=ids)
         existing_ids = set(existing_tables.values_list("id", flat=True))
         not_found_ids = set(ids) - existing_ids
 
         response_data = {"status": status.HTTP_200_OK, "message": "Tables processed.", "errors": {}, "data": []}
+
 
         for table in existing_tables:
             if table.status == "DELETED":
@@ -492,5 +494,4 @@ class TableViewSet(ViewSet):
 
         if not_found_ids:
             response_data["errors"] = {id_: "Table not found." for id_ in not_found_ids}
-
         return Response(response_data, status=status.HTTP_200_OK)
