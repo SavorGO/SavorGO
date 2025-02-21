@@ -1,5 +1,5 @@
 from drf_spectacular.utils import extend_schema, OpenApiParameter, inline_serializer
-from drf_spectacular.types import OpenApiTypes 
+from drf_spectacular.types import OpenApiTypes
 from rest_framework.exceptions import ValidationError
 from drf_spectacular.types import OpenApiTypes
 from rest_framework.viewsets import ViewSet
@@ -16,33 +16,53 @@ from rest_framework.exceptions import NotFound
 
 logger = logging.getLogger("myapp.api")
 
+
 class MenuViewSet(ViewSet):
     serializer_class = MenuSerializer
+
     @extend_schema(
         parameters=[
             OpenApiParameter(
-                "keyword", OpenApiTypes.STR, OpenApiParameter.QUERY, 
-                description="Search by keyword", default=""
+                "keyword",
+                OpenApiTypes.STR,
+                OpenApiParameter.QUERY,
+                description="Search by keyword",
+                default="",
             ),
             OpenApiParameter(
-                "statusFilter", OpenApiTypes.STR, OpenApiParameter.QUERY,
-                description="Filter menus by status (all/without_deleted/available)", default="without_deleted"
+                "statusFilter",
+                OpenApiTypes.STR,
+                OpenApiParameter.QUERY,
+                description="Filter menus by status (all/without_deleted/available)",
+                default="without_deleted",
             ),
             OpenApiParameter(
-                "sortBy", OpenApiTypes.STR, OpenApiParameter.QUERY, 
-                description="Sort field", default="id"
+                "sortBy",
+                OpenApiTypes.STR,
+                OpenApiParameter.QUERY,
+                description="Sort field",
+                default="id",
             ),
             OpenApiParameter(
-                "sortDirection", OpenApiTypes.STR, OpenApiParameter.QUERY, 
-                description="Sort direction (asc/desc)", default="asc"
+                "sortDirection",
+                OpenApiTypes.STR,
+                OpenApiParameter.QUERY,
+                description="Sort direction (asc/desc)",
+                default="asc",
             ),
             OpenApiParameter(
-                "page", OpenApiTypes.INT, OpenApiParameter.QUERY, 
-                description="Page number", default=1
+                "page",
+                OpenApiTypes.INT,
+                OpenApiParameter.QUERY,
+                description="Page number",
+                default=1,
             ),
             OpenApiParameter(
-                "size", OpenApiTypes.INT, OpenApiParameter.QUERY, 
-                description="Items per page", default=10
+                "size",
+                OpenApiTypes.INT,
+                OpenApiParameter.QUERY,
+                description="Items per page",
+                default=10,
             ),
         ],
         responses={
@@ -77,18 +97,20 @@ class MenuViewSet(ViewSet):
     def list(self, request):
         """Get list of menus with search, sort, pagination and logging"""
         keyword = request.query_params.get("keyword", "").strip()
-        status_filter = request.query_params.get("statusFilter", "without_deleted").lower()
+        status_filter = request.query_params.get(
+            "statusFilter", "without_deleted"
+        ).lower()
         sort_by = request.query_params.get("sortBy", "id")
         sort_direction = request.query_params.get("sortDirection", "asc").lower()
         page = request.query_params.get("page", 1)
         size = request.query_params.get("size", 10)
-        
+
         if sort_direction not in ["asc", "desc"]:
             sort_direction = "asc"
         ordering = f"-{sort_by}" if sort_direction == "desc" else sort_by
 
         menus = Menu.objects.all()
-        
+
         if keyword:
             menus = menus.filter(Q(name__icontains=keyword))
         if status_filter == "available":
@@ -97,11 +119,11 @@ class MenuViewSet(ViewSet):
             menus = menus.filter(status__ne=Status.DELETED.value)
 
         menus = menus.order_by(ordering)
-        
+
         paginator = PageNumberPagination()
         paginator.page_size = size
         paginated_menus = paginator.paginate_queryset(menus, request)
-        
+
         serializer = MenuSerializer(paginated_menus, many=True)
         response_data = {
             "status": status.HTTP_200_OK,
@@ -170,47 +192,88 @@ class MenuViewSet(ViewSet):
                 },
             ),
         },
-    )    
+    )
     def get_by_id(self, request, pk=None):
-            """Get menu details by ID, with logging and API documentation"""
-            try:
-                menu = Menu.objects.get(pk=pk)
-            except Menu.DoesNotExist:
-                logger.warning(f"Menu with ID {pk} not found.")
-                raise NotFound("Menu not found.")
+        """Get menu details by ID, with logging and API documentation"""
+        try:
+            menu = Menu.objects.get(pk=pk)
+        except Menu.DoesNotExist:
+            logger.warning(f"Menu with ID {pk} not found.")
+            raise NotFound("Menu not found.")
 
+        serializer = MenuSerializer(menu)
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "message": "Menu retrieved successfully",
+            "errors": None,
+            "data": serializer.data,
+        }
 
-            serializer = MenuSerializer(menu)
-            response_data = {
-                "status": status.HTTP_200_OK,
-                "message": "Menu retrieved successfully",
+        logger.info(f"Menu retrieved: ID {pk}")
+        return Response(response_data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        request=MenuSerializer,
+        responses={
+            201: inline_serializer(
+                name="MenuCreateResponse",
+                fields={
+                    "status": serializers.IntegerField(default=201),
+                    "message": serializers.CharField(
+                        default="Menu created successfully."
+                    ),
+                    "errors": serializers.DictField(
+                        child=serializers.CharField(),
+                        required=False,
+                        allow_null=True,
+                        default=None,
+                    ),
+                    "data": MenuSerializer(),
+                },
+            ),
+            400: inline_serializer(
+                name="MenuBadRequestResponse",
+                fields={
+                    "status": serializers.IntegerField(default=400),
+                    "message": serializers.CharField(
+                        default="Bad request. Please check input data."
+                    ),
+                    "errors": serializers.DictField(
+                        child=serializers.ListField(child=serializers.CharField())
+                    ),
+                    "data": serializers.DictField(
+                        default=None,
+                    ),
+                },
+            ),
+        },
+    )
+    def create(self, request):
+        """Handle POST /menus/"""
+        logger.info("Received request to create a new menu")
+        serializer = MenuSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        menu = serializer.save()
+
+        logger.info(f"Menu {menu.id} created successfully")
+        return Response(
+            {
+                "status": status.HTTP_201_CREATED,
+                "message": "Menu created successfully.",
                 "errors": None,
                 "data": serializer.data,
-            }
-
-            logger.info(f"Menu retrieved: ID {pk}")
-            return Response(response_data, status=status.HTTP_200_OK)
-
-    def create(self, request):
-        # POST /menus/
-        print("Received Data:", request.data)  # Debug dữ liệu được gửi từ client
-        serializer = MenuSerializer(data=request.data)
-
-        if serializer.is_valid():
-            menu = serializer.save()
-            print("Menu Created Successfully:", menu)  # Debug đối tượng đã lưu
-            return Response(MenuSerializer(menu).data, status=status.HTTP_201_CREATED)
-        else:
-            print("Serializer Errors:", serializer.errors)  # Debug lỗi serializer
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
     def update_by_id(self, request, pk=None):
         # PUT /menus/<pk>
         try:
             menu = Menu.objects.get(pk=pk)
         except Menu.DoesNotExist:
-            return Response({"error": "Menu not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Menu not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
         try:
             # Update các trường từ request
@@ -222,38 +285,59 @@ class MenuViewSet(ViewSet):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             # Ghi lại lỗi và trả về thông báo lỗi
-            print(f"An error occurred while updating the menu: {str(e)}")  # Hoặc sử dụng logging
-            return Response({"error": "An error occurred while updating the menu."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            print(
+                f"An error occurred while updating the menu: {str(e)}"
+            )  # Hoặc sử dụng logging
+            return Response(
+                {"error": "An error occurred while updating the menu."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
     def delete(self, request, pk=None):
         # DELETE /menus/<pk>
         try:
             menu = Menu.objects.get(pk=pk)
         except Menu.DoesNotExist:
-            return Response({"error": "Menu not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Menu not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
         # Đánh dấu trạng thái là 'DELETED' thay vì xóa thực sự
         menu.status = "DELETED"
         menu.save()
-        return Response({"message": "Menu status updated to DELETED"}, status=status.HTTP_200_OK)
+        return Response(
+            {"message": "Menu status updated to DELETED"}, status=status.HTTP_200_OK
+        )
 
     def delete_many(self, request):
         # DELETE /menus/
-        ids = request.data.get('ids', [])
+        ids = request.data.get("ids", [])
         if not ids:
-            return Response({"error": "IDs list is required."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "IDs list is required."}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         menus = Menu.objects.filter(id__in=ids)
         if not menus:
-            return Response({"error": "No menus found with the provided IDs."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "No menus found with the provided IDs."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
         menus.update(status="DELETED")
-        return Response({"message": f"{menus.count()} menus have been marked as DELETED."}, status=status.HTTP_200_OK)
+        return Response(
+            {"message": f"{menus.count()} menus have been marked as DELETED."},
+            status=status.HTTP_200_OK,
+        )
 
     def search(self, request):
         # Nhận query string (ví dụ: ?q=keyword)
-        search_query = request.GET.get('q', None)
+        search_query = request.GET.get("q", None)
         if not search_query:
-            return Response({"error": "No search query provided"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "No search query provided"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # Khởi tạo query trống
         query = Q()
@@ -262,17 +346,18 @@ class MenuViewSet(ViewSet):
         try:
             obj_id = ObjectId(search_query)
             query |= Q(id=obj_id)
-        except (errors.InvalidId):
+        except errors.InvalidId:
             pass  # Bỏ qua nếu không phải ObjectId hợp lệ
 
         # Tìm kiếm trong các trường khác
-        query |= Q(name__icontains=search_query) | \
-                 Q(category__icontains=search_query) | \
-                 Q(description__icontains=search_query) | \
-                 Q(status__icontains=search_query)
+        query |= (
+            Q(name__icontains=search_query)
+            | Q(category__icontains=search_query)
+            | Q(description__icontains=search_query)
+            | Q(status__icontains=search_query)
+        )
 
         # Thực hiện tìm kiếm
         menus = Menu.objects.filter(query)
         serializer = MenuSerializer(menus, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
