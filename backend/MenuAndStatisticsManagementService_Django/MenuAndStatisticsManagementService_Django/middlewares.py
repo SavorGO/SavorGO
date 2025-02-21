@@ -3,6 +3,7 @@ import traceback
 from django.http import JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.deprecation import MiddlewareMixin
+from django.utils.timezone import now
 
 logger = logging.getLogger("django")  # Sử dụng logger của Django
 
@@ -31,3 +32,20 @@ class GlobalExceptionMiddleware(MiddlewareMixin):
         logger.error(f"Error: {error_message}\nTraceback:\n{error_traceback}")
 
         return JsonResponse(response_data, status=status_code)
+class AppendTimestampMiddleware:
+    """
+    Middleware tự động thêm timestamp vào mọi response JSON.
+    """
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+
+        # Kiểm tra nếu response có dạng JSON
+        if hasattr(response, "data") and isinstance(response.data, dict):
+            response.data["timestamp"] = now().isoformat()
+            response._is_rendered = False  # Đánh dấu để DRF render lại response
+            response.render()
+
+        return response
