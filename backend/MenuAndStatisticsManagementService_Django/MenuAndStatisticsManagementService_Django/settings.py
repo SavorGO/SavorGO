@@ -111,6 +111,7 @@ MIDDLEWARE = [
     
     # Thêm middleware bắt lỗi toàn cục
     'MenuAndStatisticsManagementService_Django.middlewares.GlobalExceptionMiddleware',
+    'MenuAndStatisticsManagementService_Django.middlewares.AppendTimestampMiddleware',
 ]
 
 

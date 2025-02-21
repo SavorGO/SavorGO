@@ -8,7 +8,6 @@ from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
 from .models import Table
 from .serializers import TableSerializer
-from datetime import datetime, timedelta
 from django.utils import timezone
 from django.db.models import Q
 import logging
@@ -24,7 +23,7 @@ class TableViewSet(ViewSet):
         parameters=[
             OpenApiParameter(
                 "keyword", OpenApiTypes.STR, OpenApiParameter.QUERY, 
-                description="Search by name", default=""
+                description="Search by keyword", default=""
             ),
             OpenApiParameter(
                 "statusFilter", OpenApiTypes.STR, OpenApiParameter.QUERY,
@@ -104,7 +103,6 @@ class TableViewSet(ViewSet):
 
         serializer = TableSerializer(paginated_tables, many=True)
 
-        # Trả về đúng format mong muốn
         response_data = {
             "status": status.HTTP_200_OK,
             "message": "Fetched tables successfully.",
@@ -125,7 +123,6 @@ class TableViewSet(ViewSet):
             f"Tables fetched: {len(serializer.data)} items (Page: {page}, Size: {size})"
         )
 
-        # Thay vì dùng paginator.get_paginated_response(), ta trả về Response trực tiếp
         return Response(response_data, status=status.HTTP_200_OK)
 
     @extend_schema(
