@@ -40,9 +40,8 @@ cd backend/MenuAndStatisticsManagementService_Django
 
 ```
 
-Server sẽ chạy tại địa chỉ: [http://127.0.0.1:8000](http://127.0.0.1:8000)
-📌 Xem tài liệu API tại:
-👉 http://127.0.0.1:8000/api/docs/#/
+👉 Server sẽ chạy tại địa chỉ: [http://127.0.0.1:8000](http://127.0.0.1:8000)
+📌 Xem tài liệu API tại: http://127.0.0.1:8000/api/docs/#/
 ---
 
 ## 4️⃣ Hình Ảnh Minh Họa
