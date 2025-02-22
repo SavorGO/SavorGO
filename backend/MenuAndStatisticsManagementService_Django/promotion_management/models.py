@@ -2,8 +2,8 @@ from django.db import models
 
 class Promotion(models.Model):
     class DiscountType(models.TextChoices):
-        PERCENT = 'PERCENT', 'Percent'
-        FLAT = 'FLAT', 'Flat'
+        PERCENT = 'PERCENTAGE', 'Percentage'
+        FLAT = 'FIXED_AMOUNT', 'Fixed Amount'
 
     class Status(models.TextChoices):
         AVAILABLE = 'AVAILABLE', 'Available'
@@ -14,7 +14,7 @@ class Promotion(models.Model):
     name = models.CharField(max_length=255)
     discount_value = models.BigIntegerField()
     discount_type = models.CharField(
-        max_length=7,
+        max_length=12,
         choices=DiscountType.choices
     )
     start_date = models.DateField(null=True, blank=True)
