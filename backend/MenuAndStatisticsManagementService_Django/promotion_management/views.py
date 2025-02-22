@@ -505,52 +505,94 @@ class PromotionViewSet(ViewSet):
             },
             status=status.HTTP_200_OK,
         )
-
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="ids",
+                description="List of promotion IDs to delete, comma-separated. Ex: ?ids=1,2,3",
+                required=True,
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+            )
+        ],
+        responses={
+            200: inline_serializer(
+                name="PromotionBulkDeleteResponse",
+                fields={
+                    "status": serializers.IntegerField(default=200),
+                    "message": serializers.CharField(),
+                    "errors": serializers.DictField(
+                        child=serializers.CharField(),
+                        required=False,
+                        allow_null=True,
+                        default=None,
+                    ),
+                    "data": PromotionSerializer(
+                        many=True
+                    ),  # Đảm bảo sử dụng serializer phù hợp cho Promotion
+                },
+            ),
+            400: inline_serializer(
+                name="PromotionBulkDeleteBadRequestResponse",
+                fields={
+                    "status": serializers.IntegerField(default=400),
+                    "message": serializers.CharField(),
+                    "errors": serializers.DictField(
+                        child=serializers.CharField(),
+                        required=False,
+                        allow_null=True,
+                        default=None,
+                    ),
+                    "data": serializers.DictField(
+                        child=serializers.CharField(),
+                        required=False,
+                        allow_null=True,
+                        default=None,
+                    ),
+                },
+            ),
+        },
+    )
     def delete_many(self, request):
         """
-        Xóa nhiều promotion từ danh sách ID.
+        Delete multiple promotions by updating status to 'DELETED'.
+        Adds not found IDs to error dictionary.
         """
-        ids = request.data.get("ids", [])
+        ids_param = request.query_params.get("ids")
+        if not ids_param:
+            raise ValidationError({"ids": ["IDs list is required as a query parameter."]})
+        
+        # Chuyển đổi IDs sang kiểu int và kiểm tra lỗi
+        try:
+            ids = list(map(int, ids_param.split(",")))
+        except ValueError:
+            raise ValidationError({"ids": ["Invalid ID format. IDs must be integers."]})
 
-        if not ids:
-            return Response(
-                {"error": "IDs list is required."}, status=status.HTTP_400_BAD_REQUEST
-            )
+        existing_promotions = Promotion.objects.filter(id__in=ids)
+        existing_ids = set(existing_promotions.values_list("id", flat=True))
 
-        # Lọc các promotion cần xóa theo ID
-        promotions = Promotion.objects.filter(id__in=ids)
+        not_found_ids = set(ids) - existing_ids
 
-        if not promotions.exists():
-            return Response(
-                {"error": "No promotions found with the provided IDs."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "message": "Promotions processed.",
+            "errors": {},
+            "data": [],
+        }
 
-        # Cập nhật trạng thái của các promotion thành 'DELETED'
-        promotions.update(status="DELETED")
+        for promotion in existing_promotions:
+            if promotion.status == "DELETED":
+                logger.info(f"Promotion with ID {promotion.id} is already deleted.")
+            else:
+                promotion.status = "DELETED"
+                promotion.modified_time = timezone.now()  # Nếu có trường modified_time
+                promotion.save()
+                logger.info(f"Promotion with ID {promotion.id} has been marked as DELETED.")
 
-        return Response(
-            {
-                "message": f"{promotions.count()} promotions have been marked as DELETED."
-            },
-            status=status.HTTP_200_OK,
-        )
+        response_data["data"] = PromotionSerializer(existing_promotions, many=True).data
 
-    def search(self, request):
-        search_query = request.GET.get(
-            "q", None
-        )  # Nhận tham số tìm kiếm từ query string
+        if not_found_ids:
+            response_data["errors"] = {id_: "Promotion not found." for id_ in not_found_ids}
 
-        if search_query:
-            # Tạo điều kiện tìm kiếm cơ bản
-            query = Q(name__icontains=search_query) | Q(status__icontains=search_query)
+        return Response(response_data, status=status.HTTP_200_OK)
 
-            # Tìm kiếm theo query đã tạo
-            promotions = Promotion.objects.filter(query)
-            serializer = PromotionSerializer(promotions, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            return Response(
-                {"detail": "No search query provided"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
