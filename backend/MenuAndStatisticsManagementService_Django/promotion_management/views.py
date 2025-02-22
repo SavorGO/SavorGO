@@ -8,8 +8,11 @@ from rest_framework.exceptions import ValidationError, NotFound
 from rest_framework.pagination import PageNumberPagination
 from drf_spectacular.utils import extend_schema, OpenApiParameter, inline_serializer
 from drf_spectacular.types import OpenApiTypes
-
+from bson import ObjectId
+from bson.errors import InvalidId
+from rest_framework.exceptions import ValidationError
 from .models import Promotion
+from menu_management.models import Menu, Status  # Import trực tiếp model Menu
 from .serializers import PromotionSerializer
 
 logger = logging.getLogger("myapp.api")
@@ -211,101 +214,112 @@ class PromotionViewSet(ViewSet):
         logger.info(f"Promotion retrieved: ID {pk}")
         return Response(response_data, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        request=PromotionSerializer(many=True),
+        responses={
+            201: inline_serializer(
+                name="PromotionCreateResponse",
+                fields={
+                    "status": serializers.IntegerField(default=201),
+                    "message": serializers.CharField(
+                        default="Promotions created successfully."
+                    ),
+                    "errors": serializers.DictField(
+                        child=serializers.CharField(),
+                        required=False,
+                        allow_null=True,
+                        default=None,
+                    ),
+                    "data": serializers.ListField(child=PromotionSerializer()),
+                },
+            ),
+            400: inline_serializer(
+                name="PromotionBadRequestResponse",
+                fields={
+                    "status": serializers.IntegerField(default=400),
+                    "message": serializers.CharField(
+                        default="Bad request. Please check input data."
+                    ),
+                    "errors": serializers.DictField(
+                        child=serializers.ListField(child=serializers.CharField())
+                    ),
+                    "data": serializers.DictField(default=None),
+                },
+            ),
+        },
+    )
     def create(self, request):
-        # POST /promotions/
-        try:
-            data_list = request.data
-            if not isinstance(data_list, list):
-                return Response(
-                    {"error": "Invalid data format. Expected a list."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+        """Handle POST /promotions/"""
+        logger.info("Received request to create new promotions")
 
-            promotions = []
-            for data in data_list:
-                # Validate 'name'
-                name = data.get("name", "").strip()
-                if not name:
-                    return Response(
-                        {"error": "Name cannot be empty."},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-                elif len(name) > 255:
-                    return Response(
-                        {"error": "Name cannot exceed 255 characters."},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
+        # Kiểm tra request có phải danh sách không
+        if not isinstance(request.data, list):
+            raise ValidationError({"detail": "Request must be a list of promotions."})
 
-                # Validate 'discount_value'
-                discount_value = data.get("discount_value", 0)
-                if discount_value <= 0:
-                    return Response(
-                        {"error": "Discount value must be greater than 0."},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
+        # Kiểm tra trùng menu_id
+        menu_ids = []
+        invalid_ids = []
 
-                # Validate 'discount_type'
-                discount_type = data.get("discount_type", "PERCENT")
-                if discount_type not in dict(Promotion.DISCOUNT_TYPES).keys():
-                    return Response(
-                        {"error": "Invalid discount type."},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
+        for item in request.data:
+            if "menu_id" in item:
+                menu_id = item["menu_id"]
+                try:
+                    menu_ids.append(str(ObjectId(menu_id)))  # Kiểm tra ObjectId hợp lệ
+                except InvalidId:
+                    invalid_ids.append(menu_id)  # Lưu lại ID không hợp lệ
 
-                # Validate 'start_date'
-                start_date = data.get("start_date")
-                if start_date:
-                    start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
-                    if start_date < datetime.now().date():
-                        return Response(
-                            {"error": "Start date cannot be in the past."},
-                            status=status.HTTP_400_BAD_REQUEST,
-                        )
+        # Nếu có ID không hợp lệ, raise lỗi ValidationError
+        if invalid_ids:
+            raise ValidationError({
+                "menu_id": f"Invalid ObjectId: {invalid_ids}"
+            })
+        duplicates = set(
+            [menu_id for menu_id in menu_ids if menu_ids.count(menu_id) > 1]
+        )
 
-                # Validate 'end_date'
-                end_date = data.get("end_date")
-                if end_date:
-                    end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
-                    if start_date and end_date < start_date:
-                        return Response(
-                            {"error": "End date cannot be before start date."},
-                            status=status.HTTP_400_BAD_REQUEST,
-                        )
-
-                # Validate 'menu_id'
-                menu_id = data.get("menu_id", "").strip()
-                if not menu_id:
-                    return Response(
-                        {"error": "Menu ID cannot be empty."},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-
-                # Create promotion object
-                promotion = Promotion(
-                    name=name,
-                    discount_value=discount_value,
-                    discount_type=discount_type,
-                    menu_id=menu_id,
-                    start_date=start_date,
-                    end_date=end_date,
-                    status=(
-                        data.get("status")
-                        if data.get("status") is not None
-                        else "AVAILABLE"
-                    ),  # Default to 'AVAILABLE'
-                )
-                promotions.append(promotion)
-
-            # Bulk create promotions
-            Promotion.objects.bulk_create(promotions)
-
-            return Response(
-                {"message": f"{len(promotions)} promotions created successfully."},
-                status=status.HTTP_201_CREATED,
+        if duplicates:
+            raise ValidationError(
+                {"menu_id": f"Duplicate menu IDs found: {list(duplicates)}"}
             )
 
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        # Lấy danh sách menu hợp lệ (status != "Deleted")
+        valid_menu_ids = set(
+            str(menu.id)
+            for menu in Menu.objects.filter(
+                id__in=menu_ids, status__ne=Status.DELETED.value
+            ).only("id")
+        )
+
+        logger.info(f"Valid menu IDs: {list(valid_menu_ids)}")
+
+        # Tìm menu_id không hợp lệ
+        invalid_menu_ids = set(menu_ids) - valid_menu_ids
+        logger.info(f"Invalid menu IDs: {list(invalid_menu_ids)}")
+
+        if invalid_menu_ids:
+            raise ValidationError(
+                {
+                    "menu_id": f"Invalid menu IDs or menu is deleted: {list(invalid_menu_ids)}"
+                }
+            )
+
+        # Validate dữ liệu bằng serializer
+        serializer = PromotionSerializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+
+        # Lưu promotions vào database
+        promotions = serializer.save()
+
+        logger.info(f"{len(promotions)} promotions created successfully")
+        return Response(
+            {
+                "status": status.HTTP_201_CREATED,
+                "message": "Promotions created successfully.",
+                "errors": None,
+                "data": serializer.data,
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
     def update_by_id(self, request, pk=None):
         # PUT /promotions/<int:pk>
