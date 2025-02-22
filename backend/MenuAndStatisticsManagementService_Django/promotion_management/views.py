@@ -270,9 +270,7 @@ class PromotionViewSet(ViewSet):
 
         # Nếu có ID không hợp lệ, raise lỗi ValidationError
         if invalid_ids:
-            raise ValidationError({
-                "menu_id": f"Invalid ObjectId: {invalid_ids}"
-            })
+            raise ValidationError({"menu_id": f"Invalid ObjectId: {invalid_ids}"})
         duplicates = set(
             [menu_id for menu_id in menu_ids if menu_ids.count(menu_id) > 1]
         )
@@ -320,6 +318,7 @@ class PromotionViewSet(ViewSet):
             },
             status=status.HTTP_201_CREATED,
         )
+
     @extend_schema(
         parameters=[
             OpenApiParameter(
@@ -383,7 +382,6 @@ class PromotionViewSet(ViewSet):
             ),
         },
     )
-
     def update_by_id(self, request, pk=None):
         """Update promotion information by ID, with data validation and logging."""
         logger.info(f"Received request to update promotion ID {pk}")
@@ -403,9 +401,13 @@ class PromotionViewSet(ViewSet):
                 raise ValidationError({"menu_id": f"Invalid ObjectId: {menu_id}"})
 
             # Kiểm tra menu_id có tồn tại và không bị xóa
-            menu = Menu.objects.filter(id=menu_id).first()  # Lấy menu đầu tiên có id khớp
+            menu = Menu.objects.filter(
+                id=menu_id
+            ).first()  # Lấy menu đầu tiên có id khớp
             if menu is None or menu.status == Status.DELETED.value:
-                raise ValidationError({"menu_id": "Menu ID is invalid or has been deleted"})
+                raise ValidationError(
+                    {"menu_id": "Menu ID is invalid or has been deleted"}
+                )
 
         # Áp dụng cập nhật dữ liệu
         serializer = PromotionSerializer(promotion, data=request.data, partial=True)
@@ -422,21 +424,85 @@ class PromotionViewSet(ViewSet):
         logger.info(f"Promotion updated successfully: ID {pk}")
         return Response(response_data, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="id",
+                description="Promotion ID",
+                required=True,
+                type=OpenApiTypes.INT64,
+                location=OpenApiParameter.PATH,
+            ),
+        ],
+        responses={
+            200: inline_serializer(
+                name="PromotionDeleteResponse",
+                fields={
+                    "status": serializers.IntegerField(),
+                    "message": serializers.CharField(),
+                    "errors": serializers.DictField(
+                        child=serializers.CharField(),
+                        required=False,
+                        allow_null=True,
+                        default=None,
+                    ),
+                    "data": PromotionSerializer(),  # Đảm bảo sử dụng serializer phù hợp cho Promotion
+                },
+            ),
+            404: inline_serializer(
+                name="PromotionDeleteNotFoundResponse",
+                fields={
+                    "status": serializers.IntegerField(default=404),
+                    "message": serializers.CharField(),
+                    "errors": serializers.DictField(
+                        child=serializers.CharField(),
+                        required=False,
+                        allow_null=True,
+                        default=None,
+                    ),
+                    "data": serializers.DictField(
+                        child=serializers.CharField(),
+                        required=False,
+                        allow_null=True,
+                        default=None,
+                    ),
+                },
+            ),
+        },
+    )
     def delete_by_id(self, request, pk=None):
-        # DELETE /promotions/<int:pk>
+        """Soft delete promotion by updating status to 'DELETED', with logging and API documentation"""
         try:
             promotion = Promotion.objects.get(pk=pk)
         except Promotion.DoesNotExist:
+            logger.warning(f"Promotion with ID {pk} not found.")
+            raise NotFound("Promotion not found.")
+
+        serializer = PromotionSerializer(promotion)  # Sử dụng serializer cho Promotion
+        if promotion.status == "DELETED":
+            logger.info(f"Promotion with ID {pk} is already deleted.")
             return Response(
-                {"error": "Promotion not found."}, status=status.HTTP_404_NOT_FOUND
+                {
+                    "status": status.HTTP_200_OK,
+                    "message": "Promotion is already deleted.",
+                    "errors": None,
+                    "data": serializer.data,
+                },
+                status=status.HTTP_200_OK,
             )
 
-        # Cập nhật trạng thái promotion thành DELETED thay vì xóa khỏi cơ sở dữ liệu
+        # Update status to "DELETED" instead of actual deletion
         promotion.status = "DELETED"
+        promotion.modified_time = timezone.now()  # Nếu có trường modified_time
         promotion.save()
-
+        logger.info(f"Promotion with ID {pk} has been marked as DELETED.")
         return Response(
-            {"message": "Promotion status updated to DELETED."},
+            {
+                "status": status.HTTP_200_OK,
+                "message": "Promotion status updated to DELETED.",
+                "errors": None,
+                "data": serializer.data,
+            },
             status=status.HTTP_200_OK,
         )
 
