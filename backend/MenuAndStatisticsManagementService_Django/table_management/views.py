@@ -22,28 +22,46 @@ class TableViewSet(ViewSet):
     @extend_schema(
         parameters=[
             OpenApiParameter(
-                "keyword", OpenApiTypes.STR, OpenApiParameter.QUERY, 
-                description="Search by keyword", default=""
+                "keyword",
+                OpenApiTypes.STR,
+                OpenApiParameter.QUERY,
+                description="Search by keyword",
+                default="",
             ),
             OpenApiParameter(
-                "statusFilter", OpenApiTypes.STR, OpenApiParameter.QUERY,
-                description="Filter tables by status (all/without_deleted/available)", default="without_deleted"
+                "statusFilter",
+                OpenApiTypes.STR,
+                OpenApiParameter.QUERY,
+                description="Filter tables by status (all/without_deleted/available)",
+                default="without_deleted",
             ),
             OpenApiParameter(
-                "sortBy", OpenApiTypes.STR, OpenApiParameter.QUERY, 
-                description="Sort field", default="id"
+                "sortBy",
+                OpenApiTypes.STR,
+                OpenApiParameter.QUERY,
+                description="Sort field",
+                default="id",
             ),
             OpenApiParameter(
-                "sortDirection", OpenApiTypes.STR, OpenApiParameter.QUERY, 
-                description="Sort direction (asc/desc)", default="asc"
+                "sortDirection",
+                OpenApiTypes.STR,
+                OpenApiParameter.QUERY,
+                description="Sort direction (asc/desc)",
+                default="asc",
             ),
             OpenApiParameter(
-                "page", OpenApiTypes.INT, OpenApiParameter.QUERY, 
-                description="Page number", default=1
+                "page",
+                OpenApiTypes.INT,
+                OpenApiParameter.QUERY,
+                description="Page number",
+                default=1,
             ),
             OpenApiParameter(
-                "size", OpenApiTypes.INT, OpenApiParameter.QUERY, 
-                description="Items per page", default=10
+                "size",
+                OpenApiTypes.INT,
+                OpenApiParameter.QUERY,
+                description="Items per page",
+                default=10,
             ),
         ],
         responses={
@@ -78,7 +96,9 @@ class TableViewSet(ViewSet):
     def list(self, request):
         """Get list of tables with search, sort, pagination and logging"""
         keyword = request.query_params.get("keyword", "").strip()
-        status_filter = request.query_params.get("statusFilter", "without_deleted").lower()
+        status_filter = request.query_params.get(
+            "statusFilter", "without_deleted"
+        ).lower()
         sort_by = request.query_params.get("sortBy", "id")
         sort_direction = request.query_params.get("sortDirection", "asc").lower()
         page = request.query_params.get("page", 1)
@@ -131,7 +151,7 @@ class TableViewSet(ViewSet):
                 name="id",
                 description="Table ID",
                 required=True,
-                type=OpenApiTypes.INT,
+                type=OpenApiTypes.INT64,
                 location=OpenApiParameter.PATH,
             ),
         ],
@@ -250,7 +270,7 @@ class TableViewSet(ViewSet):
                 name="id",
                 description="Table ID",
                 required=True,
-                type=OpenApiTypes.INT,
+                type=OpenApiTypes.INT64,
                 location=OpenApiParameter.PATH,
             ),
         ],
@@ -303,7 +323,6 @@ class TableViewSet(ViewSet):
                         allow_null=True,
                         default=None,
                     ),
-                    
                 },
             ),
         },
@@ -336,7 +355,7 @@ class TableViewSet(ViewSet):
                 name="id",
                 description="Table ID",
                 required=True,
-                type=OpenApiTypes.INT,
+                type=OpenApiTypes.INT64,
                 location=OpenApiParameter.PATH,
             ),
         ],
@@ -353,7 +372,6 @@ class TableViewSet(ViewSet):
                         default=None,
                     ),
                     "data": TableSerializer(),
-
                 },
             ),
             404: inline_serializer(
@@ -428,13 +446,13 @@ class TableViewSet(ViewSet):
                 fields={
                     "status": serializers.IntegerField(default=200),
                     "message": serializers.CharField(),
-                    "data": TableSerializer(many=True),
                     "errors": serializers.DictField(
                         child=serializers.CharField(),
                         required=False,
                         allow_null=True,
                         default=None,
                     ),
+                    "data": TableSerializer(many=True),
                 },
             ),
             400: inline_serializer(
@@ -465,7 +483,9 @@ class TableViewSet(ViewSet):
         """
         ids_param = request.query_params.get("ids")
         if not ids_param:
-            raise ValidationError({"ids": ["IDs list is required as a query parameter."]})
+            raise ValidationError(
+                {"ids": ["IDs list is required as a query parameter."]}
+            )
         try:
             ids = list(map(int, ids_param.split(",")))
         except ValueError:
@@ -475,8 +495,12 @@ class TableViewSet(ViewSet):
         existing_ids = set(existing_tables.values_list("id", flat=True))
         not_found_ids = set(ids) - existing_ids
 
-        response_data = {"status": status.HTTP_200_OK, "message": "Tables processed.", "errors": {}, "data": []}
-
+        response_data = {
+            "status": status.HTTP_200_OK,
+            "message": "Tables processed.",
+            "errors": {},
+            "data": [],
+        }
 
         for table in existing_tables:
             if table.status == "DELETED":
@@ -491,4 +515,5 @@ class TableViewSet(ViewSet):
 
         if not_found_ids:
             response_data["errors"] = {id_: "Table not found." for id_ in not_found_ids}
+        
         return Response(response_data, status=status.HTTP_200_OK)

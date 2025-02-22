@@ -448,13 +448,13 @@ class MenuViewSet(ViewSet):
                 fields={
                     "status": serializers.IntegerField(default=200),
                     "message": serializers.CharField(),
-                    "data": MenuSerializer(many=True),
                     "errors": serializers.DictField(
                         child=serializers.CharField(),
                         required=False,
                         allow_null=True,
                         default=None,
                     ),
+                    "data": MenuSerializer(many=True),
                 },
             ),
             400: inline_serializer(
