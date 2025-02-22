@@ -1,4 +1,5 @@
 import logging
+import traceback
 from rest_framework.views import exception_handler
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, ValidationError
@@ -12,6 +13,10 @@ def custom_exception_handler(exc, context):
     """
     response = exception_handler(exc, context)
 
+    # Ghi log lỗi
+    if response is None:
+        logger.error(f"Unhandled exception: {str(exc)}", exc_info=True)
+
     if response is not None:
         if isinstance(exc, ValidationError):
             # Nếu request gửi danh sách nhiều object
@@ -19,7 +24,7 @@ def custom_exception_handler(exc, context):
                 formatted_errors = {}
                 for idx, error_dict in enumerate(response.data):
                     # Lấy menu_id nếu có
-                    menu_id = context["request"].data[idx].get("menu_id", f"item_{idx+1}")
+                    menu_id = context["request"].data[idx].get("menu_id", f"item_{idx + 1}")
                     formatted_errors[menu_id] = error_dict
             else:
                 formatted_errors = response.data
@@ -46,9 +51,21 @@ def custom_exception_handler(exc, context):
             "data": None,
         }, status=response.status_code)
 
+    # Trường hợp không có response, xử lý lỗi 500
+    # Lấy thông tin file và line từ traceback
+    tb = traceback.extract_tb(exc.__traceback__)
+    if tb:
+        filename, line_number, _, _ = tb[-1]  # Lấy thông tin từ dòng cuối cùng trong traceback
+    else:
+        filename, line_number = "Unknown", "Unknown"
+
     return Response({
         "status": 500,
         "message": "Internal Server Error",
-        "errors": {"detail": str(exc)},
+        "errors": {
+            "detail": str(exc),
+            "file": filename,
+            "line": line_number,
+        },
         "data": None,
     }, status=500)

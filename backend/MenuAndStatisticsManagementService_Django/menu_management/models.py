@@ -11,10 +11,11 @@ class Option(EmbeddedDocument):
     price_change = fields.FloatField(required=False)
 
 class Status(Enum):
-    AVAILABLE = "Available"         # Món ăn có sẵn, có thể gọi
-    OUT_OF_STOCK = "Out of Stock"   # Món ăn hết nguyên liệu, không thể gọi
-    DISCONTINUED = "Discontinued"   # Món ăn đã ngừng cung cấp
-    DELETED = "Deleted"             # Món ăn đã bị xóa khỏi hệ thống
+    AVAILABLE = "AVAILABLE"          # Món ăn có sẵn, có thể gọi
+    OUT_OF_STOCK = "OUT_OF_STOCK"    # Món ăn hết nguyên liệu, không thể gọi
+    DISCONTINUED = "DISCONTINUED"    # Món ăn đã ngừng cung cấp
+    DELETED = "DELETED"               # Món ăn đã bị xóa khỏi hệ thống
+
 
 class Menu(Document):
     name = fields.StringField(max_length=255, required=True)
