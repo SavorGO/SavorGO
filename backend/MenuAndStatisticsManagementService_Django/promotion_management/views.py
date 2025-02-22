@@ -320,38 +320,107 @@ class PromotionViewSet(ViewSet):
             },
             status=status.HTTP_201_CREATED,
         )
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="id",
+                description="Promotion ID",
+                required=True,
+                type=OpenApiTypes.INT64,
+                location=OpenApiParameter.PATH,
+            ),
+        ],
+        request=PromotionSerializer,
+        responses={
+            200: inline_serializer(
+                name="PromotionUpdateResponse",
+                fields={
+                    "status": serializers.IntegerField(default=200),
+                    "message": serializers.CharField(),
+                    "errors": serializers.DictField(
+                        child=serializers.CharField(),
+                        required=False,
+                        allow_null=True,
+                        default=None,
+                    ),
+                    "data": PromotionSerializer(),
+                },
+            ),
+            400: inline_serializer(
+                name="PromotionUpdateBadRequestResponse",
+                fields={
+                    "status": serializers.IntegerField(default=400),
+                    "message": serializers.CharField(),
+                    "errors": serializers.DictField(
+                        child=serializers.ListField(child=serializers.CharField())
+                    ),
+                    "data": serializers.DictField(
+                        child=serializers.CharField(),
+                        required=False,
+                        allow_null=True,
+                        default=None,
+                    ),
+                },
+            ),
+            404: inline_serializer(
+                name="PromotionUpdateNotFoundResponse",
+                fields={
+                    "status": serializers.IntegerField(default=404),
+                    "message": serializers.CharField(),
+                    "errors": serializers.DictField(
+                        child=serializers.CharField(),
+                        required=False,
+                        allow_null=True,
+                        default=None,
+                    ),
+                    "data": serializers.DictField(
+                        child=serializers.CharField(),
+                        required=False,
+                        allow_null=True,
+                        default=None,
+                    ),
+                },
+            ),
+        },
+    )
 
     def update_by_id(self, request, pk=None):
-        # PUT /promotions/<int:pk>
+        """Update promotion information by ID, with data validation and logging."""
+        logger.info(f"Received request to update promotion ID {pk}")
+
         try:
             promotion = Promotion.objects.get(pk=pk)
         except Promotion.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            logger.warning(f"Promotion with ID {pk} not found.")
+            raise NotFound({"promotion_id": "Promotion not found"})
 
-        # Lấy các trường cần cập nhật
-        name = request.data.get("name", promotion.name)
-        discount_value = request.data.get("discount_value", promotion.discount_value)
-        discount_type = request.data.get("discount_type", promotion.discount_type)
-        menu_id = request.data.get("menu_id", promotion.menu_id)
-        start_date = request.data.get("start_date", promotion.start_date)
-        end_date = request.data.get("end_date", promotion.end_date)
-        status = request.data.get("status", promotion.status)
+        # Kiểm tra nếu có menu_id, phải đảm bảo nó là ObjectId hợp lệ
+        menu_id = request.data.get("menu_id")
+        if menu_id:
+            try:
+                menu_id = str(ObjectId(menu_id))  # Kiểm tra xem menu_id có hợp lệ không
+            except InvalidId:
+                raise ValidationError({"menu_id": f"Invalid ObjectId: {menu_id}"})
 
-        # Cập nhật thông tin promotion
-        promotion.name = name
-        promotion.discount_value = discount_value
-        promotion.discount_type = discount_type
-        promotion.menu_id = menu_id
-        promotion.start_date = start_date
-        promotion.end_date = end_date
-        promotion.status = status
-        promotion.modified_time = timezone.now()
+            # Kiểm tra menu_id có tồn tại và không bị xóa
+            menu = Menu.objects.filter(id=menu_id).first()  # Lấy menu đầu tiên có id khớp
+            if menu is None or menu.status == Status.DELETED.value:
+                raise ValidationError({"menu_id": "Menu ID is invalid or has been deleted"})
 
-        promotion.save()
+        # Áp dụng cập nhật dữ liệu
+        serializer = PromotionSerializer(promotion, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        promotion = serializer.save(modified_time=timezone.now())
 
-        # Trả về thông tin promotion đã cập nhật
-        serializer = PromotionSerializer(promotion)
-        return Response(serializer.data)
+        response_data = {
+            "status": 200,
+            "message": "Promotion updated successfully",
+            "errors": None,
+            "data": serializer.data,
+        }
+
+        logger.info(f"Promotion updated successfully: ID {pk}")
+        return Response(response_data, status=status.HTTP_200_OK)
 
     def delete_by_id(self, request, pk=None):
         # DELETE /promotions/<int:pk>
