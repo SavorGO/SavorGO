@@ -1,6 +1,5 @@
 from rest_framework import serializers
-from menu_management.models import Menu, Size, Option
-import datetime
+from menu_management.models import Menu, Size, Option, Status
 
 # Serializer cho Size (EmbeddedDocument)
 class SizeSerializer(serializers.Serializer):
@@ -32,12 +31,22 @@ class MenuSerializer(serializers.Serializer):
         fields = '__all__'
 
     # Tự định nghĩa phương thức create
+    # Tự định nghĩa phương thức create
     def create(self, validated_data):
-        sizes_data = validated_data.pop('sizes', [])  # Nếu không có 'sizes', gán giá trị mặc định là danh sách rỗng
-        options_data = validated_data.pop('options', [])  # Nếu không có 'options', gán giá trị mặc định là danh sách rỗng
+        sizes_data = validated_data.pop('sizes', [])  
+        options_data = validated_data.pop('options', [])  
+
+        # Chuyển đổi status và category thành chữ in hoa
+        status = validated_data.get('status', 'DISCONTINUED').upper()  # Sử dụng DISCONTINUED in hoa
+        validated_data['status'] = status
+        validated_data['category'] = validated_data.get('category', '').upper()
+
+        # Kiểm tra xem status có hợp lệ không
+        if status not in [s.value for s in Status]:
+            raise serializers.ValidationError({"status": "Invalid status value."})
 
         # Tạo menu mới mà không cần cung cấp id
-        menu = Menu(**validated_data)  # Không dùng Menu.objects.create()
+        menu = Menu(**validated_data)  
 
         # Chỉ thêm sizes vào menu nếu không rỗng
         if sizes_data:
@@ -50,20 +59,20 @@ class MenuSerializer(serializers.Serializer):
             for option_data in options_data:
                 option = Option(**option_data)
                 menu.options.append(option)
-        menu.status = 'Discontinued'
-        # Lưu menu với các sizes và options đã thêm
-        menu.save()  # MongoEngine sẽ tự động gán giá trị cho id khi lưu
 
+        menu.save()  
         return menu
+
+
     def update(self, instance, validated_data):
         # Cập nhật các trường trong instance
         instance.name = validated_data.get('name', instance.name)
-        instance.category = validated_data.get('category', instance.category)
+        instance.category = validated_data.get('category', instance.category).upper()  # Chuyển đổi thành chữ in hoa
         instance.description = validated_data.get('description', instance.description)
         instance.original_price = validated_data.get('original_price', instance.original_price)
         instance.sale_price = validated_data.get('sale_price', instance.sale_price)
         instance.public_id = validated_data.get('public_id', instance.public_id)
-        instance.status = validated_data.get('status', instance.status)
+        instance.status = validated_data.get('status', instance.status).upper()  # Chuyển đổi thành chữ in hoa
 
         # Cập nhật sizes nếu có
         sizes_data = validated_data.get('sizes', [])
@@ -78,4 +87,3 @@ class MenuSerializer(serializers.Serializer):
         # Lưu đối tượng đã cập nhật
         instance.save()
         return instance
-
