@@ -138,7 +138,7 @@ public class PromotionFormUI extends Form {
 	 * @return the created JPanel containing the basic table
 	 */
 	private Component createBasicTable() {
-		JPanel panel = new JPanel(new MigLayout("fillx,wrap,insets 10 10 10 10", "[fill]", "[][]0[fill,grow]"));
+    	JPanel panel = new JPanel(new MigLayout("fillx,wrap,insets 10 10 10 10", "[fill]", "[][]10[fill,grow]"));        configureTableProperties();
 		configureTableProperties();
 		JScrollPane scrollPane = new JScrollPane(table);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
@@ -252,7 +252,7 @@ public class PromotionFormUI extends Form {
 	 * @return the created JPanel containing the grid table
 	 */
 	private Component createGridTable() {
-		JPanel panel = new JPanel(new MigLayout("fillx,wrap,insets 10 10 10 10", "[fill]", "[][]0[fill,grow]"));
+    	JPanel panel = new JPanel(new MigLayout("fillx,wrap,insets 10 10 10 10", "[fill]", "[][]10[fill,grow]"));        configureTableProperties();
 		configurePanelCardStyle();
 		JScrollPane scrollPane = createScrollPaneForPanelCard();
 		panel.add(createTableTitle("Table Grid Table"), "gapx 20");

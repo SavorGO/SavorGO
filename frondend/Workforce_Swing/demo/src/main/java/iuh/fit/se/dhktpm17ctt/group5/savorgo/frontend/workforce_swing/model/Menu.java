@@ -32,6 +32,8 @@ public class Menu extends ModelBasic {
     private String description;
     private double originalPrice;
     private double salePrice;
+    @JsonProperty(value = "discounted_price", access = JsonProperty.Access.READ_ONLY)
+    private double discountedPrice;
     @JsonProperty("public_id")
     private String publicId;
     private List<MenuSize> sizes;  // Danh sách các kích thước
