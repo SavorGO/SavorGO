@@ -1,132 +1,106 @@
 package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Table;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.service.TableService;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.util.HttpUtil;
-import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.util.JsonUtil;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.ApiResponse;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import okhttp3.Response;
-
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
-/**
- * Implementation of the ServiceTable interface.
- * This class handles the communication with the backend API for table-related operations.
- */
 public class TableServiceImpl implements TableService {
     private static final String API_URL = "http://localhost:8000/api/tables";
-    private static final String API_URL_ID = API_URL + "/";
+    private final OkHttpClient client = new OkHttpClient();
+    private final ObjectMapper objectMapper;
 
-    /**
-     * Retrieves all tables from the backend API.
-     *
-     * @return A list of ModelTable objects.
-     * @throws IOException If the request fails.
-     */
-    @Override
-    public List<Table> getAllTables() throws IOException {
-        Response response = HttpUtil.get(API_URL);
-        if (!response.isSuccessful()) {
-            throw new IOException("Unexpected code " + response);
-        }
-        Table[] tables = JsonUtil.fromJson(response.body().string(), Table[].class);
-        return Arrays.asList(tables);
+    public TableServiceImpl() {
+        objectMapper = new ObjectMapper();
+        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+        objectMapper.registerModule(new JavaTimeModule());
     }
 
-    /**
-     * Retrieves a table by its ID from the backend API.
-     *
-     * @param id The ID of the table to retrieve.
-     * @return The ModelTable object.
-     * @throws IOException If the request fails.
-     */
     @Override
-    public Table getTableById(Long id) throws IOException {
-        String url = API_URL_ID + id;
-        Response response = HttpUtil.get(url);
-        if (!response.isSuccessful()) {
-            throw new IOException("Unexpected code " + response);
-        }
-        return JsonUtil.fromJson(response.body().string(), Table.class);
-    }
+    public ApiResponse list(
+            String keyword,
+            String sortBy,
+            String sortDirection,
+            int page,
+            int size,
+            String statusFilter
+    ) {
+        try {
+            HttpUrl.Builder urlBuilder = HttpUrl.parse(API_URL).newBuilder()
+                    .addQueryParameter("keyword", keyword != null ? keyword : "")
+                    .addQueryParameter("sortBy", sortBy != null ? sortBy : "id")
+                    .addQueryParameter("sortDirection", sortDirection != null ? sortDirection : "asc")
+                    .addQueryParameter("page", String.valueOf(page > 0 ? page : 1))
+                    .addQueryParameter("size", String.valueOf(size > 0 ? size : 10))
+                    .addQueryParameter("statusFilter", statusFilter != null ? statusFilter : "without_deleted");
 
-    /**
-     * Creates a new table in the backend API.
-     *
-     * @param table The ModelTable object to create.
-     * @throws IOException If the request fails.
-     */
-    @Override
-    public void createTable(Table table) throws IOException {
-        String jsonBody = JsonUtil.toJson(table);
-        Response response = HttpUtil.post(API_URL, jsonBody);
-        if (!response.isSuccessful()) {
-            throw new IOException("Unexpected code " + response);
-        }
-    }
+            Request request = new Request.Builder()
+                    .url(urlBuilder.build())
+                    .get()
+                    .build();
 
-    /**
-     * Updates an existing table in the backend API.
-     *
-     * @param modelTable The ModelTable object to update.
-     * @throws IOException If the request fails.
-     */
-    @Override
-    public void updateTable(Table modelTable) throws IOException {
-        String jsonBody = JsonUtil.toJson(modelTable);
-        String url = API_URL_ID + modelTable.getId();
-        Response response = HttpUtil.put(url, jsonBody);
-        if (!response.isSuccessful()) {
-            throw new IOException("Unexpected code " + response);
+            try (Response response = client.newCall(request).execute()) {
+                if (!response.isSuccessful()) {
+                    return ApiResponse.builder()
+                            .status(response.code())
+                            .message("Failed to fetch tables")
+                            .errors(Map.of("error", "Unexpected response code: " + response.code()))
+                            .build();
+                }
+                return objectMapper.readValue(response.body().string(), ApiResponse.class);
+            }
+        } catch (IOException e) {
+            return ApiResponse.builder()
+                    .status(500)
+                    .message("Internal Server Error")
+                    .errors(Map.of("exception", e.getMessage()))
+                    .build();
         }
     }
 
-    /**
-     * Removes a table by its ID from the backend API.
-     *
-     * @param id The ID of the table to remove.
-     * @throws IOException If the request fails.
-     */
-    @Override
-    public void removeTable(long id) throws IOException {
-        String url = API_URL_ID + id;
-        Response response = HttpUtil.delete(url);
-        if (!response.isSuccessful()) {
-            throw new IOException("Failed to delete table with ID: " + id + ". Unexpected code: " + response.code());
-        }
-    }
+	@Override
+	public ApiResponse getTableById(Long id){
+		// TODO Auto-generated method stub
+		return null;
+	}
 
-    /**
-     * Removes multiple tables by their IDs from the backend API.
-     *
-     * @param ids The list of IDs of the tables to remove.
-     * @throws IOException If the request fails.
-     */
-    @Override
-    public void removeTables(List<Long> ids) throws IOException {
-        String json = "{\"ids\": " + ids.toString() + "}";
-        Response response = HttpUtil.deleteWithBody(API_URL, json);
-        if (!response.isSuccessful()) {
-            throw new IOException("Failed to delete tables. Unexpected code: " + response.code());
-        }
-    }
+	@Override
+	public ApiResponse searchTables(String search){
+		// TODO Auto-generated method stub
+		return null;
+	}
 
-    /**
-     * Searches for tables based on a search term in the backend API.
-     *
-     * @param search The search term.
-     * @return A list of ModelTable objects that match the search term.
-     * @throws IOException If the request fails.
-     */
-    @Override
-    public List<Table> searchTables(String search) throws IOException {
-        String url = API_URL + "/search?q=" + search;
-        Response response = HttpUtil.get(url);
-        if (!response.isSuccessful()) {
-            throw new IOException("Unexpected code " + response);
-        }
-        Table[] tables = JsonUtil.fromJson(response.body().string(), Table[].class);
-        return Arrays.asList(tables);
-    }
+	@Override
+	public ApiResponse createTable(Table table){
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ApiResponse updateTable(Table table){
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ApiResponse removeTable(long id){
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ApiResponse removeTables(List<Long> ids){
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

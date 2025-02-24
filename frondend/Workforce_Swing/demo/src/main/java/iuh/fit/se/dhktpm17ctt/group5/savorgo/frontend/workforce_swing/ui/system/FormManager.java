@@ -15,6 +15,7 @@ import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.compone
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.auth.Login;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.form.Form;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.form.FormDashboard;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.form.TableFormUI;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.util.TokenManager;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.UndoRedo;
 
@@ -108,7 +109,7 @@ public class FormManager {
         frame.getContentPane().removeAll();
         frame.getContentPane().add(getMainForm());
 
-        Drawer.setSelectedItemClass(FormDashboard.class);
+        Drawer.setSelectedItemClass(TableFormUI.class);
         frame.repaint();
         frame.revalidate();
     }

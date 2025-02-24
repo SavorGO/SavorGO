@@ -104,7 +104,7 @@ public class UserFormUI extends Form {
      * @return the created JPanel containing the user table
      */
     private Component createBasicTable() {
-        JPanel panel = new JPanel(new MigLayout("fillx,wrap,insets 10 10 10 10", "[fill]", "[]0[fill,grow]"));
+    	JPanel panel = new JPanel(new MigLayout("fillx,wrap,insets 10 10 10 10", "[fill]", "[][]10[fill,grow]"));        configureTableProperties();
         configureTableProperties();
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
@@ -195,7 +195,7 @@ public class UserFormUI extends Form {
      * @return the created JPanel containing the grid table
      */
     private Component createGridTable() {
-        JPanel panel = new JPanel(new MigLayout("fillx,wrap,insets 10 10 10 10", "[fill]", "[][]0[fill,grow]"));
+    	JPanel panel = new JPanel(new MigLayout("fillx,wrap,insets 10 10 10 10", "[fill]", "[][]10[fill,grow]"));        configureTableProperties();
         configurePanelCardStyle();
         JScrollPane scrollPane = createScrollPaneForPanelCard();
         panel.add(createTableTitle("Grid Menu"), "gapx 20");
