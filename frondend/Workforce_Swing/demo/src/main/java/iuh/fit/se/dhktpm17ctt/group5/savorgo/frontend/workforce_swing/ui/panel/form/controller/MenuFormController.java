@@ -38,6 +38,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -45,32 +46,23 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class MenuFormController {
-    private MenuFormUI menFormUI;
+    private MenuFormUI menuFormUI;
     private MenuController menuController = new MenuController();
     private PromotionController promotionController = new PromotionController();
     private static final int DEBOUNCE_DELAY = 1000;
     private Timer debounceTimer;
-    private volatile boolean isLoading = false;
 	private int currentPage = 1;
 	private boolean isShowDeleted = false;
 	private Integer totalPages = Integer.MAX_VALUE;
 	private int pageSize;
 	private String searchTerm = "";
 
-    /** 
-     * Constructs a FormMenuController with the specified MenuFormUI.
-     * 
-     * @param formMenu The MenuFormUI instance to control.
-     */
     public MenuFormController(MenuFormUI formMenu) {
-        this.menFormUI = formMenu;
+        this.menuFormUI = formMenu;
     }
+    
+    private volatile boolean isLoading = false;
 
-    /** 
-     * Loads data based on the search term.
-     * 
-     * @param searchTerm the term to search for menus.
-     */
     public void loadData() {
         if (isLoading) {
             return;
@@ -84,13 +76,15 @@ public class MenuFormController {
             try {
                 List<Menu> menus = fetchMenus();
                 if (menus == null || menus.isEmpty()) {
-                    Toast.show(menFormUI, Toast.Type.INFO, "No menu in database or in search");
+                    Toast.show(menuFormUI, Toast.Type.INFO, "No menu in database or in search");
                     return;
                 }
                 SwingUtilities.invokeLater(() -> {
-                    menFormUI.getPanelCard().removeAll();
+                    menuFormUI.getPanelCard().removeAll();
                     populateCardMenu(menus);
                 });
+            } catch (Exception e) {
+            	e.printStackTrace();
             } finally {
                 latch.countDown();
             }
@@ -100,7 +94,7 @@ public class MenuFormController {
             try {
                 List<Menu> menus = fetchMenus();
                 SwingUtilities.invokeLater(() -> {
-                    menFormUI.getTableModel().setRowCount(0);
+                    menuFormUI.getTableModel().setRowCount(0);
                     populateBasicMenu(menus);
                 });
             } finally {
@@ -123,158 +117,98 @@ public class MenuFormController {
         }).start();
     }
 
-   
+
+
     private List<Menu> fetchMenus() {
-	    ApiResponse apiResponse = menuController.list(searchTerm, "id", "asc", currentPage, pageSize, isShowDeleted ? "all" : "without_deleted");
-	    if (apiResponse.getErrors() != null) {
-	        String errorMessage = apiResponse.getErrors().toString();
-	        Toast.show(menFormUI, Toast.Type.ERROR, apiResponse.getMessage() + ":\n" + errorMessage);
-	        return new ArrayList<>();
-	    }
+        try {
+            ApiResponse apiResponse = menuController.list(
+                searchTerm, "id", "asc", currentPage, pageSize, 
+                isShowDeleted ? "all" : "without_deleted"
+            );
 
-	    try {
-	        ObjectMapper objectMapper = new ObjectMapper();
-	        objectMapper.registerModule(new JavaTimeModule());
-	        
-	        // Ép kiểu `data` về Map<String, Object>
-	        Map<String, Object> responseData = (Map<String, Object>) apiResponse.getData();
-	        
-	        totalPages = (Integer) responseData.get("total_pages");
-	        
-	        // Lấy danh sách `data` từ response
-	        Object rawData = responseData.get("data");
-
-	        // Chuyển rawData thành JSON string rồi parse thành List<Table>
-	        String jsonData = objectMapper.writeValueAsString(rawData);
-	        return objectMapper.readValue(jsonData, new TypeReference<List<Menu>>() {});
-	        
-	    } catch (Exception e) {
-	    	System.err.println(e.getMessage());
-	        Toast.show(menFormUI, Toast.Type.ERROR, "Failed to parse data: " + e.getMessage());
-	        
-	        return new ArrayList<>();
-	    }
-	}
-
-    private void populateCardMenu(List<Menu> menus) {
-        SwingWorker<Void, CardMenu> cardWorker = new SwingWorker<Void, CardMenu>() {
-            @Override
-            protected Void doInBackground() throws Exception {
-                List<List<Menu>> groupedMenus = sortAndGroupMenus(menus);
-                for (List<Menu> group : groupedMenus) {
-                    for (Menu menu : group) {
-                        CardMenu cardMenu = new CardMenu(menu);
-                        System.out.println("Đang load card: " + menu.getName());
-                        
-                        // Thêm MouseListener cho cardMenu
-                        cardMenu.addMouseListener(new MouseAdapter() {
-                            @Override
-                            public void mouseReleased(MouseEvent e) {
-                                if (e.getComponent() instanceof CardMenu) {
-                                    if (SwingUtilities.isLeftMouseButton(e)) {
-                                        cardMenu.setSelected(!cardMenu.isSelected());
-                                        if (cardMenu.isSelected()) {
-                                            cardMenu.setBorder(BorderFactory.createLineBorder(Color.GREEN, 5));
-                                        } else {
-                                            cardMenu.setBorder(BorderFactory.createEmptyBorder());
-                                        }
-                                    } else if (e.isPopupTrigger()) {
-                                        cardMenu.setSelected(true);
-                                        cardMenu.setBorder(BorderFactory.createLineBorder(Color.GREEN, 5));
-                                        menFormUI.createPopupMenu().show(e.getComponent(), e.getX(), e.getY());
-                                    }
-                                }
-                            }
-                        });
-
-                        publish(cardMenu); // Gửi cardMenu đến phương thức process
-                    }
-                }
-                return null;
+            if (apiResponse.getErrors() != null) {
+                String errorMessage = apiResponse.getErrors().toString();
+                Toast.show(menuFormUI, Toast.Type.ERROR, apiResponse.getMessage() + ":\n" + errorMessage);
+                return new ArrayList<>();
             }
 
-            @Override
-            protected void process(List<CardMenu> chunks) {
-                for (CardMenu cardMenu : chunks) {
-                    menFormUI.getPanelCard().add(cardMenu);
-                }
-            }
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
 
-            @Override
-            protected void done() {
-                SwingUtilities.invokeLater(() -> {
-                    menFormUI.getPanelCard().revalidate();
-                    menFormUI.getPanelCard().repaint();
-                });
-            }
-        };
+            // Ép kiểu data về Map<String, Object>
+            Map<String, Object> responseData = (Map<String, Object>) apiResponse.getData();
+            totalPages = (Integer) responseData.get("total_pages");
 
-        cardWorker.execute();
-    }
+            // Lấy danh sách data từ response
+            Object rawData = responseData.get("data");
 
-    /** 
-     * Populates the basic table with the fetched Menu objects.
-     * 
-     * @param menus The list of Menu objects to populate.
-     */
-    private void populateBasicMenu(List<Menu> menus) {
-        SwingWorker<Void, Menu> tableWorker = new SwingWorker<Void, Menu>() {
-            @Override
-            protected Void doInBackground() throws Exception {
-                List<List<Menu>> groupedMenus = sortAndGroupMenus(menus);
-                for (List<Menu> group : groupedMenus) {
-                    for (Menu menu : group) {
-                        publish(menu); // Gửi menu đến phương thức process
-                    }
-                }
-                return null;
-            }
+            // Chuyển rawData thành JSON string rồi parse thành List<Menu>
+            String jsonData = objectMapper.writeValueAsString(rawData);
+            return objectMapper.readValue(jsonData, new TypeReference<List<Menu>>() {});
 
-            @Override
-            protected void process(List<Menu> chunks) {
-                for (Menu menu : chunks) {
-                    System.out.println("Đang load table: " + menu.getName());
-                    menFormUI.getTableModel().addRow(menuController.toTableRow(menu));
-                }
-            }
-
-            @Override
-            protected void done() {
-                SwingUtilities.invokeLater(() -> {
-                    menFormUI.getTableModel().fireTableDataChanged(); // Cập nhật table
-                });
-            }
-        };
-
-        tableWorker.execute();
-    }
-
-    private List<List<Menu>> sortAndGroupMenus(List<Menu> menus) {
-        List<Menu> availableMenus = new ArrayList<>();
-        List<Menu> otherMenus = new ArrayList<>();
-
-        for (Menu menu : menus) {
-            if ("AVAILABLE".equalsIgnoreCase(menu.getStatus().getDisplayName())) {
-                availableMenus.add(menu);
-            } else {
-                otherMenus.add(menu);
-            }
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            Toast.show(menuFormUI, Toast.Type.ERROR, "Failed to parse data: " + e.getMessage());
+            return new ArrayList<>();
         }
+    }
+    
+    private void populateCardMenu(List<Menu> menus) {
+        // Xóa hết các card trước khi thêm mới
+        SwingUtilities.invokeLater(() -> menuFormUI.getPanelCard().removeAll());
 
-        availableMenus.sort(Comparator.comparing(Menu::getName));
-        otherMenus.sort(Comparator.comparing(Menu::getName));
+        menus.parallelStream().forEachOrdered(menu -> {
+            CardMenu cardMenu = new CardMenu(menu);
+            System.out.println("Đang load card: " + menu.getName());
 
-        List<List<Menu>> groupedMenus = new ArrayList<>();
-        groupedMenus.add(availableMenus);
-        groupedMenus.add(otherMenus);
-        return groupedMenus;
+            // Thêm MouseListener cho cardMenu
+            cardMenu.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseReleased(MouseEvent e) {
+                    if (e.getComponent() instanceof CardMenu) {
+                        if (SwingUtilities.isLeftMouseButton(e)) {
+                            cardMenu.setSelected(!cardMenu.isSelected());
+                            if (cardMenu.isSelected()) {
+                                cardMenu.setBorder(BorderFactory.createLineBorder(Color.GREEN, 5));
+                            } else {
+                                cardMenu.setBorder(BorderFactory.createEmptyBorder());
+                            }
+                        } else if (e.isPopupTrigger()) {
+                            cardMenu.setSelected(true);
+                            cardMenu.setBorder(BorderFactory.createLineBorder(Color.GREEN, 5));
+                            menuFormUI.createPopupMenu().show(e.getComponent(), e.getX(), e.getY());
+                        }
+                    }
+                }
+            });
+
+            // Cập nhật UI phải chạy trên EDT
+            SwingUtilities.invokeLater(() -> menuFormUI.getPanelCard().add(cardMenu));
+        });
+
+        // Cập nhật giao diện sau khi thêm tất cả CardMenu
+        SwingUtilities.invokeLater(() -> {
+            menuFormUI.getPanelCard().revalidate();
+            menuFormUI.getPanelCard().repaint();
+        });
+    }
+    private void populateBasicMenu(List<Menu> menus) {
+        // Xóa tất cả hàng trong JTable trước khi thêm mới
+        SwingUtilities.invokeLater(() -> menuFormUI.getTableModel().setRowCount(0));
+
+        menus.parallelStream().forEachOrdered(menu -> {
+            System.out.println("Đang load table: " + menu.getName());
+            Object[] rowData = menuController.toTableRow(menu);
+
+            // Cập nhật UI phải chạy trên EDT
+            SwingUtilities.invokeLater(() -> menuFormUI.getTableModel().addRow(rowData));
+        });
+
+        // Cập nhật giao diện sau khi thêm tất cả menu vào bảng
+        SwingUtilities.invokeLater(() -> menuFormUI.getTableModel().fireTableDataChanged());
     }
 
-    /** 
-     * Handles the search text change with debounce functionality.
-     * 
-     * @param txtSearch The JTextField containing the search text.
-     */
+    
     public void handleSearchTextChange(JTextField txtSearch) {
 		if (debounceTimer != null && debounceTimer.isRunning()) {
 			debounceTimer.stop();
@@ -308,16 +242,16 @@ public class MenuFormController {
 
     private void showDetailsModal() {
         String[] idHolder = { "" };
-        if (menFormUI.getSelectedTitle().equals("Basic table")) {
+        if (menuFormUI.getSelectedTitle().equals("Basic table")) {
             if (!validateSingleRowSelection("view details"))
                 return;
-            idHolder[0] = menFormUI.getTable().getValueAt(menFormUI.getTable().getSelectedRow(), 1).toString();
-        } else if (menFormUI.getSelectedTitle().equals("Grid table")) {
+            idHolder[0] = menuFormUI.getTable().getValueAt(menuFormUI.getTable().getSelectedRow(), 1).toString();
+        } else if (menuFormUI.getSelectedTitle().equals("Grid table")) {
             if (!validateSingleCardSelection(idHolder, "view details"))
                 return;
         }
         MenuInfoForm infoFormMenu = createInfoFormMenu(idHolder[0]);
-        ModalDialog.showModal(menFormUI, new AdaptSimpleModalBorder(infoFormMenu, "Menu details information", AdaptSimpleModalBorder.DEFAULT_OPTION, (controller, action) -> {}), DefaultComponent.getInfoForm());
+        ModalDialog.showModal(menuFormUI, new AdaptSimpleModalBorder(infoFormMenu, "Menu details information", AdaptSimpleModalBorder.DEFAULT_OPTION, (controller, action) -> {}), DefaultComponent.getInfoForm());
     }
 
     /** 
@@ -325,7 +259,7 @@ public class MenuFormController {
      */
     private void showCreateModal() {
         CreateMenuInputForm inputFormCreateMenu = new CreateMenuInputForm();
-        ModalDialog.showModal(menFormUI, new AdaptSimpleModalBorder(inputFormCreateMenu, "Create menu", AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
+        ModalDialog.showModal(menuFormUI, new AdaptSimpleModalBorder(inputFormCreateMenu, "Create menu", AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
             if (action == AdaptSimpleModalBorder.YES_OPTION) {
                 handleCreateMenu(inputFormCreateMenu);
             }
@@ -334,7 +268,7 @@ public class MenuFormController {
 
     private void showCreatePromotionModal() {
         CreatePromotionInputForm inputFormCreatePromotion = new CreatePromotionInputForm(getSelectedMenuIdsForDeletion());
-        ModalDialog.showModal(menFormUI, new AdaptSimpleModalBorder(inputFormCreatePromotion, "Create promotion", AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
+        ModalDialog.showModal(menuFormUI, new AdaptSimpleModalBorder(inputFormCreatePromotion, "Create promotion", AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
             if (action == AdaptSimpleModalBorder.YES_OPTION) {
                 handleCreatePromotion(inputFormCreatePromotion);
             }
@@ -353,24 +287,24 @@ public class MenuFormController {
     private void handleCreateMenu(CreateMenuInputForm inputFormCreateMenu) {
         Object[] menuData = inputFormCreateMenu.getData();
         menuController.createMenu(menuData);
-		Toast.show(menFormUI, Toast.Type.SUCCESS, "Create menu successfully");
+		Toast.show(menuFormUI, Toast.Type.SUCCESS, "Create menu successfully");
 		loadData();
     }
 
     private void showEditModal() {
         String[] idHolder = { "" };
-        if (menFormUI.getSelectedTitle().equals("Basic table")) {
+        if (menuFormUI.getSelectedTitle().equals("Basic table")) {
             if (!validateSingleRowSelection("edit"))
                 return;
-            idHolder[0] = menFormUI.getTable().getValueAt(menFormUI.getTable().getSelectedRow(), 1).toString();
-        } else if (menFormUI.getSelectedTitle().equals("Grid table")) {
+            idHolder[0] = menuFormUI.getTable().getValueAt(menuFormUI.getTable().getSelectedRow(), 1).toString();
+        } else if (menuFormUI.getSelectedTitle().equals("Grid table")) {
             if (!validateSingleCardSelection(idHolder, "edit"))
                 return;
         }
         Menu menu = null;
         menu = null;// menuController.getMenuById(idHolder[0]);
         UpdateMenuInputForm inputFormUpdateMenu = createInputFormUpdateMenu(menu);
-        ModalDialog.showModal(menFormUI, new AdaptSimpleModalBorder(inputFormUpdateMenu, "Update menu", AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
+        ModalDialog.showModal(menuFormUI, new AdaptSimpleModalBorder(inputFormUpdateMenu, "Update menu", AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
             if (action == AdaptSimpleModalBorder.YES_OPTION) {
                 handleUpdateMenu(inputFormUpdateMenu);
             }
@@ -378,25 +312,25 @@ public class MenuFormController {
     }
 
     private boolean validateSingleRowSelection(String action) {
-        if (menFormUI.getTable().getSelectedRowCount() > 1) {
-            Toast.show(menFormUI, Toast.Type.ERROR, "Please select only one row to " + action);
+        if (menuFormUI.getTable().getSelectedRowCount() > 1) {
+            Toast.show(menuFormUI, Toast.Type.ERROR, "Please select only one row to " + action);
             return false;
         }
-        if (menFormUI.getTable().getSelectedRowCount() == 0) {
-            Toast.show(menFormUI, Toast.Type.ERROR, "Please select a row to " + action);
+        if (menuFormUI.getTable().getSelectedRowCount() == 0) {
+            Toast.show(menuFormUI, Toast.Type.ERROR, "Please select a row to " + action);
             return false;
         }
         return true;
     }
 
     private boolean validateSingleCardSelection(String[] idHolder, String action) {
-        List<String> selectedIds = findSelectedMenuIds(menFormUI.getPanelCard());
+        List<String> selectedIds = findSelectedMenuIds(menuFormUI.getPanelCard());
         if (selectedIds.size() > 1) {
-            Toast.show(menFormUI, Toast.Type.ERROR, "Please select only one row to " + action);
+            Toast.show(menuFormUI, Toast.Type.ERROR, "Please select only one row to " + action);
             return false;
         }
         if (selectedIds.isEmpty()) {
-            Toast.show(menFormUI, Toast.Type.ERROR, "Please select a row to " + action);
+            Toast.show(menuFormUI, Toast.Type.ERROR, "Please select a row to " + action);
             return false;
         }
         idHolder[0] = selectedIds.get(0);
@@ -407,7 +341,7 @@ public class MenuFormController {
         try {
             return new UpdateMenuInputForm(menu);
         } catch (IOException e) {
-            Toast.show(menFormUI, Toast.Type.ERROR, "Failed to find menu to edit: " + e.getMessage());
+            Toast.show(menuFormUI, Toast.Type.ERROR, "Failed to find menu to edit: " + e.getMessage());
             return null;
         }
     }
@@ -416,7 +350,7 @@ public class MenuFormController {
         try {
             return new MenuInfoForm(menuId);
         } catch (IOException e) {
-            Toast.show(menFormUI, Toast.Type.ERROR, "Failed to find menu to view details: " + e.getMessage());
+            Toast.show(menuFormUI, Toast.Type.ERROR, "Failed to find menu to view details: " + e.getMessage());
             return null;
         }
     }
@@ -424,24 +358,24 @@ public class MenuFormController {
     private void handleUpdateMenu(UpdateMenuInputForm inputFormUpdateMenu) {
         Object[] menuData = inputFormUpdateMenu.getData();
         menuController.updateMenu(menuData);
-		Toast.show(menFormUI, Toast.Type.SUCCESS, "Update menu successfully");
+		Toast.show(menuFormUI, Toast.Type.SUCCESS, "Update menu successfully");
 		loadData();
     }
 
     private void showDeleteModal() {
         List<String> findSelectedMenuIds = getSelectedMenuIdsForDeletion();
         if (findSelectedMenuIds.isEmpty()) {
-            Toast.show(menFormUI, Toast.Type.ERROR, "You have to select at least one menu to delete");
+            Toast.show(menuFormUI, Toast.Type.ERROR, "You have to select at least one menu to delete");
             return;
         }
         confirmDeletion(findSelectedMenuIds);
     }
 
     private List<String> getSelectedMenuIdsForDeletion() {
-        if (menFormUI.getSelectedTitle().equals("Basic table")) {
+        if (menuFormUI.getSelectedTitle().equals("Basic table")) {
             return findSelectedMenuIds();
-        } else if (menFormUI.getSelectedTitle().equals("Grid table")) {
-            return findSelectedMenuIds(menFormUI.getPanelCard());
+        } else if (menuFormUI.getSelectedTitle().equals("Grid table")) {
+            return findSelectedMenuIds(menuFormUI.getPanelCard());
         }
         return new ArrayList<>();
     }
@@ -455,7 +389,7 @@ public class MenuFormController {
     }
 
     private void confirmSingleDeletion(String menuId) {
-        ModalDialog.showModal(menFormUI, new SimpleMessageModal(SimpleMessageModal.Type.WARNING, "Are you sure you want to delete this menu: " + menuId + "? This action cannot be undone.", "Confirm Deletion", SimpleMessageModal.YES_NO_OPTION, (controller, action) -> {
+        ModalDialog.showModal(menuFormUI, new SimpleMessageModal(SimpleMessageModal.Type.WARNING, "Are you sure you want to delete this menu: " + menuId + "? This action cannot be undone.", "Confirm Deletion", SimpleMessageModal.YES_NO_OPTION, (controller, action) -> {
             if (action == AdaptSimpleModalBorder.YES_OPTION) {
                 deleteMenu(menuId);
             }
@@ -463,7 +397,7 @@ public class MenuFormController {
     }
 
     private void confirmMultipleDeletion(List<String> findSelectedMenuIds) {
-        ModalDialog.showModal(menFormUI, new SimpleMessageModal(SimpleMessageModal.Type.WARNING, "Are you sure you want to delete these menus: " + findSelectedMenuIds + "? This action cannot be undone.", "Confirm Deletion", SimpleMessageModal.YES_NO_OPTION, (controller, action) -> {
+        ModalDialog.showModal(menuFormUI, new SimpleMessageModal(SimpleMessageModal.Type.WARNING, "Are you sure you want to delete these menus: " + findSelectedMenuIds + "? This action cannot be undone.", "Confirm Deletion", SimpleMessageModal.YES_NO_OPTION, (controller, action) -> {
             if (action == AdaptSimpleModalBorder.YES_OPTION) {
                 deleteMenus(findSelectedMenuIds);
             }
@@ -473,19 +407,19 @@ public class MenuFormController {
     private void deleteMenu(String menuId) {
         menuController.deleteMenu(menuId);
 		loadData(); // Reload menu data after successful deletion
-		Toast.show(menFormUI, Toast.Type.SUCCESS, "Delete menu successfully");
+		Toast.show(menuFormUI, Toast.Type.SUCCESS, "Delete menu successfully");
     }
 
     private void deleteMenus(List<String> findSelectedMenuIds) {
         menuController.deleteMenus(findSelectedMenuIds);
 		loadData(); // Reload menu data after successful deletion
-		Toast.show(menFormUI, Toast.Type.SUCCESS, "Delete menus successfully");
+		Toast.show(menuFormUI, Toast.Type.SUCCESS, "Delete menus successfully");
     }
 
     private static final int CHUNK_SIZE = 4;
 
     public List<String> findSelectedMenuIds() {
-        int rowCount = menFormUI.getTable().getRowCount();
+        int rowCount = menuFormUI.getTable().getRowCount();
         List<String> menuIdsToDelete = new ArrayList<>();
         List<List<String>> chunks = createChunks(rowCount);
         ExecutorService executorService = Executors.newFixedThreadPool(4);
@@ -513,7 +447,7 @@ public class MenuFormController {
         List<String> currentChunk = new ArrayList<>();
 
         for (int i = 0; i < rowCount; i++) {
-            String menuId = menFormUI.getTable().getValueAt(i, 1).toString();
+            String menuId = menuFormUI.getTable().getValueAt(i, 1).toString();
             currentChunk.add(menuId);
 
             if (currentChunk.size() == CHUNK_SIZE) {
@@ -534,7 +468,7 @@ public class MenuFormController {
 
         for (String menuId : chunk) {
             int rowIndex = findRowIndexById(menuId);
-            Boolean isChecked = (Boolean) menFormUI.getTable().getValueAt(rowIndex, 0);
+            Boolean isChecked = (Boolean) menuFormUI.getTable().getValueAt(rowIndex, 0);
             if (isChecked != null && isChecked) {
                 menuIdsToDelete.add(menuId);
             }
@@ -544,8 +478,8 @@ public class MenuFormController {
     }
 
     private int findRowIndexById(String menuId) {
-        for (int i = 0; i < menFormUI.getTable().getRowCount(); i++) {
-            if (menFormUI.getTable().getValueAt(i, 1).equals(menuId)) {
+        for (int i = 0; i < menuFormUI.getTable().getRowCount(); i++) {
+            if (menuFormUI.getTable().getValueAt(i, 1).equals(menuId)) {
                 return i;
             }
         }
