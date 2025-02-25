@@ -71,7 +71,6 @@ public class TableFormController {
 
 		executor.submit(() -> {
 			try {
-				tableFormUI.getPanelCard().removeAll();
 				List<Table> tables = fetchTables();
 				if (tables == null || tables.isEmpty()) {
 					Toast.show(tableFormUI, Toast.Type.INFO, "No table in database or in search");
@@ -81,7 +80,6 @@ public class TableFormController {
 					tableFormUI.getPanelCard().removeAll();
 					populateCardTable(tables);
 				});
-				populateCardTable(tables);
 			} finally {
 				latch.countDown();
 			}

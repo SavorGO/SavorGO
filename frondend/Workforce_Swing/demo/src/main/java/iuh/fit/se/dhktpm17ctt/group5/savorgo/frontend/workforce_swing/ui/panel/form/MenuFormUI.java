@@ -36,31 +36,17 @@ public class MenuFormUI extends Form {
     private Timer debounceTimer;
     private String selectedTitle = "Basic table";
 
-    /**
-     * Constructs a MenuFormUI and initializes the controller.
-     */
     public MenuFormUI() {
         controller = new MenuFormController(this);
         init();
     }
 
-    /**
-     * Initializes the UI components and layout.
-     */
     private void init() {
         setLayout(new MigLayout("fillx,wrap", "[fill]", "[][fill,grow]"));
         add(createInfoPanel("Menu Management", "This is a user interface component that displays a collection of menus in a structured, tabular format. It allows users to view, sort, and manage data or other resources.", 1));
         add(createTabPanel(), "gapx 7 7");
     }
 
-    /**
-     * Creates an information panel with a title and description.
-     * 
-     * @param title the title of the panel
-     * @param description the description of the panel
-     * @param level the level of the title for font size adjustment
-     * @return the created JPanel containing the title and description
-     */
     private JPanel createInfoPanel(String title, String description, int level) {
         JPanel panel = new JPanel(new MigLayout("fillx,wrap", "[fill]"));
         JLabel lbTitle = new JLabel(title);
@@ -260,7 +246,6 @@ public class MenuFormUI extends Form {
             }
         });
 
-        // DocumentListener để nhận diện sự thay đổi của nội dung
         txtSearch.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             @Override
             public void insertUpdate(javax.swing.event.DocumentEvent e) {
@@ -279,9 +264,10 @@ public class MenuFormUI extends Form {
 
             private void checkAndHandleSearch() {
                 // Nếu txtSearch trống, gọi handleSearchButton
-                if (txtSearch.getText().trim().isEmpty()) {
-                    controller.handleSearchButton(txtSearch, spnCurrentPage, txtTotalPages);
+                if (!txtSearch.getText().trim().isEmpty()) {
+                	return;
                 }
+                controller.handleSearchButton(txtSearch, spnCurrentPage, txtTotalPages);
             }
         });
 

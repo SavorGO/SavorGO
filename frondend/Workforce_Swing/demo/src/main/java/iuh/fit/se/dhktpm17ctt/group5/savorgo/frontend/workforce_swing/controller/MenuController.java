@@ -105,4 +105,18 @@ public class MenuController {
             menu.getModifiedTime()
         };
     }
+    public MyImageIcon getImage(Menu menu, int height, int width, int round) throws IOException {
+        if (height == 0 || width == 0) {
+            // Set default values if height or width is zero
+            height = 50;
+            width = 50;
+            round = 0;
+        }
+        try {
+            return MyImageIcon.getMyImageIconFromCloudinaryImageTag("SavorGO/Menus/" + menu.getPublicId(), height, width, round);
+        } catch (URISyntaxException e) {
+            // Return a default image if an error occurs
+            return new MyImageIcon("src/main/resources/images/system/no_image_found.png", 55, 55, 10);
+        }
+    }
 }
