@@ -1,21 +1,29 @@
 package iuh.fit.se.controller;
 
+import java.util.List;
+import java.util.Map;
+
+import com.nimbusds.jose.proc.SecurityContext;
+import jakarta.validation.Valid;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
+
 import iuh.fit.se.dto.request.UserCreationRequest;
 import iuh.fit.se.dto.request.UserUpdateRequest;
+import iuh.fit.se.dto.response.ApiResponse;
 import iuh.fit.se.dto.response.UserResponse;
 import iuh.fit.se.service.UserService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
+@Slf4j
 @RequestMapping("/users")
 public class UserController {
     UserService userService;
@@ -59,10 +67,10 @@ public class UserController {
      * @param role the role of users to search for
      * @return a list of users with the specified role
      */
-    @GetMapping("/search/r/{role}")
-    public ResponseEntity<List<UserResponse>> getUsersByRole(@PathVariable String role) {
-        return ResponseEntity.ok(userService.findByRole(role));
-    }
+//    @GetMapping("/search/r/{role}")
+//    public ResponseEntity<List<UserResponse>> getUsersByRole(@PathVariable String role) {
+//        return ResponseEntity.ok(userService.findByRole(role));
+//    }
 
     /**
      * Get a user by email.
@@ -72,6 +80,11 @@ public class UserController {
      */
     @GetMapping("/search/e/{email}")
     public ResponseEntity<UserResponse> getUserByEmail(@PathVariable String email) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        log.info("User: {}", authentication.getPrincipal());
+        log.info("Name: {}", authentication.getName());
+        log.info("Authorities: ");
+        authentication.getAuthorities().forEach(s->log.info(s.getAuthority()));
         return ResponseEntity.ok(userService.findByEmail(email));
     }
 
@@ -82,8 +95,11 @@ public class UserController {
      * @return the created user
      */
     @PostMapping
-    public ResponseEntity<UserResponse> createUser(@RequestBody UserCreationRequest request) {
-        return ResponseEntity.ok(userService.createUser(request));
+    public ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreationRequest request) {
+        //        return ResponseEntity.ok(userService.createUser(request));
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.createUser(request))
+                .build();
     }
 
     /**

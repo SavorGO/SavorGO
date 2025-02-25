@@ -1,31 +1,39 @@
 package iuh.fit.se.service.impl;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import iuh.fit.se.mapper.UserMapper;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import iuh.fit.se.dto.request.UserCreationRequest;
 import iuh.fit.se.dto.request.UserUpdateRequest;
 import iuh.fit.se.dto.response.UserResponse;
 import iuh.fit.se.entity.User;
 import iuh.fit.se.enums.UserRoleEnum;
 import iuh.fit.se.enums.UserStatusEnum;
+import iuh.fit.se.exception.AppException;
+import iuh.fit.se.exception.ErrorCode;
 import iuh.fit.se.repository.UserRepository;
 import iuh.fit.se.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import com.fasterxml.jackson.core.type.TypeReference;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final ObjectMapper objectMapper;
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
-    
+    private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
     /**
      * Creates a new user based on the provided UserCreationRequest.
      *
@@ -33,10 +41,10 @@ public class UserServiceImpl implements UserService {
      * @return UserResponse the created user details
      */
     @Override
-    public UserResponse createUser (UserCreationRequest request) {
-        User user = objectMapper.convertValue(request, User.class);
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        return objectMapper.convertValue(userRepository.save(user), UserResponse.class);
+    public UserResponse createUser(UserCreationRequest request) {
+        User user =  userMapper.toUser(request);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        return userMapper.toUserResponse(userRepository.save(user));
     }
 
     /**
@@ -47,10 +55,9 @@ public class UserServiceImpl implements UserService {
      * @return UserResponse the updated user details
      */
     @Override
-    public UserResponse updateUser (String id, UserUpdateRequest request) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User  not found with id: " + id));
-        
+    public UserResponse updateUser(String id, UserUpdateRequest request) {
+        User user = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
         try {
             objectMapper.updateValue(user, request);
         } catch (JsonMappingException e) {
@@ -68,9 +75,8 @@ public class UserServiceImpl implements UserService {
      * @param id the id of the user to be deleted
      */
     @Override
-    public void deleteUser (String id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User  not found with id: " + id)); 
+    public void deleteUser(String id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         user.setStatus(UserStatusEnum.DELETED);
         userRepository.save(user);
     }
@@ -83,8 +89,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserResponse findByEmail(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User  not found with email: " + email));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         return objectMapper.convertValue(user, UserResponse.class);
     }
 
@@ -105,12 +110,12 @@ public class UserServiceImpl implements UserService {
      * @param role the role of the users to be found
      * @return List<UserResponse> a list of users with the specified role
      */
-    @Override
-    public List<UserResponse> findByRole(String role) {
-        UserRoleEnum roleEnum = UserRoleEnum.valueOf(role.toUpperCase());
-        List<User> users = userRepository.findByRole(roleEnum);
-        return objectMapper.convertValue(users, new TypeReference<List<UserResponse>>() {});
-    }
+//    @Override
+//    public List<UserResponse> findByRole(String role) {
+//        UserRoleEnum roleEnum = UserRoleEnum.valueOf(role.toUpperCase());
+//        List<User> users = userRepository.findByRole(roleEnum);
+//        return objectMapper.convertValue(users, new TypeReference<List<UserResponse>>() {});
+//    }
 
     /**
      * Finds a user by their id.
@@ -132,8 +137,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUsers(List<String> ids) {
         ids.forEach(id -> {
-            User user = userRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("User   not found with id: " + id));
+            User user = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
             user.setStatus(UserStatusEnum.DELETED);
             userRepository.save(user);
         });
@@ -150,14 +154,17 @@ public class UserServiceImpl implements UserService {
         List<User> users = userRepository.findAll();
         String searchLower = searchQuery.toLowerCase();
         List<User> filteredUsers = users.stream()
-                .filter(user -> user.getId().contains(searchQuery) ||
-                                user.getEmail().contains(searchQuery) ||
-                                user.getFirstName().toLowerCase().contains(searchLower) ||
-                                user.getLastName().toLowerCase().contains(searchLower) ||
-                                user.getAddress().toLowerCase().contains(searchLower) ||
-                                (user.getFirstName().toLowerCase() + " " + user.getLastName().toLowerCase()).contains(searchLower) ||
-                                (user.getLastName().toLowerCase() + " " + user.getFirstName().toLowerCase()).contains(searchLower)
-                )
+                .filter(user -> user.getId().contains(searchQuery)
+                        || user.getEmail().contains(searchQuery)
+                        || user.getFirstName().toLowerCase().contains(searchLower)
+                        || user.getLastName().toLowerCase().contains(searchLower)
+                        || user.getAddress().toLowerCase().contains(searchLower)
+                        || (user.getFirstName().toLowerCase() + " "
+                                        + user.getLastName().toLowerCase())
+                                .contains(searchLower)
+                        || (user.getLastName().toLowerCase() + " "
+                                        + user.getFirstName().toLowerCase())
+                                .contains(searchLower))
                 .collect(Collectors.toList());
         return objectMapper.convertValue(filteredUsers, new TypeReference<List<UserResponse>>() {});
     }
