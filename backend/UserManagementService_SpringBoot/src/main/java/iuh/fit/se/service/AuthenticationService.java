@@ -1,16 +1,25 @@
 package iuh.fit.se.service;
 
-import com.google.firebase.auth.FirebaseAuthException;
+import java.text.ParseException;
 
-import iuh.fit.se.dto.request.AuthenticationRequest;
-import iuh.fit.se.dto.request.ChangePasswordRequest;
-import iuh.fit.se.dto.request.TokenRequest;
+import com.google.firebase.auth.FirebaseAuthException;
+import com.nimbusds.jose.JOSEException;
+
+import iuh.fit.se.dto.request.*;
 import iuh.fit.se.dto.response.AuthenticationResponse;
+import iuh.fit.se.dto.response.IntrospectResponse;
 import iuh.fit.se.dto.response.UserResponse;
 
 public interface AuthenticationService {
     AuthenticationResponse verifyGoogleToken(TokenRequest tokenRequest) throws FirebaseAuthException;
+
+    IntrospectResponse introspect(IntrospectRequest request) throws JOSEException, ParseException;
+
     UserResponse verifyJwtToken(String jwtToken);
-	AuthenticationResponse loginWithEmailPassword(AuthenticationRequest request);
-	void changePassword(String jwtToken, ChangePasswordRequest request);
+
+    AuthenticationResponse loginWithEmailPassword(AuthenticationRequest request);
+
+    void changePassword(String jwtToken, ChangePasswordRequest request);
+
+    AuthenticationResponse register(AuthenticationRegisterRequest request);
 }

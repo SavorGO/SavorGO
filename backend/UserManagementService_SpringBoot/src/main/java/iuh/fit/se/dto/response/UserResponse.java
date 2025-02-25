@@ -1,6 +1,7 @@
 package iuh.fit.se.dto.response;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 import iuh.fit.se.enums.UserRoleEnum;
 import iuh.fit.se.enums.UserStatusEnum;
@@ -9,13 +10,16 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserResponse {
-	String id;
+    String id;
     String email;
     String firstName;
     String lastName;
-    UserRoleEnum role;
+    Set<UserRoleEnum> roles;
     int points;
     UserTierEnum tier;
     String address;

@@ -1,5 +1,8 @@
 package iuh.fit.se.enums;
 
 public enum UserTierEnum {
-    NONE,COPPER,GOLD,DIAMOND;
+    NONE,
+    COPPER,
+    GOLD,
+    DIAMOND;
 }
