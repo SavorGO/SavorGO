@@ -4,130 +4,101 @@ import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Menu
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.service.MenuService;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.util.HttpUtil;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.util.JsonUtil;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.ApiResponse;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import okhttp3.Response;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
-/**
- * Implementation of the MenuService interface for interacting with the menu API.
- * This class uses HttpUtil and JsonUtil for HTTP requests and JSON processing.
- */
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
 public class MenuServiceImpl implements MenuService {
+	private static final String API_URL = "http://localhost:8000/api/menus";
+    private final OkHttpClient client = new OkHttpClient();
+    private final ObjectMapper objectMapper;
 
-    private static final String API_URL = "http://localhost:8000/api/menus";
-    private static final String API_URL_ID = API_URL + "/";
-
-    /**
-     * Retrieves all menus from the backend API.
-     *
-     * @return A list of Menu objects.
-     * @throws IOException If the request fails.
-     */
-    @Override
-    public List<Menu> getAllMenus() throws IOException {
-        Response response = HttpUtil.get(API_URL);
-        if (!response.isSuccessful()) {
-            throw new IOException("Unexpected code " + response);
-        }
-        Menu[] menus = JsonUtil.fromJson(response.body().string(), Menu[].class);
-        return Arrays.asList(menus);
+    public MenuServiceImpl() {
+        objectMapper = new ObjectMapper();
+        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+        objectMapper.registerModule(new JavaTimeModule());
     }
-
-    /**
-     * Retrieves a menu by its ID from the backend API.
-     *
-     * @param id The ID of the menu to retrieve.
-     * @return The Menu object.
-     * @throws IOException If the request fails.
-     */
     @Override
-    public Menu getMenuById(String id) throws IOException {
-        String url = API_URL_ID + id;
-        Response response = HttpUtil.get(url);
-        if (!response.isSuccessful()) {
-            throw new IOException("Unexpected code " + response);
-        }
-        return JsonUtil.fromJson(response.body().string(), Menu.class);
-    }
+    public ApiResponse list(
+            String keyword,
+            String sortBy,
+            String sortDirection,
+            int page,
+            int size,
+            String statusFilter
+    ) {
+        try {
+            HttpUrl.Builder urlBuilder = HttpUrl.parse(API_URL).newBuilder()
+                    .addQueryParameter("keyword", keyword != null ? keyword : "")
+                    .addQueryParameter("sortBy", sortBy != null ? sortBy : "id")
+                    .addQueryParameter("sortDirection", sortDirection != null ? sortDirection : "asc")
+                    .addQueryParameter("page", String.valueOf(page > 0 ? page : 1))
+                    .addQueryParameter("size", String.valueOf(size > 0 ? size : 10))
+                    .addQueryParameter("statusFilter", statusFilter != null ? statusFilter : "without_deleted");
 
-    /**
-     * Creates a new menu in the backend API.
-     *
-     * @param menu The Menu object to create.
-     * @throws IOException If the request fails.
-     */
-    @Override
-    public void createMenu(Menu menu) throws IOException {
-        String jsonBody = JsonUtil.toJson(menu);
-        Response response = HttpUtil.post(API_URL, jsonBody);
-        if (!response.isSuccessful()) {
-            throw new IOException("Unexpected code " + response);
-        }
-    }
+            Request request = new Request.Builder()
+                    .url(urlBuilder.build())
+                    .get()
+                    .build();
 
-    /**
-     * Updates an existing menu in the backend API.
-     *
-     * @param menu The Menu object to update.
-     * @throws IOException If the request fails.
-     */
-    @Override
-    public void updateMenu(Menu menu) throws IOException {
-        String jsonBody = JsonUtil.toJson(menu);
-        String url = API_URL_ID + menu.getId();
-        Response response = HttpUtil.put(url, jsonBody);
-        if (!response.isSuccessful()) {
-            throw new IOException("Unexpected code " + response);
+            try (Response response = client.newCall(request).execute()) {
+                if (!response.isSuccessful()) {
+                    return ApiResponse.builder()
+                            .status(response.code())
+                            .message("Failed to fetch menus")
+                            .errors(Map.of("error", "Unexpected response code: " + response.code()))
+                            .build();
+                }
+                return objectMapper.readValue(response.body().string(), ApiResponse.class);
+            }
+        } catch (IOException e) {
+            return ApiResponse.builder()
+                    .status(500)
+                    .message("Internal Server Error")
+                    .errors(Map.of("exception", e.getMessage()))
+                    .build();
         }
     }
 
-    /**
-     * Deletes a menu by its ID from the backend API.
-     *
-     * @param id The ID of the menu to delete.
-     * @throws IOException If the request fails.
-     */
-    @Override
-    public void deleteMenu(String id) throws IOException {
-        String url = API_URL_ID + id;
-        Response response = HttpUtil.delete(url);
-        if (!response.isSuccessful()) {
-            throw new IOException("Failed to delete menu with ID: " + id + ". Unexpected code: " + response.code());
-        }
-    }
-
-    /**
-     * Deletes multiple menus by their IDs from the backend API.
-     *
-     * @param ids The list of IDs of the menus to delete.
-     * @throws IOException If the request fails.
-     */
-    @Override
-    public void deleteMenus(List<String> ids) throws IOException {
-        String json = "{\"ids\": " + ids.toString() + "}";
-        Response response = HttpUtil.deleteWithBody(API_URL, json);
-        if (!response.isSuccessful()) {
-            throw new IOException("Failed to delete menus. Unexpected code: " + response.code());
-        }
-    }
-
-    /**
-     * Searches for menus based on a search term in the backend API.
-     *
-     * @param search The search term.
-     * @return A list of Menu objects that match the search term.
-     * @throws IOException If the request fails.
-     */
-    @Override
-    public List<Menu> searchMenus(String search) throws IOException {
-        String url = API_URL + "/search?q=" + search;
-        Response response = HttpUtil.get(url);
-        if (!response.isSuccessful()) {
-            throw new IOException("Unexpected code " + response);
-        }
-        Menu[] menus = JsonUtil.fromJson(response.body().string(), Menu[].class);
-        return Arrays.asList(menus);
-    }
+	@Override
+	public ApiResponse getMenuById(String id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	@Override
+	public ApiResponse searchMenus(String search) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	@Override
+	public ApiResponse createMenu(Menu menu) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	@Override
+	public ApiResponse updateMenu(Menu menu) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	@Override
+	public ApiResponse removeMenu(String id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	@Override
+	public ApiResponse removeMenus(List<String> ids) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

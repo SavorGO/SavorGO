@@ -74,56 +74,36 @@ public class MenuFormUI extends Form {
         return panel;
     }
 
-    /**
-     * Creates a tab panel with basic and grid tables.
-     * 
-     * @return the created JTabbedPane containing the table panels
-     */
     private Component createTabPanel() {
         JTabbedPane tabb = new JTabbedPane();
         tabb.putClientProperty(FlatClientProperties.STYLE, "" + "tabType:card");
         tabb.addTab("Basic table", createBorder(createBasicTable()));
         tabb.addTab("Grid table", createBorder(createGridTable()));
         tabb.addChangeListener(e -> {
-            controller.loadData("");
+            controller.loadData();
             selectedTitle = tabb.getTitleAt(tabb.getSelectedIndex());
         });
         return tabb;
     }
 
-    /**
-     * Creates a bordered panel for the specified component.
-     * 
-     * @param component the component to be added to the bordered panel
-     * @return the created JPanel with a border around the component
-     */
     private Component createBorder(Component component) {
         JPanel panel = new JPanel(new MigLayout("fill,insets 7 0 7 0", "[fill]", "[fill]"));
         panel.add(component);
         return panel;
     }
 
-    /**
-     * Creates the basic table panel.
-     * 
-     * @return the created JPanel containing the basic table
-     */
     private Component createBasicTable() {
     	JPanel panel = new JPanel(new MigLayout("fillx,wrap,insets 10 10 10 10", "[fill]", "[][]10[fill,grow]"));        configureTableProperties();
-        configureTableProperties();
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         styleTableWithFlatLaf(scrollPane);
-        panel.add(createTableTitle("Basic Menu"), "gapx 20");
+        panel.add(createTableTitle("Basic Table"), "gapx 20");
         panel.add(createHeaderActionPanel());
         panel.add(scrollPane);
-        controller.loadData("");
+        controller.loadData();
         return panel;
     }
 
-    /**
-     * Configures the properties of the table.
-     */
     private void configureTableProperties() {
         table.setModel(tableModel);
         table.setGridColor(Color.LIGHT_GRAY);
@@ -178,11 +158,6 @@ public class MenuFormUI extends Form {
         });
     }
 
-    /**
-     * Styles the table with FlatLaf properties.
-     * 
-     * @param scrollPane the JScrollPane containing the table
-     */
     private void styleTableWithFlatLaf(JScrollPane scrollPane) {
         panelCard.putClientProperty(FlatClientProperties.STYLE, "" + "arc:20;" + "background:$Table.background;");
         table.getTableHeader().putClientProperty(FlatClientProperties.STYLE, "" + "height:30;" + "hoverBackground:null;" + "pressedBackground:null;" + "separatorColor:$TableHeader.background;");
@@ -190,46 +165,27 @@ public class MenuFormUI extends Form {
         scrollPane.getVerticalScrollBar().putClientProperty(FlatClientProperties.STYLE, "" + "trackArc:$ScrollBar.thumbArc;" + "trackInsets:3,3,3,3;" + "thumbInsets:3,3,3,3;" + "background:$Table.background;");
     }
 
-    /**
-     * Creates a title label for the table.
-     * 
-     * @param title the title of the table
-     * @return the created JLabel with the title
-     */
     private JLabel createTableTitle(String title) {
         JLabel titleLabel = new JLabel(title);
         titleLabel.putClientProperty(FlatClientProperties.STYLE, "font:bold +2");
         return titleLabel;
     }
 
-    /**
-     * Creates the grid table panel.
-     * 
-     * @return the created JPanel containing the grid table
-     */
     private Component createGridTable() {
     	JPanel panel = new JPanel(new MigLayout("fillx,wrap,insets 10 10 10 10", "[fill]", "[][]10[fill,grow]"));        configureTableProperties();
         configurePanelCardStyle();
         JScrollPane scrollPane = createScrollPaneForPanelCard();
-        panel.add(createTableTitle("Grid Menu"), "gapx 20");
+        panel.add(createTableTitle("Grid Table"), "gapx 20");
         panel.add(createHeaderActionPanel());
         panel.add(scrollPane);
-        controller.loadData("");
+        controller.loadData();
         return panel;
     }
 
-    /**
-     * Configures the style of the panel card.
-     */
     private void configurePanelCardStyle() {
         panelCard.putClientProperty(FlatClientProperties.STYLE, "border:10,10,10,10;");
     }
 
-    /**
-     * Creates a scroll pane for the panel card.
-     * 
-     * @return the created JScrollPane containing the panel card
-     */
     private JScrollPane createScrollPaneForPanelCard() {
         JScrollPane scrollPane = new JScrollPane(panelCard);
         scrollPane.getHorizontalScrollBar().setUnitIncrement(10);
@@ -240,32 +196,114 @@ public class MenuFormUI extends Form {
         return scrollPane;
     }
 
-    /**
-     * Creates a header action panel with buttons and search field.
-     * 
-     * @return the created JPanel containing the header action components
-     */
     private Component createHeaderActionPanel() {
-        JPanel panel = new JPanel(new MigLayout("insets 5 20 5 20", "[fill,230]push[][]"));
+        // Using MigLayout with vertical gap (gapy) 10px between 2 rows.
+        JPanel panel = new JPanel(new MigLayout("insets 5 20 5 20, gapy 10, gapx 10", "[fill]", "[]10[]"));
+
+        // Row 1: Search, pagination controls
         JTextField txtSearch = createSearchTextField();
-        JButton cmdDetails = createButton("Details", e -> controller.showModal("details"));
-        JButton cmdCreate = createButton("Create", e -> controller.showModal("create"));
-        JButton cmdEdit = createButton("Edit", e -> controller.showModal("edit"));
-        JButton cmdDelete = createButton("Delete", e -> controller.showModal("delete"));
-        panel.add(txtSearch);
+        JButton btnSearch = new JButton("Search");
+        
+        int totalPages = controller.getTotalPages();
+
+        JSpinner spnCurrentPage = new JSpinner(new SpinnerNumberModel(1, 1, totalPages, 1));
+        spnCurrentPage.setPreferredSize(new Dimension(50, 25));
+
+        JButton btnFirst = new JButton("<<");
+        btnFirst.setPreferredSize(new Dimension(50, 25));
+
+        JTextField txtTotalPages = new JTextField("/   "+totalPages);
+        txtTotalPages.setBorder(BorderFactory.createLineBorder(Color.GRAY)); // Add border to mimic spinner
+        txtTotalPages.setHorizontalAlignment(SwingConstants.LEFT);
+        txtTotalPages.setPreferredSize(new Dimension(50, 25));
+        txtTotalPages.setEditable(false);
+        txtTotalPages.setBorder(null);
+
+        JButton btnLast = new JButton(">>");
+        btnLast.setPreferredSize(new Dimension(50, 25));
+
+        // Add row 1 components
+        panel.add(txtSearch, "growx, pushx");
+        panel.add(btnSearch);
+        panel.add(btnFirst);
+        panel.add(spnCurrentPage, "gapx 5");
+        panel.add(txtTotalPages, "gapx 5");
+        panel.add(btnLast, "wrap");
+
+        // Row 2: Checkbox and action buttons
+        JCheckBox chkShowDeleted = new JCheckBox("Show Deleted Included");
+
+        JButton cmdDetails = new JButton("Details");
+        JButton cmdCreate = new JButton("Create");
+        JButton cmdEdit = new JButton("Edit");
+        JButton cmdDelete = new JButton("Delete");
+        
+        JSpinner spnPageSize = new JSpinner(new SpinnerNumberModel(10, 5, 100, 5));
+        spnPageSize.setPreferredSize(new Dimension(50, 25));
+
+        // Add row 2 components
+        panel.add(chkShowDeleted);
         panel.add(cmdDetails);
         panel.add(cmdCreate);
         panel.add(cmdEdit);
         panel.add(cmdDelete);
+        panel.add(spnPageSize);
+
+        // Set action listeners at the end for better readability
+     // MouseListener cho chuột phải để xóa nội dung
+        txtSearch.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (SwingUtilities.isRightMouseButton(e)) { // Kiểm tra nếu là chuột phải
+                    txtSearch.setText(""); // Xóa nội dung
+                }
+            }
+        });
+
+        // DocumentListener để nhận diện sự thay đổi của nội dung
+        txtSearch.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            @Override
+            public void insertUpdate(javax.swing.event.DocumentEvent e) {
+            	checkAndHandleSearch();
+            }
+
+            @Override
+            public void removeUpdate(javax.swing.event.DocumentEvent e) {
+            	checkAndHandleSearch();
+            }
+
+            @Override
+            public void changedUpdate(javax.swing.event.DocumentEvent e) {
+                checkAndHandleSearch();
+            }
+
+            private void checkAndHandleSearch() {
+                // Nếu txtSearch trống, gọi handleSearchButton
+                if (txtSearch.getText().trim().isEmpty()) {
+                    controller.handleSearchButton(txtSearch, spnCurrentPage, txtTotalPages);
+                }
+            }
+        });
+
+
+        
+        btnSearch.addActionListener(e -> controller.handleSearchButton(txtSearch, spnCurrentPage, txtTotalPages));
+        btnFirst.addActionListener(e -> controller.moveToFirst(spnCurrentPage, txtTotalPages));
+        btnLast.addActionListener(e -> controller.moveToLast(spnCurrentPage, txtTotalPages));
+        chkShowDeleted.addActionListener(e -> controller.checkChkShowDeleted(chkShowDeleted, spnCurrentPage, txtTotalPages));
+
+        cmdDetails.addActionListener(e -> controller.showModal("details"));
+        cmdCreate.addActionListener(e -> controller.showModal("create"));
+        cmdEdit.addActionListener(e -> controller.showModal("edit"));
+        cmdDelete.addActionListener(e -> controller.showModal("delete"));
+        
+		spnCurrentPage.addChangeListener(e -> controller.moveToPage(spnCurrentPage));
+		spnPageSize.addChangeListener(e -> controller.changePageSize(spnPageSize, spnCurrentPage, txtTotalPages));
+
         panel.putClientProperty(FlatClientProperties.STYLE, "background:null;");
         return panel;
     }
 
-    /**
-     * Creates a popup menu for the table.
-     * 
-     * @return the created JPopupMenu for the table
-     */
     public JPopupMenu createPopupMenu() {
         JPopupMenu popupMenu = new JPopupMenu();
         JMenuItem detailsMenuItem = new JMenuItem("View Details");
@@ -283,9 +321,6 @@ public class MenuFormUI extends Form {
         return popupMenu;
     }
 
-    /**
-     * Copies the selected cell text to the clipboard.
-     */
     private void copyAction() {
         int selectedRow = table.getSelectedRow();
         int selectedColumn = table.getSelectedColumn();
@@ -304,42 +339,19 @@ public class MenuFormUI extends Form {
         }
     }
 
-    /**
-     * Creates a button with the specified text and action listener.
-     * 
-     * @param text the text of the button
-     * @param actionListener the action listener for the button
-     * @return the created JButton
-     */
     private JButton createButton(String text, ActionListener actionListener) {
         JButton button = new JButton(text);
         button.addActionListener(actionListener);
         return button;
     }
 
-    /**
-     * Creates a search text field with a placeholder and leading icon.
-     * 
-     * @return the created JTextField for searching
-     */
     private JTextField createSearchTextField() {
         JTextField txtSearch = new JTextField();
         txtSearch.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Search...");
         txtSearch.putClientProperty(FlatClientProperties.TEXT_FIELD_LEADING_ICON, new FlatSVGIcon("raven/modal/demo/icons/search.svg", 0.4f));
-        txtSearch.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyReleased(KeyEvent e) {
-                controller.handleSearchTextChange(txtSearch);
-            }
-        });
         return txtSearch;
     }
 
-    /**
-     * Creates a table model for the JTable.
-     * 
-     * @return the created DefaultTableModel
-     */
     private DefaultTableModel createTableModel() {
         return new DefaultTableModel(columns, 0) {
             @Override
@@ -359,47 +371,24 @@ public class MenuFormUI extends Form {
         };
     }
 
-    /**
-     * Gets the JTable used in the form.
-     * 
-     * @return the JTable
-     */
     public JTable getTable() {
         return table;
     }
 
-    /**
-     * Gets the DefaultTableModel used in the form.
-     * 
-     * @return the DefaultTableModel
-     */
     public DefaultTableModel getTableModel() {
         return tableModel;
     }
 
-    /**
-     * Gets the panel card that contains the CardTable components.
-     * 
-     * @return the JPanel containing the CardTable components
-     */
     public JPanel getPanelCard() {
         return panelCard;
     }
 
-    /**
-     * Gets the title of the selected tab.
-     * 
-     * @return the title of the selected tab
-     */
     public String getSelectedTitle() {
         return selectedTitle;
     }
 
-    /**
-     * Refreshes the table data by reloading it.
-     */
     @Override
     public void formRefresh() {
-        controller.loadData("");
+        controller.loadData();
     }
 }

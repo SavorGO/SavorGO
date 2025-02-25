@@ -30,7 +30,9 @@ public class Menu extends ModelBasic {
     private MenuStatusEnum status = MenuStatusEnum.DISCONTINUED;
     private MenuCategoryEnum category;
     private String description;
+	@JsonProperty(value = "original_price")
     private double originalPrice;
+	@JsonProperty(value = "sale_price")
     private double salePrice;
     @JsonProperty(value = "discounted_price", access = JsonProperty.Access.READ_ONLY)
     private double discountedPrice;

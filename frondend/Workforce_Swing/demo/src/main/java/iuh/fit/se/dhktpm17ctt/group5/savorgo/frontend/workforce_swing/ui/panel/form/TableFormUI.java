@@ -160,7 +160,7 @@ public class TableFormUI extends Form {
     	JPanel panel = new JPanel(new MigLayout("fillx,wrap,insets 10 10 10 10", "[fill]", "[][]10[fill,grow]"));        configureTableProperties();
         configurePanelCardStyle();
         JScrollPane scrollPane = createScrollPaneForPanelCard();
-        panel.add(createTableTitle("Table Grid Table"), "gapx 20");
+        panel.add(createTableTitle("Grid Table"), "gapx 20");
         panel.add(createHeaderActionPanel());
         panel.add(scrollPane);
         controller.loadData();

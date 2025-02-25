@@ -139,7 +139,7 @@ public class TableFormController {
 	        
 	    } catch (Exception e) {
 	    	System.err.println(e.getMessage());
-	        Toast.show(tableFormUI, Toast.Type.ERROR, "Failed to parse data lla: " + e.getMessage());
+	        Toast.show(tableFormUI, Toast.Type.ERROR, "Failed to parse data: " + e.getMessage());
 	        
 	        return new ArrayList<>();
 	    }
@@ -615,6 +615,4 @@ public class TableFormController {
 	    fetchTables();
 	    return totalPages;
 	}
-
-	
 }
