@@ -70,8 +70,33 @@ public class PromotionServiceImpl implements PromotionService {
 
     @Override
     public ApiResponse getPromotionById(long id) {
-        return null;
+        try {
+            HttpUrl url = HttpUrl.parse(API_URL + "/" + id).newBuilder().build();
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .get()
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                if (!response.isSuccessful()) {
+                    return ApiResponse.builder()
+                            .status(response.code())
+                            .message("Failed to fetch promotion")
+                            .errors(Map.of("error", "Unexpected response code: " + response.code()))
+                            .build();
+                }
+                return objectMapper.readValue(response.body().string(), ApiResponse.class);
+            }
+        } catch (IOException e) {
+            return ApiResponse.builder()
+                    .status(500)
+                    .message("Internal Server Error")
+                    .errors(Map.of("exception", e.getMessage()))
+                    .build();
+        }
     }
+
 
     @Override
     public ApiResponse searchPromotions(String search) {
