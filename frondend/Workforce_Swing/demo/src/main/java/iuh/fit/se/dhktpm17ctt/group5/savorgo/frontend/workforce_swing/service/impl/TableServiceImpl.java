@@ -8,8 +8,10 @@ import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Tabl
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.service.TableService;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.ApiResponse;
 import okhttp3.HttpUrl;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 import java.io.IOException;
 import java.util.List;
@@ -98,18 +100,32 @@ public class TableServiceImpl implements TableService {
         }
     }
 
+    @Override
+    public ApiResponse createTable(Table table) {
+        try {
+            HttpUrl url = HttpUrl.parse(API_URL).newBuilder().build();
 
-	@Override
-	public ApiResponse searchTables(String search){
-		// TODO Auto-generated method stub
-		return null;
-	}
+            String jsonBody = objectMapper.writeValueAsString(table);
+            RequestBody body = RequestBody.create(jsonBody, MediaType.get("application/json"));
+            System.out.println(jsonBody);
+            Request request = new Request.Builder()
+                    .url(url)
+                    .post(body)
+                    .build();
 
-	@Override
-	public ApiResponse createTable(Table table){
-		// TODO Auto-generated method stub
-		return null;
-	}
+            try (Response response = client.newCall(request).execute()) {
+                return objectMapper.readValue(response.body().string(), ApiResponse.class);
+            }
+
+        } catch (IOException e) {
+            return ApiResponse.builder()
+                    .status(500)
+                    .message("Internal Server Error")
+                    .errors(Map.of("exception", e.getMessage()))
+                    .build();
+        }
+    }
+
 
 	@Override
 	public ApiResponse updateTable(Table table){
