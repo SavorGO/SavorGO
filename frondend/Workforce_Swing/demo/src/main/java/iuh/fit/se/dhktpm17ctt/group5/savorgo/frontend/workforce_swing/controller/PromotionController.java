@@ -2,8 +2,15 @@ package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controlle
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.PromotionDiscountTypeEnum;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Menu;
@@ -11,32 +18,43 @@ import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Prom
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.service.PromotionService;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.service.impl.PromotionServiceImpl;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.table.ThumbnailCell;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.ApiResponse;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.BusinessException;
+import raven.modal.Toast;
 
 public class PromotionController {
 
     // Using a service implementation for handling promotion operations
-    private PromotionService servicePromotion = new PromotionServiceImpl();
+    private PromotionService promotionService = new PromotionServiceImpl();
     private MenuController menuController = new MenuController();
 
-    /**
-     * Retrieves the basic row data for a promotion.
-     * 
-     * @param promotion The promotion object to retrieve data from.
-     * @return An array containing the basic row data for the promotion.
-     * @throws IOException if there is an issue during the process.
-     */
-    public Object[] getTableRow(Promotion promotion) throws IOException {
-        Menu menu = menuController.getMenuById(promotion.getMenuId());
-        String discountValue = null;
-        String discountedValue = null;
+    public ApiResponse list(String keyword, String sortBy, String sortDirection, int page, int size, String categoryFilter) {
+        return promotionService.list(keyword, sortBy, sortDirection, page, size, categoryFilter);
+    }
+    
+    public Menu getMenuByPromotion(Promotion promotion) throws IOException {
+        ApiResponse apiResponse = menuController.getMenuById(promotion.getMenuId());
+        
+        if (apiResponse == null || apiResponse.getErrors() != null || apiResponse.getData() == null) {
+            return null;
+        }
 
-        if (promotion.getPromotionDiscountTypeEnum() == PromotionDiscountTypeEnum.PERCENT) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        Menu menu = objectMapper.convertValue(apiResponse.getData(), Menu.class);
+        
+        return menu;
+    }
+    
+    public Object[] getTableRow(Promotion promotion) throws IOException {
+    	Menu menu = getMenuByPromotion(promotion);
+    	
+    	String discountValue = null;
+
+        if (promotion.getPromotionDiscountTypeEnum() == PromotionDiscountTypeEnum.PERCENTAGE) {
             discountValue = promotion.getDiscountValue() + "%";
-            discountedValue = menu.getSalePrice() - (menu.getSalePrice() * promotion.getDiscountValue() / 100) + "";
-        } else if (promotion.getPromotionDiscountTypeEnum() == PromotionDiscountTypeEnum.FLAT) {
+        } else if (promotion.getPromotionDiscountTypeEnum() == PromotionDiscountTypeEnum.FIXED_AMOUNT) {
             discountValue = promotion.getDiscountValue() + "";
-            discountedValue = menu.getSalePrice() - promotion.getDiscountValue() + "";
         }
 
         return new Object[] {
@@ -49,41 +67,18 @@ public class PromotionController {
             menuController.getThumbnailCell(menu),
             menu.getOriginalPrice(),
             menu.getSalePrice(),
-            discountedValue,
+            menu.getDiscountedPrice(),
             promotion.getCreatedTime(),
             promotion.getModifiedTime()
         };
     }
 
-    /**
-     * Retrieves a list of all promotions.
-     * 
-     * @return List of all promotions.
-     * @throws IOException if there is an issue during the process.
-     */
-    public List<Promotion> getAllPromotions() throws IOException {
-        return servicePromotion.getAllPromotions();
+
+    public ApiResponse getPromotionById(long idHolder){
+        return promotionService.getPromotionById(idHolder);
     }
 
-    /**
-     * Retrieves a promotion by its ID.
-     * 
-     * @param idHolder The ID of the promotion to retrieve.
-     * @return The promotion with the specified ID.
-     * @throws IOException if there is an issue during the process.
-     */
-    public Promotion getPromotionById(long idHolder) throws IOException {
-        return servicePromotion.getPromotionById(idHolder);
-    }
-
-    /**
-     * Creates new promotions with the specified details.
-     * 
-     * @param promotionData A list of arrays containing the details of the promotions to create.
-     *                      Each array should contain: [menuId, discountType, discountValue, startDate, endDate, name].
-     * @throws IOException if there is an issue during the process.
-     */
-    public void createPromotions(List<Object[]> promotionData) throws IOException {
+    public ApiResponse createPromotions(List<Object[]> promotionData) {
         List<Promotion> promotions = promotionData.parallelStream().map(promo ->
             Promotion.builder()
                 .menuId((String) promo[0])
@@ -94,56 +89,28 @@ public class PromotionController {
                 .name((String) promo[6])
                 .build()
         ).collect(Collectors.toList());
-        servicePromotion.createPromotions(promotions);
+        return promotionService.createPromotions(promotions);
     }
 
-    /**
-     * Updates an existing promotion with the specified details.
-     * 
-     * @param promotionData An array containing the updated details of the promotion.
-     *                      [0] - id, [1] - name, [2] - discount type,
-     *                      [3] - discount value, [4] - start date, [5] - end date.
-     * @throws IOException       if there is an issue during the process.
-     * @throws BusinessException if the promotion does not exist.
-     */
-    public void updatePromotion(Object[] promotionData) throws IOException, BusinessException {
-        Promotion promotion = getPromotionById((long) promotionData[0]);
-        promotion.setName((String) promotionData[1]);
-        promotion.setPromotionDiscountTypeEnum((PromotionDiscountTypeEnum) promotionData[2]);
+    public ApiResponse updatePromotion(Object[] promotionData){
+        ApiResponse response = promotionService.getPromotionById((long)promotionData[0]);
+        if (response.getStatus() != 200) {
+            return response;
+        }
+        Promotion promotion = (Promotion) response.getData();
+    	promotion.setName((String) promotionData[1]);
+        promotion.setPromotionDiscountTypeEnum(PromotionDiscountTypeEnum.fromDisplayName((String) promotionData[2]));
         promotion.setDiscountValue((Double) promotionData[3]);
         promotion.setStartDate((LocalDate) promotionData[4]);
         promotion.setEndDate((LocalDate) promotionData[5]);
-        servicePromotion.updatePromotion(promotion);
+        return promotionService.updatePromotion(promotion);
     }
 
-    /**
-     * Deletes a promotion by its ID.
-     * 
-     * @param tableId The ID of the promotion to delete.
-     * @throws IOException if there is an issue during the process.
-     */
-    public void deletePromotion(long tableId) throws IOException {
-        servicePromotion.deletePromotion(tableId);
+    public ApiResponse deletePromotion(long promotionId){
+        return promotionService.deletePromotion(promotionId);
     }
 
-    /**
-     * Deletes multiple promotions by their IDs.
-     * 
-     * @param tableIds The list of IDs of the promotions to delete.
-     * @throws IOException if there is an issue during the process.
-     */
-    public void deletePromotions(List<Long> tableIds) throws IOException {
-        servicePromotion.deletePromotions(tableIds);
-    }
-
-    /**
-     * Searches for promotions based on a search term.
-     * 
-     * @param search The search term to filter promotions.
-     * @return List of promotions matching the search term.
-     * @throws IOException if there is an issue during the process.
-     */
-    public List<Promotion> searchPromotions(String search) throws IOException {
-        return servicePromotion.searchPromotions(search);
+    public ApiResponse deletePromotions(List<Long> promotionIds){
+        return promotionService.deletePromotions(promotionIds);
     }
 }

@@ -22,6 +22,8 @@ import raven.modal.Toast;
 import raven.modal.component.AdaptSimpleModalBorder;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
@@ -63,17 +65,11 @@ public class PromotionFormUI extends Form {
 	private Timer debounceTimer;
 	private String selectedTitle = "Basic table";
 
-	/**
-	 * Constructs a PromotionFormUI instance and initializes the form.
-	 */
 	public PromotionFormUI() {
 		controller = new PromotionFormController(this);
 		init();
 	}
 
-	/**
-	 * Initializes the layout and components of the promotion form.
-	 */
 	private void init() {
 		setLayout(new MigLayout("fillx,wrap", "[fill]", "[][fill,grow]"));
 		add(createInfoPanel("Promotion Management",
@@ -82,14 +78,6 @@ public class PromotionFormUI extends Form {
 		add(createTabPanel(), "gapx 7 7");
 	}
 
-	/**
-	 * Creates an information panel with a title and description.
-	 *
-	 * @param title       the title of the panel
-	 * @param description the description of the panel
-	 * @param level       the level of the title's font size
-	 * @return the created JPanel containing the title and description
-	 */
 	private JPanel createInfoPanel(String title, String description, int level) {
 		JPanel panel = new JPanel(new MigLayout("fillx,wrap", "[fill]"));
 		JLabel lbTitle = new JLabel(title);
@@ -103,42 +91,27 @@ public class PromotionFormUI extends Form {
 		return panel;
 	}
 
-	/**
-	 * Creates a tab panel for displaying different table views.
-	 *
-	 * @return the created JTabbedPane containing the table views
-	 */
 	private Component createTabPanel() {
 		JTabbedPane tabb = new JTabbedPane();
 		tabb.putClientProperty(FlatClientProperties.STYLE, "" + "tabType:card");
 		tabb.addTab("Basic table", createBorder(createBasicTable()));
 		tabb.addTab("Grid table", createBorder(createGridTable()));
 		tabb.addChangeListener(e -> {
-			controller.loadData("");
+			controller.reloadData();
 			selectedTitle = tabb.getTitleAt(tabb.getSelectedIndex());
 		});
 		return tabb;
 	}
 
-	/**
-	 * Creates a bordered panel for a given component.
-	 *
-	 * @param component the component to be added to the bordered panel
-	 * @return the created JPanel with a border around the component
-	 */
 	private Component createBorder(Component component) {
 		JPanel panel = new JPanel(new MigLayout("fill,insets 7 0 7 0", "[fill]", "[fill]"));
 		panel.add(component);
 		return panel;
 	}
 
-	/**
-	 * Creates a basic table for displaying promotions.
-	 *
-	 * @return the created JPanel containing the basic table
-	 */
 	private Component createBasicTable() {
-    	JPanel panel = new JPanel(new MigLayout("fillx,wrap,insets 10 10 10 10", "[fill]", "[][]10[fill,grow]"));        configureTableProperties();
+		JPanel panel = new JPanel(new MigLayout("fillx,wrap,insets 10 10 10 10", "[fill]", "[][]10[fill,grow]"));
+		configureTableProperties();
 		configureTableProperties();
 		JScrollPane scrollPane = new JScrollPane(table);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
@@ -146,13 +119,10 @@ public class PromotionFormUI extends Form {
 		panel.add(createTableTitle("Basic Table"), "gapx 20");
 		panel.add(createHeaderActionPanel());
 		panel.add(scrollPane);
-		controller.loadData("");
+		controller.reloadData();
 		return panel;
 	}
 
-	/**
-	 * Configures properties for the table.
-	 */
 	private void configureTableProperties() {
 		table.setModel(tableModel);
 		table.setGridColor(Color.LIGHT_GRAY);
@@ -214,11 +184,6 @@ public class PromotionFormUI extends Form {
 		});
 	}
 
-	/**
-	 * Styles the table with FlatLaf properties.
-	 *
-	 * @param scrollPane the JScrollPane containing the table
-	 */
 	private void styleTableWithFlatLaf(JScrollPane scrollPane) {
 		panelCard.putClientProperty(FlatClientProperties.STYLE, "" + "arc:20;" + "background:$Table.background;");
 		table.getTableHeader().putClientProperty(FlatClientProperties.STYLE, "" + "height:30;" + "hoverBackground:null;"
@@ -234,46 +199,28 @@ public class PromotionFormUI extends Form {
 						+ "background:$Table.background;");
 	}
 
-	/**
-	 * Creates a title label for the table.
-	 *
-	 * @param title the title text
-	 * @return the created JLabel with the title
-	 */
 	private JLabel createTableTitle(String title) {
 		JLabel titleLabel = new JLabel(title);
 		titleLabel.putClientProperty(FlatClientProperties.STYLE, "font:bold +2");
 		return titleLabel;
 	}
 
-	/**
-	 * Creates a grid table for displaying promotions.
-	 *
-	 * @return the created JPanel containing the grid table
-	 */
 	private Component createGridTable() {
-    	JPanel panel = new JPanel(new MigLayout("fillx,wrap,insets 10 10 10 10", "[fill]", "[][]10[fill,grow]"));        configureTableProperties();
+		JPanel panel = new JPanel(new MigLayout("fillx,wrap,insets 10 10 10 10", "[fill]", "[][]10[fill,grow]"));
+		configureTableProperties();
 		configurePanelCardStyle();
 		JScrollPane scrollPane = createScrollPaneForPanelCard();
-		panel.add(createTableTitle("Table Grid Table"), "gapx 20");
+		panel.add(createTableTitle("Grid Table"), "gapx 20");
 		panel.add(createHeaderActionPanel());
 		panel.add(scrollPane);
-		controller.loadData("");
+		controller.reloadData();
 		return panel;
 	}
 
-	/**
-	 * Configures the style of the panel card.
-	 */
 	private void configurePanelCardStyle() {
 		panelCard.putClientProperty(FlatClientProperties.STYLE, "border:10,10,10,10;");
 	}
 
-	/**
-	 * Creates a scroll pane for the panel card.
-	 *
-	 * @return the created JScrollPane containing the panel card
-	 */
 	private JScrollPane createScrollPaneForPanelCard() {
 		JScrollPane scrollPane = new JScrollPane(panelCard);
 		scrollPane.getHorizontalScrollBar().setUnitIncrement(10);
@@ -286,32 +233,107 @@ public class PromotionFormUI extends Form {
 		return scrollPane;
 	}
 
-	/**
-	 * Creates a header action panel with buttons and search field.
-	 *
-	 * @return the created JPanel containing action buttons and search field
-	 */
 	private Component createHeaderActionPanel() {
-		JPanel panel = new JPanel(new MigLayout("insets 5 20 5 20", "[fill,230]push[][]"));
+		// Sử dụng MigLayout với khoảng cách dọc (gapy) 10px giữa 2 hàng.
+		JPanel panel = new JPanel(new MigLayout("insets 5 20 5 20, gapy 10, gapx 10", "[fill]", "[]10[]"));
+
+		// Hàng 1: Thanh tìm kiếm và điều khiển phân trang
 		JTextField txtSearch = createSearchTextField();
-		JButton cmdDetails = createButton("Details ", e -> controller.showModal("details"));
+		JButton btnSearch = new JButton("Search");
+
+		int totalPages = controller.getTotalPages();
+
+		JSpinner spnCurrentPage = new JSpinner(new SpinnerNumberModel(1, 1, totalPages, 1));
+		spnCurrentPage.setPreferredSize(new Dimension(50, 25));
+
+		JButton btnFirst = new JButton("<<");
+		btnFirst.setPreferredSize(new Dimension(50, 25));
+
+		JTextField txtTotalPages = new JTextField("/   " + totalPages);
+		txtTotalPages.setHorizontalAlignment(SwingConstants.LEFT);
+		txtTotalPages.setPreferredSize(new Dimension(50, 25));
+		txtTotalPages.setEditable(false);
+		txtTotalPages.setBorder(null);
+
+		JButton btnLast = new JButton(">>");
+		btnLast.setPreferredSize(new Dimension(50, 25));
+
+		// Thêm các thành phần vào hàng 1
+		panel.add(txtSearch, "growx, pushx");
+		panel.add(btnSearch);
+		panel.add(btnFirst);
+		panel.add(spnCurrentPage, "gapx 5");
+		panel.add(txtTotalPages, "gapx 5");
+		panel.add(btnLast, "wrap");
+
+		// Hàng 2: Checkbox và nút hành động
+		JCheckBox chkShowDeleted = new JCheckBox("Show Deleted Included");
+
+		JButton cmdDetails = createButton("Details", e -> controller.showModal("details"));
 		JButton cmdCreate = createButton("Create", e -> controller.showModal("create"));
 		JButton cmdEdit = createButton("Edit", e -> controller.showModal("edit"));
 		JButton cmdDelete = createButton("Delete", e -> controller.showModal("delete"));
-		panel.add(txtSearch);
+
+		JSpinner spnPageSize = new JSpinner(new SpinnerNumberModel(10, 5, 100, 5));
+		spnPageSize.setPreferredSize(new Dimension(50, 25));
+
+		// Thêm các thành phần vào hàng 2
+		panel.add(chkShowDeleted);
 		panel.add(cmdDetails);
 		panel.add(cmdCreate);
 		panel.add(cmdEdit);
 		panel.add(cmdDelete);
+		panel.add(spnPageSize);
+
+		// MouseListener để xóa nội dung khi click chuột phải vào txtSearch
+		txtSearch.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				if (SwingUtilities.isRightMouseButton(e)) {
+					txtSearch.setText("");
+				}
+			}
+		});
+
+		// Lắng nghe sự kiện thay đổi nội dung tìm kiếm
+		txtSearch.getDocument().addDocumentListener(new DocumentListener() {
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+				checkAndHandleSearch();
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				checkAndHandleSearch();
+			}
+
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				checkAndHandleSearch();
+			}
+
+			private void checkAndHandleSearch() {
+				if (!txtSearch.getText().trim().isEmpty()) {
+					return;
+				}
+				controller.handleSearchButton(txtSearch, spnCurrentPage, txtTotalPages);
+			}
+		});
+
+		// Thêm các sự kiện điều khiển
+		btnSearch.addActionListener(e -> controller.handleSearchButton(txtSearch, spnCurrentPage, txtTotalPages));
+		btnFirst.addActionListener(e -> controller.moveToFirst(spnCurrentPage, txtTotalPages));
+		btnLast.addActionListener(e -> controller.moveToLast(spnCurrentPage, txtTotalPages));
+		chkShowDeleted
+				.addActionListener(e -> controller.checkChkShowDeleted(chkShowDeleted, spnCurrentPage, txtTotalPages));
+
+		spnCurrentPage.addChangeListener(e -> controller.moveToPage(spnCurrentPage));
+		spnPageSize.addChangeListener(e -> controller.changePageSize(spnPageSize, spnCurrentPage, txtTotalPages));
+
 		panel.putClientProperty(FlatClientProperties.STYLE, "background:null;");
 		return panel;
 	}
 
-	/**
-	 * Creates a popup menu for the table.
-	 *
-	 * @return the created JPopupMenu with options for the selected row
-	 */
 	public JPopupMenu createPopupMenu() {
 		JPopupMenu popupMenu = new JPopupMenu();
 		JMenuItem detailsMenuItem = new JMenuItem("View Details");
@@ -330,9 +352,6 @@ public class PromotionFormUI extends Form {
 		return popupMenu;
 	}
 
-	/**
-	 * Copies the selected cell's text to the clipboard.
-	 */
 	private void copyAction() {
 		int selectedRow = table.getSelectedRow();
 		int selectedColumn = table.getSelectedColumn();
@@ -351,43 +370,20 @@ public class PromotionFormUI extends Form {
 		}
 	}
 
-	/**
-	 * Creates a button with a specified text and action listener.
-	 *
-	 * @param text           the text to display on the button
-	 * @param actionListener the action listener to handle button clicks
-	 * @return the created JButton
-	 */
 	private JButton createButton(String text, ActionListener actionListener) {
 		JButton button = new JButton(text);
 		button.addActionListener(actionListener);
 		return button;
 	}
 
-	/**
-	 * Creates a search text field with a placeholder.
-	 *
-	 * @return the created JTextField for searching
-	 */
 	private JTextField createSearchTextField() {
 		JTextField txtSearch = new JTextField();
 		txtSearch.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Search...");
 		txtSearch.putClientProperty(FlatClientProperties.TEXT_FIELD_LEADING_ICON,
 				new FlatSVGIcon("raven/modal/demo/icons/search.svg", 0.4f));
-		txtSearch.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				controller.handleSearchTextChange(txtSearch);
-			}
-		});
 		return txtSearch;
 	}
 
-	/**
-	 * Creates a table model for the promotions table.
-	 *
-	 * @return the created DefaultTableModel
-	 */
 	private DefaultTableModel createTableModel() {
 		return new DefaultTableModel(columns, 0) {
 			@Override
@@ -407,46 +403,24 @@ public class PromotionFormUI extends Form {
 		};
 	}
 
-	/**
-	 * Gets the table component.
-	 *
-	 * @return the JTable used in the form
-	 */
 	public JTable getTable() {
 		return table;
 	}
 
-	/**
-	 * Gets the table model.
-	 *
-	 * @return the DefaultTableModel used in the form
-	 */
 	public DefaultTableModel getTableModel() {
 		return tableModel;
 	}
 
-	/**
-	 * Gets the panel card component.
-	 *
-	 * @return the JPanel used for the card layout
-	 */
 	public JPanel getPanelCard() {
 		return panelCard;
 	}
 
-	/**
-	 * Gets the selected title of the tab.
-	 *
-	 * @return the title of the currently selected tab
-	 */
 	public String getSelectedTitle() {
 		return selectedTitle;
 	}
-	/**
-	 * Refreshes the form data.
-	 */
+
 	@Override
 	public void formRefresh() {
-		controller.loadData("");
+		controller.reloadData();
 	}
 }

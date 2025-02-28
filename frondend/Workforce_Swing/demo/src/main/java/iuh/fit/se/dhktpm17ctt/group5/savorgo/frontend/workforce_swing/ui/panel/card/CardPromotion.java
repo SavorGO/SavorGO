@@ -1,6 +1,7 @@
 package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.card;
 
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.MenuController;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.PromotionController;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.PromotionDiscountTypeEnum;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums.PromotionStatusEnum;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Menu;
@@ -19,6 +20,7 @@ import java.time.format.DateTimeFormatter;
 public class CardPromotion extends CardBasic<Promotion> {
 	private Menu menu;
 	private MenuController menuController;
+	private PromotionController promotionController;
 	public CardPromotion(Promotion modelPromotion) {
 		super(modelPromotion);
 	}
@@ -27,8 +29,9 @@ public class CardPromotion extends CardBasic<Promotion> {
 	protected void init() {
 		// TODO Auto-generated method stub
 		menuController = new MenuController();
+		promotionController = new PromotionController();
 		try {
-			menu = menuController.getMenuById(model.getMenuId());
+			menu = promotionController.getMenuByPromotion(model);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 		}
@@ -96,7 +99,7 @@ public class CardPromotion extends CardBasic<Promotion> {
 
 	private void addDiscountValueLabel(JPanel body) {
 		JLabel discountValueLabel = new JLabel(
-				"Discount: " + (model.getPromotionDiscountTypeEnum() == PromotionDiscountTypeEnum.PERCENT ? model.getDiscountValue() + "%"
+				"Discount: " + (model.getPromotionDiscountTypeEnum() == PromotionDiscountTypeEnum.PERCENTAGE ? model.getDiscountValue() + "%"
 						: model.getDiscountValue()));
 		discountValueLabel.putClientProperty(FlatClientProperties.STYLE, "font:medium;");
 		body.add(discountValueLabel);
@@ -106,10 +109,10 @@ public class CardPromotion extends CardBasic<Promotion> {
 		double discountedPrice = 0;
 		double profit = menu.getSalePrice() - menu.getOriginalPrice();
 		
-		if(model.getPromotionDiscountTypeEnum() == PromotionDiscountTypeEnum.PERCENT) {
+		if(model.getPromotionDiscountTypeEnum() == PromotionDiscountTypeEnum.PERCENTAGE) {
 			double discountAmount = profit * model.getDiscountValue() / 100;
 			discountedPrice = menu.getSalePrice() - discountAmount;
-		}else if(model.getPromotionDiscountTypeEnum() == PromotionDiscountTypeEnum.FLAT) {
+		}else if(model.getPromotionDiscountTypeEnum() == PromotionDiscountTypeEnum.FIXED_AMOUNT) {
 			double discountAmount = model.getDiscountValue();
 			discountedPrice = menu.getSalePrice() - discountAmount;
 		}
