@@ -1,11 +1,14 @@
 package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.service.impl;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import okhttp3.HttpUrl;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
@@ -97,16 +100,33 @@ public class PromotionServiceImpl implements PromotionService {
         }
     }
 
-
-    @Override
-    public ApiResponse searchPromotions(String search) {
-        return null;
-    }
-
     @Override
     public ApiResponse createPromotions(List<Promotion> promotions) {
-        return null;
+        try {
+            HttpUrl url = HttpUrl.parse(API_URL).newBuilder().build();
+
+            String jsonBody = objectMapper.writeValueAsString(promotions != null ? promotions : new ArrayList<>());
+            RequestBody body = RequestBody.create(jsonBody, MediaType.get("application/json"));
+            System.out.println(jsonBody);
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .post(body)
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                return objectMapper.readValue(response.body().string(), ApiResponse.class);
+            }
+
+        } catch (IOException e) {
+            return ApiResponse.builder()
+                    .status(500)
+                    .message("Internal Server Error")
+                    .errors(Map.of("exception", e.getMessage()))
+                    .build();
+        }
     }
+
 
     @Override
     public ApiResponse updatePromotion(Promotion promotion) {

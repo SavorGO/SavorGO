@@ -7,7 +7,6 @@ import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.ApiR
 public interface PromotionService {
     ApiResponse list(String keyword, String sortBy, String sortDirection, int page, int size, String statusFilter);
     ApiResponse getPromotionById(long id);
-    ApiResponse searchPromotions(String search);
     ApiResponse createPromotions(List<Promotion> promotions);
     ApiResponse updatePromotion(Promotion promotion);
     ApiResponse deletePromotion(long id);
