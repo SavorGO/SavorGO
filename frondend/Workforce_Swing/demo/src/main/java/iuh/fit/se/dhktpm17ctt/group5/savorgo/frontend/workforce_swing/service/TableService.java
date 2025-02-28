@@ -6,7 +6,7 @@ import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.ApiR
 
 public interface TableService {
     ApiResponse list(String keyword, String sortBy, String sortDirection, int page, int size, String statusFilter);
-    ApiResponse getTableById(Long id);
+    ApiResponse getTableById(long id);
     ApiResponse searchTables(String search);
     ApiResponse createTable(Table table);
     ApiResponse updateTable(Table table);
