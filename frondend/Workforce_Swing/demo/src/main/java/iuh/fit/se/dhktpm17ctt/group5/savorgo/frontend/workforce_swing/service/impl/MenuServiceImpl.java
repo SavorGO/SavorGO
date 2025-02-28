@@ -129,11 +129,40 @@ public class MenuServiceImpl implements MenuService {
     }
 
 
-	@Override
-	public ApiResponse updateMenu(Menu menu) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public ApiResponse updateMenu(Menu menu) {
+        try {
+            HttpUrl url = HttpUrl.parse(API_URL + "/" + menu.getId()).newBuilder().build();
+
+            String jsonBody = objectMapper.writeValueAsString(menu);
+            RequestBody body = RequestBody.create(jsonBody, MediaType.get("application/json"));
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .put(body)
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                if (!response.isSuccessful()) {
+                    return ApiResponse.builder()
+                            .status(response.code())
+                            .message("Failed to update menu")
+                            .errors(Map.of("error", "Unexpected response code: " + response.code()))
+                            .build();
+                }
+                return objectMapper.readValue(response.body().string(), ApiResponse.class);
+            }
+
+        } catch (IOException e) {
+            return ApiResponse.builder()
+                    .status(500)
+                    .message("Internal Server Error")
+                    .errors(Map.of("exception", e.getMessage()))
+                    .build();
+        }
+    }
+
+    
 	@Override
 	public ApiResponse removeMenu(String id) {
 		// TODO Auto-generated method stub
