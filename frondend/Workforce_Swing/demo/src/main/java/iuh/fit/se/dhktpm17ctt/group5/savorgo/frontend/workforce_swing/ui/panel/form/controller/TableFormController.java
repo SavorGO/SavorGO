@@ -293,10 +293,16 @@ public class TableFormController {
 	}
 
 	private void handleCreateTable(CreateTableInputForm inputFormCreateTable) {
-		tableController.createTable(inputFormCreateTable.getData());
-		Toast.show(tableFormUI, Toast.Type.SUCCESS, "Create table successfully");
-		loadData();
+	    ApiResponse response = tableController.createTable(inputFormCreateTable.getData());
+	    if (response.getStatus() == 201 && response.getData() != null) {
+	        Toast.show(tableFormUI, Toast.Type.SUCCESS, "Table created successfully");
+	        reloadData();
+	    } else {
+	        String errorMessage = response.getErrors() != null ? response.getErrors().toString() : "Unknown error";
+	        Toast.show(tableFormUI, Toast.Type.ERROR, "Failed to create table: " + errorMessage);
+	    }
 	}
+
 
 	private void showEditModal() {
 		long[] idHolder = { -1L };

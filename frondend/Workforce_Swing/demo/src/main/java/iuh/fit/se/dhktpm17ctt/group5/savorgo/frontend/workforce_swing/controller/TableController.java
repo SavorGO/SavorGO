@@ -48,10 +48,6 @@ public class TableController {
         return tableService.removeTables(ids);
     }
 
-    public ApiResponse searchTables(String search) {
-        return tableService.searchTables(search);
-    }
-
     public Object[] toTableRow(Table table) {
         return new Object[]{
             false,

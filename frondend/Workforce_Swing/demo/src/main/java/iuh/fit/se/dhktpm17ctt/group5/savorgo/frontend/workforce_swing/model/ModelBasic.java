@@ -3,6 +3,7 @@ package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model;
 import java.io.IOException;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
@@ -10,28 +11,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-
-/**
- * Abstract class ModelBasic represents a basic model in the application.
- * It contains common properties for all models, including creation and modification timestamps.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class ModelBasic {
-    
-    /** 
-     * The time when the object was created.
-     * This field is mapped to the JSON property "created_time".
-     */
     @JsonProperty("created_time")
     private LocalDateTime createdTime;
-
-    /** 
-     * The time when the object was last modified.
-     * This field is mapped to the JSON property "modified_time".
-     */
     @JsonProperty("modified_time")
     private LocalDateTime modifiedTime;
 }
