@@ -1,10 +1,15 @@
 package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.info;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.formdev.flatlaf.FlatClientProperties;
 
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.TableController;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Table;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.PopupFormBasic;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.ApiResponse;
+import raven.modal.Toast;
+
 import javax.swing.*;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
@@ -15,9 +20,24 @@ public class TableInfoForm extends PopupFormBasic<Table> {
 
     public TableInfoForm(long id) throws IOException {
         controllerTable = new TableController();
-        modelTable = controllerTable.getTableById(id);
+        ApiResponse apiResponse = controllerTable.getTableById(id);
+
+        if (apiResponse.getErrors() != null || apiResponse.getData() == null) {
+            String errorMessage = apiResponse.getErrors() != null ? apiResponse.getErrors().toString() : "Unknown error";
+            Toast.show(this, Toast.Type.ERROR, "Failed to fetch table: " + errorMessage);
+            return;
+        }
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+
+        // Parse `data` từ API response thành đối tượng `Table`
+        String jsonData = objectMapper.writeValueAsString(apiResponse.getData());
+        modelTable = objectMapper.readValue(jsonData, Table.class);
+
         init();
     }
+
 
     @Override
     protected void init() {

@@ -111,7 +111,7 @@ public class FormManager {
         frame.getContentPane().removeAll();
         frame.getContentPane().add(getMainForm());
 
-        Drawer.setSelectedItemClass(PromotionFormUI.class);
+        Drawer.setSelectedItemClass(TableFormUI.class);
         frame.repaint();
         frame.revalidate();
     }
