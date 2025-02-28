@@ -91,19 +91,20 @@ public class PromotionController {
         return promotionService.createPromotions(promotions);
     }
 
-    public ApiResponse updatePromotion(Object[] promotionData){
-        ApiResponse response = promotionService.getPromotionById((long)promotionData[0]);
-        if (response.getStatus() != 200) {
-            return response;
-        }
-        Promotion promotion = (Promotion) response.getData();
-    	promotion.setName((String) promotionData[1]);
-        promotion.setPromotionDiscountTypeEnum(PromotionDiscountTypeEnum.fromDisplayName((String) promotionData[2]));
-        promotion.setDiscountValue((Double) promotionData[3]);
-        promotion.setStartDate((LocalDate) promotionData[4]);
-        promotion.setEndDate((LocalDate) promotionData[5]);
+    public ApiResponse updatePromotion(Object[] promotionData) {
+        Promotion promotion = Promotion.builder()
+            .id((long) promotionData[0])
+            .name((String) promotionData[1])
+            .promotionDiscountTypeEnum((PromotionDiscountTypeEnum)promotionData[2])
+            .discountValue((Double) promotionData[3])
+            .startDate((LocalDate) promotionData[4])
+            .endDate((LocalDate) promotionData[5])
+            .menuId((String) promotionData[6])
+            .build();
+        
         return promotionService.updatePromotion(promotion);
     }
+
 
     public ApiResponse deletePromotion(long promotionId){
         return promotionService.deletePromotion(promotionId);

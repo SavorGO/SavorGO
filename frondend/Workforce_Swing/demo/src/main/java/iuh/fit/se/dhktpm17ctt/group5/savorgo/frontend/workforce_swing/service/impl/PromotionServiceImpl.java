@@ -130,8 +130,39 @@ public class PromotionServiceImpl implements PromotionService {
 
     @Override
     public ApiResponse updatePromotion(Promotion promotion) {
-        return null;
+        try {
+            HttpUrl url = HttpUrl.parse(API_URL + "/" + promotion.getId()).newBuilder().build();
+
+            String jsonBody = objectMapper.writeValueAsString(promotion);
+            System.out.println(jsonBody);
+            
+            RequestBody body = RequestBody.create(jsonBody, MediaType.get("application/json"));
+            
+            Request request = new Request.Builder()
+                    .url(url)
+                    .put(body)
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                if (!response.isSuccessful()) {
+                    return ApiResponse.builder()
+                            .status(response.code())
+                            .message("Failed to update promotion")
+                            .errors(Map.of("error", "Unexpected response code: " + response.code()))
+                            .build();
+                }
+                return objectMapper.readValue(response.body().string(), ApiResponse.class);
+            }
+
+        } catch (IOException e) {
+            return ApiResponse.builder()
+                    .status(500)
+                    .message("Internal Server Error")
+                    .errors(Map.of("exception", e.getMessage()))
+                    .build();
+        }
     }
+
 
     @Override
     public ApiResponse deletePromotion(long id) {
