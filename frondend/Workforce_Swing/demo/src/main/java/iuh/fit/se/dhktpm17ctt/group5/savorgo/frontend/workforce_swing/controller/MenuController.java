@@ -48,37 +48,36 @@ public class MenuController {
                 .build();
         return menuService.createMenu(menu);
     }
-
+    
     public ApiResponse updateMenu(Object[] menuData) {
-        ApiResponse response = menuService.getMenuById(menuData[0].toString());
-        if (response.getStatus() != 200) {
-            return response;
-        }
+        String publicId = null;
 
-        Menu menu = (Menu) response.getData();
-        menu.setName(menuData[1].toString());
-        menu.setStatus((MenuStatusEnum) menuData[2]);
-        menu.setCategory((MenuCategoryEnum) menuData[3]);
-        menu.setOriginalPrice((double) menuData[4]);
-        menu.setSalePrice((double) menuData[5]);
-        menu.setSizes((List) menuData[6]);
-        menu.setOptions((List) menuData[7]);
-
+        // Nếu có hình ảnh mới, tải lên ảnh và lấy publicId
         if (menuData[8] != null) {
-            ExecutorService executor = Executors.newSingleThreadExecutor();
-            Future<String> future = executor.submit(() -> MyImageIcon.updateImageToCloud("Menus", new File(menuData[8].toString())));
             try {
-                menu.setPublicId(future.get());
-            } catch (InterruptedException | ExecutionException e) {
+                publicId = MyImageIcon.updateImageToCloud("Menus", new File(menuData[8].toString()));
+            } catch (Exception e) {
                 e.printStackTrace();
-            } finally {
-                executor.shutdown();
             }
         }
-        
-        menu.setDescription(menuData[9].toString());
+
+        // Tạo đối tượng Menu mới với dữ liệu cập nhật
+        Menu menu = Menu.builder()
+                .id(menuData[0].toString())
+                .name(menuData[1].toString())
+                .status((MenuStatusEnum) menuData[2])
+                .category((MenuCategoryEnum) menuData[3])
+                .originalPrice((double) menuData[4])
+                .salePrice((double) menuData[5])
+                .sizes((List) menuData[6])
+                .options((List) menuData[7])
+                .publicId(publicId)
+                .description(menuData[9].toString())
+                .build();
+
         return menuService.updateMenu(menu);
     }
+
 
     public ApiResponse deleteMenu(String id) {
         return menuService.removeMenu(id);

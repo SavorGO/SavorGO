@@ -23,6 +23,7 @@ import raven.modal.component.AdaptSimpleModalBorder;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -304,7 +305,25 @@ public class MenuFormController {
 				return;
 		}
 		Menu menu = null;
-		menu = null;// menuController.getMenuById(idHolder[0]);
+		ApiResponse apiResponse = menuController.getMenuById(idHolder[0]);
+
+        if (apiResponse.getErrors() != null || apiResponse.getData() == null) {
+            String errorMessage = apiResponse.getErrors() != null ? apiResponse.getErrors().toString() : "Unknown error";
+            Toast.show(menuFormUI, Toast.Type.ERROR, "Failed to fetch menu: " + errorMessage);
+            return;
+        }
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+
+        // Parse `data` từ API response thành đối tượng `Menu`
+        String jsonData;
+		try {
+			jsonData = objectMapper.writeValueAsString(apiResponse.getData());
+	        menu = objectMapper.readValue(jsonData, Menu.class);
+		} catch (IOException e) {
+			Toast.show(menuFormUI, Toast.Type.ERROR, "Failed to parse data: " + e.getMessage());
+		}
 		UpdateMenuInputForm inputFormUpdateMenu = createInputFormUpdateMenu(menu);
 		ModalDialog.showModal(menuFormUI, new AdaptSimpleModalBorder(inputFormUpdateMenu, "Update menu",
 				AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
