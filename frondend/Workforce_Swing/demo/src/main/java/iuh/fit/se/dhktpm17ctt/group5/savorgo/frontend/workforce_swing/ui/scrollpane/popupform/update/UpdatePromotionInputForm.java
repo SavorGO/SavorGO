@@ -32,7 +32,7 @@ public class UpdatePromotionInputForm extends PopupFormBasic<Promotion> implemen
 	private JTextField txtThumbnail = new JTextField();
 	private CustomFormattedTextField txtOriginalPrice = new CustomFormattedTextField();
 	private CustomFormattedTextField txtSalePrice = new CustomFormattedTextField();
-	private JComboBox<String> cmbDiscountType = new JComboBox<>(new String[] { "Percent", "Flat" });
+	private JComboBox<String> cmbDiscountType = new JComboBox<>(new String[] { "Percentage", "Fixed Amount" });
 	private CustomFormattedTextField txtDiscountValue = new CustomFormattedTextField();
 	private CustomFormattedTextField txtDiscountedPrice = new CustomFormattedTextField();
 
@@ -209,7 +209,7 @@ public class UpdatePromotionInputForm extends PopupFormBasic<Promotion> implemen
 			String discountType = cmbDiscountType.getSelectedItem().toString();
 
 			// Trường hợp chiết khấu theo phần trăm (PERCENT)
-			if (discountType.equals(PromotionDiscountTypeEnum.PERCENT.getDisplayName())) {
+			if (discountType.equals(PromotionDiscountTypeEnum.PERCENTAGE.getDisplayName())) {
 				if (discountValue > 100) {
 					lblDiscountValueError.setText("Discount value cannot be greater than 100%.");
 					lblDiscountValueError.setForeground(Color.red);
@@ -230,8 +230,7 @@ public class UpdatePromotionInputForm extends PopupFormBasic<Promotion> implemen
 				}
 			}
 
-			// Trường hợp chiết khấu theo số tiền cụ thể (FLAT)
-			else if (discountType.equals(PromotionDiscountTypeEnum.FLAT.getDisplayName())) {
+			else if (discountType.equals(PromotionDiscountTypeEnum.FIXED_AMOUNT.getDisplayName())) {
 				double maxDiscount = txtSalePrice.getDoubleValue() - txtOriginalPrice.getDoubleValue();
 				isDiscountValueValid = true;
 				if (discountValue > maxDiscount) {
@@ -293,6 +292,6 @@ public class UpdatePromotionInputForm extends PopupFormBasic<Promotion> implemen
 	}
 
 	public Object[] getData() {
-		return new Object[] {(long) modelPromotion.getId(), txtName.getText(), PromotionDiscountTypeEnum.fromDisplayName(cmbDiscountType.getSelectedItem().toString()), txtDiscountValue.getDoubleValue(), startDatePicker.getSelectedDate(), endDatePicker.getSelectedDate() };
+		return new Object[] {(long) modelPromotion.getId(), txtName.getText(), PromotionDiscountTypeEnum.fromDisplayName(cmbDiscountType.getSelectedItem().toString()), txtDiscountValue.getDoubleValue(), startDatePicker.getSelectedDate(), endDatePicker.getSelectedDate(), modelPromotion.getMenuId() };
 	}
 }

@@ -14,6 +14,7 @@ import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.simple.
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.ApiResponse;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.BusinessException;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.DefaultComponent;
+import raven.modal.Drawer;
 import raven.modal.ModalDialog;
 import raven.modal.Toast;
 import raven.modal.component.AdaptSimpleModalBorder;
@@ -254,13 +255,21 @@ public class PromotionFormController {
     }
 
     private void handleCreatePromotion(CreatePromotionInputForm inputFormCreatePromotion) {
-        promotionController.createPromotions(inputFormCreatePromotion.getData());
-		Toast.show(promotionFormUI, Toast.Type.SUCCESS, "Create promotion successfully");
-		reloadData(); // Reload table data after successful creation
-    }
+	    ApiResponse response = promotionController.createPromotions(inputFormCreatePromotion.getData());
+
+	    if (response.getStatus() == 201 && response.getData() != null) {
+	    	Toast.show(promotionFormUI, Toast.Type.SUCCESS, "Promotion created successfully");
+	    	reloadData();
+	    } else {
+	        String errorMessage = response.getErrors() != null ? response.getErrors().toString() : "Unknown error";
+	        Toast.show(promotionFormUI, Toast.Type.ERROR, "Failed to create promotion: " + errorMessage);
+	    }
+	}
+
 
     private void showEditModal() {
         long[] idHolder = { -1L };
+        
         if (promotionFormUI.getSelectedTitle().equals("Basic table")) {
             if (!validateSingleRowSelection("edit"))
                 return;
@@ -269,24 +278,41 @@ public class PromotionFormController {
             if (!validateSingleCardSelection(idHolder, "edit"))
                 return;
         }
-        Promotion promotion = null;
-        promotion = null;// promotionController.getPromotionById(idHolder[0]);
+        
+        ApiResponse apiResponse = promotionController.getPromotionById(idHolder[0]);
 
-        Menu menu = null;
-        menu = null; controllerMenu.getMenuById(promotion.getMenuId());
+        if (apiResponse.getErrors() != null || apiResponse.getData() == null) {
+            String errorMessage = apiResponse.getErrors() != null ? apiResponse.getErrors().toString() : "Unknown error";
+            Toast.show(promotionFormUI, Toast.Type.ERROR, "Failed to fetch promotion: " + errorMessage);
+            return;
+        }
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+
+        Promotion promotion;
+        try {
+            String jsonData = objectMapper.writeValueAsString(apiResponse.getData());
+            promotion = objectMapper.readValue(jsonData, Promotion.class);
+        } catch (IOException e) {
+            Toast.show(promotionFormUI, Toast.Type.ERROR, "Failed to parse data: " + e.getMessage());
+            return;
+        }
 
         if (promotion.getStatus().equals(PromotionStatusEnum.DELETED)) {
             Toast.show(promotionFormUI, Toast.Type.ERROR, "Cannot edit deleted promotion");
             return;
         }
 
-        UpdatePromotionInputForm inputFormUpdatePromotion = createInputFormUpdatePromotion(promotion.getId());
-        ModalDialog.showModal(promotionFormUI, new AdaptSimpleModalBorder(inputFormUpdatePromotion, "Update promotion", AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
-            if (action == AdaptSimpleModalBorder.YES_OPTION) {
-                handleUpdatePromotion(inputFormUpdatePromotion);
-            }
-        }), DefaultComponent.getInputForm());
+        UpdatePromotionInputForm updateFormUpdatePromotion = createInputFormUpdatePromotion(promotion.getId());
+        ModalDialog.showModal(promotionFormUI, new AdaptSimpleModalBorder(updateFormUpdatePromotion, "Update promotion",
+                AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
+                    if (action == AdaptSimpleModalBorder.YES_OPTION) {
+                        handleUpdatePromotion(updateFormUpdatePromotion);
+                    }
+                }), DefaultComponent.getInputForm());
     }
+
 
     private boolean validateSingleRowSelection(String action) {
         if (promotionFormUI.getTable().getSelectedRowCount() > 1) {
@@ -315,10 +341,43 @@ public class PromotionFormController {
     }
 
     private UpdatePromotionInputForm createInputFormUpdatePromotion(long promotionId) {
+        ApiResponse promotionResponse = promotionController.getPromotionById(promotionId);
+
+        if (promotionResponse.getErrors() != null || promotionResponse.getData() == null) {
+            String errorMessage = promotionResponse.getErrors() != null ? promotionResponse.getErrors().toString() : "Unknown error";
+            Toast.show(promotionFormUI, Toast.Type.ERROR, "Failed to fetch promotion: " + errorMessage);
+            return null;
+        }
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+
         Promotion promotion;
+        try {
+            String jsonData = objectMapper.writeValueAsString(promotionResponse.getData());
+            promotion = objectMapper.readValue(jsonData, Promotion.class);
+        } catch (IOException e) {
+            Toast.show(promotionFormUI, Toast.Type.ERROR, "Failed to parse promotion data: " + e.getMessage());
+            return null;
+        }
+
+        ApiResponse menuResponse = controllerMenu.getMenuById(promotion.getMenuId());
+
+        if (menuResponse.getErrors() != null || menuResponse.getData() == null) {
+            String errorMessage = menuResponse.getErrors() != null ? menuResponse.getErrors().toString() : "Unknown error";
+            Toast.show(promotionFormUI, Toast.Type.ERROR, "Failed to fetch menu: " + errorMessage);
+            return null;
+        }
+
         Menu menu;
-        promotion = null;// promotionController.getPromotionById(promotionId);
-        menu = null;//controllerMenu.getMenuById(promotion.getMenuId());
+        try {
+            String jsonData = objectMapper.writeValueAsString(menuResponse.getData());
+            menu = objectMapper.readValue(jsonData, Menu.class);
+        } catch (IOException e) {
+            Toast.show(promotionFormUI, Toast.Type.ERROR, "Failed to parse menu data: " + e.getMessage());
+            return null;
+        }
+
         return new UpdatePromotionInputForm(promotion, menu);
     }
 
@@ -331,11 +390,17 @@ public class PromotionFormController {
         }
     }
 
-    private void handleUpdatePromotion(UpdatePromotionInputForm inputFormUpdatePromotion){
+    private void handleUpdatePromotion(UpdatePromotionInputForm inputFormUpdatePromotion) {
         Object[] promotionData = inputFormUpdatePromotion.getData();
-        promotionController.updatePromotion(promotionData);
-		Toast.show(promotionFormUI, Toast.Type.SUCCESS, "Update promotion successfully");
-		promotionFormUI.formRefresh();
+        ApiResponse response = promotionController.updatePromotion(promotionData);
+
+        if (response.getStatus() == 200 && response.getData() != null) {
+            Toast.show(promotionFormUI, Toast.Type.SUCCESS, "Promotion updated successfully");
+            promotionFormUI.formRefresh();
+        } else {
+            String errorMessage = response.getErrors() != null ? response.getErrors().toString() : "Unknown error";
+            Toast.show(promotionFormUI, Toast.Type.ERROR, "Failed to update promotion: " + errorMessage);
+        }
     }
 
     private void showDeleteModal() {

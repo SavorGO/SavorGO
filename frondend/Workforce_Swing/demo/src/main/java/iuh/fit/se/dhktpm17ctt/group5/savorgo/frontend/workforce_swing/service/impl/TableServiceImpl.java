@@ -134,7 +134,6 @@ public class TableServiceImpl implements TableService {
 
             String jsonBody = objectMapper.writeValueAsString(table);
             RequestBody body = RequestBody.create(jsonBody, MediaType.get("application/json"));
-            System.out.println(jsonBody);
             
             Request request = new Request.Builder()
                     .url(url)
