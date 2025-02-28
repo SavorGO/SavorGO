@@ -1,6 +1,9 @@
 server:
   port: 8888
 
+app:
+  api-prefix: /savorgo/api
+
 spring:
   application:
     name: API-Gateway
@@ -10,4 +13,8 @@ spring:
         - id: user-service
           uri: http://localhost:8080/api/users
           predicates:
-            - Path=/api/users/**
+            - Path=${app.api-prefix}/**
+          filters:
+            - StripPrefix=2
+logging:
+  include-application-name:
