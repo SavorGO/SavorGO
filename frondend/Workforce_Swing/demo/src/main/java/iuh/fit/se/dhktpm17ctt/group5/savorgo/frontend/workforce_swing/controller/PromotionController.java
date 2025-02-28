@@ -32,6 +32,10 @@ public class PromotionController {
         return promotionService.list(keyword, sortBy, sortDirection, page, size, categoryFilter);
     }
     
+    public ApiResponse getPromotionById(long idHolder){
+        return promotionService.getPromotionById(idHolder);
+    }
+    
     public Menu getMenuByPromotion(Promotion promotion) throws IOException {
         ApiResponse apiResponse = menuController.getMenuById(promotion.getMenuId());
         
@@ -71,11 +75,6 @@ public class PromotionController {
             promotion.getCreatedTime(),
             promotion.getModifiedTime()
         };
-    }
-
-
-    public ApiResponse getPromotionById(long idHolder){
-        return promotionService.getPromotionById(idHolder);
     }
 
     public ApiResponse createPromotions(List<Object[]> promotionData) {
