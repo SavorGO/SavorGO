@@ -127,11 +127,33 @@ public class TableServiceImpl implements TableService {
     }
 
 
-	@Override
-	public ApiResponse updateTable(Table table){
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public ApiResponse updateTable(Table table) {
+        try {
+            HttpUrl url = HttpUrl.parse(API_URL + "/" + table.getId()).newBuilder().build();
+
+            String jsonBody = objectMapper.writeValueAsString(table);
+            RequestBody body = RequestBody.create(jsonBody, MediaType.get("application/json"));
+            System.out.println(jsonBody);
+            
+            Request request = new Request.Builder()
+                    .url(url)
+                    .put(body)
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                return objectMapper.readValue(response.body().string(), ApiResponse.class);
+            }
+
+        } catch (IOException e) {
+            return ApiResponse.builder()
+                    .status(500)
+                    .message("Internal Server Error")
+                    .errors(Map.of("exception", e.getMessage()))
+                    .build();
+        }
+    }
+
 
 	@Override
 	public ApiResponse removeTable(long id){

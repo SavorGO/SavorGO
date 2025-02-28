@@ -15,12 +15,12 @@ import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 
 public class TableInfoForm extends PopupFormBasic<Table> {
-    private TableController controllerTable;
+    private TableController tableController;
     private Table modelTable;
 
     public TableInfoForm(long id) throws IOException {
-        controllerTable = new TableController();
-        ApiResponse apiResponse = controllerTable.getTableById(id);
+        tableController = new TableController();
+        ApiResponse apiResponse = tableController.getTableById(id);
 
         if (apiResponse.getErrors() != null || apiResponse.getData() == null) {
             String errorMessage = apiResponse.getErrors() != null ? apiResponse.getErrors().toString() : "Unknown error";

@@ -359,11 +359,18 @@ public class MenuFormController {
 	}
 
 	private void handleUpdateMenu(UpdateMenuInputForm inputFormUpdateMenu) {
-		Object[] menuData = inputFormUpdateMenu.getData();
-		menuController.updateMenu(menuData);
-		Toast.show(menuFormUI, Toast.Type.SUCCESS, "Update menu successfully");
-		reloadData();
+	    Object[] menuData = inputFormUpdateMenu.getData();
+	    ApiResponse response = menuController.updateMenu(menuData);
+
+	    if (response.getStatus() == 200 && response.getData() != null) {
+	        Toast.show(menuFormUI, Toast.Type.SUCCESS, "Menu updated successfully");
+	        reloadData();
+	    } else {
+	        String errorMessage = response.getErrors() != null ? response.getErrors().toString() : "Unknown error";
+	        Toast.show(menuFormUI, Toast.Type.ERROR, "Failed to update menu: " + errorMessage);
+	    }
 	}
+
 
 	private void showDeleteModal() {
 		List<String> findSelectedMenuIds = getSelectedMenuIdsForDeletion();

@@ -27,16 +27,7 @@ public class TableController {
     }
 
     public ApiResponse updateTable(Object[] tableData) {
-        ApiResponse response = tableService.getTableById((long) tableData[0]);
-        if (response.getStatus() != 200) {
-            return response;
-        }
-
-        Table table = (Table) response.getData();
-        table.setName(tableData[1].toString());
-        table.setStatus(TableStatusEnum.fromDisplayName(tableData[2].toString()));
-        table.setReservedTime((LocalDateTime) tableData[3]);
-
+        Table table = Table.builder().id((long)tableData[0]).name(tableData[1].toString()).status((TableStatusEnum)tableData[2]).reservedTime((LocalDateTime) tableData[3]).build();
         return tableService.updateTable(table);
     }
 
