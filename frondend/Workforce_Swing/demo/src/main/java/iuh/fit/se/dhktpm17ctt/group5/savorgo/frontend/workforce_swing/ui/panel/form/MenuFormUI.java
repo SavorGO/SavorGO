@@ -312,14 +312,18 @@ public class MenuFormUI extends Form {
 		JMenuItem editMenuItem = new JMenuItem("Edit");
 		JMenuItem deleteMenuItem = new JMenuItem((controller.findSelectedMenuIds().size() == 1
 				|| (controller.findSelectedMenuIds(panelCard).size() == 1)) ? "Delete" : "Delete many");
+		JMenuItem createPromotionItem = new JMenuItem((controller.findSelectedMenuIds().size() == 1
+				|| (controller.findSelectedMenuIds(panelCard).size() == 1)) ? "Create promotion" : "Create many promotions");
 		popupMenu.add(detailsMenuItem);
 		popupMenu.add(copyMenuItem);
 		popupMenu.add(editMenuItem);
 		popupMenu.add(deleteMenuItem);
+		popupMenu.add(createPromotionItem);
 		detailsMenuItem.addActionListener(e -> controller.showModal("details"));
 		copyMenuItem.addActionListener(e -> copyAction());
 		editMenuItem.addActionListener(e -> controller.showModal("edit"));
 		deleteMenuItem.addActionListener(e -> controller.showModal("delete"));
+		createPromotionItem.addActionListener(e -> controller.showModal("create-promotion"));
 		return popupMenu;
 	}
 

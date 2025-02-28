@@ -269,9 +269,17 @@ public class MenuFormController {
 	}
 
 	private void handleCreatePromotion(CreatePromotionInputForm inputFormCreatePromotion) {
-		promotionController.createPromotions(inputFormCreatePromotion.getData());
-		Drawer.setSelectedItemClass(PromotionFormUI.class);
+	    ApiResponse response = promotionController.createPromotions(inputFormCreatePromotion.getData());
+
+	    if (response.getStatus() == 201 && response.getData() != null) {
+	    	Toast.show(menuFormUI, Toast.Type.SUCCESS, "Promotion created successfully");
+	    	Drawer.setSelectedItemClass(PromotionFormUI.class);
+	    } else {
+	        String errorMessage = response.getErrors() != null ? response.getErrors().toString() : "Unknown error";
+	        Toast.show(menuFormUI, Toast.Type.ERROR, "Failed to create promotion: " + errorMessage);
+	    }
 	}
+
 
 	private void handleCreateMenu(CreateMenuInputForm inputFormCreateMenu) {
 	    ApiResponse response = menuController.createMenu(inputFormCreateMenu.getData());

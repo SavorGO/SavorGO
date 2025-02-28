@@ -1,5 +1,8 @@
 package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.create;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.formdev.flatlaf.FlatClientProperties;
 
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.MenuController;
@@ -9,6 +12,7 @@ import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Menu
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.card.CardMenu;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.InputPopupForm;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.PopupFormBasic;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.ApiResponse;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.BusinessException;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.CustomFormattedTextField;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.DefaultComponent;
@@ -39,6 +43,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -157,43 +162,61 @@ public class CreatePromotionInputForm extends PopupFormBasic<List<Object[]>> imp
             addPromotionRow(menuId);
         }
 
-        // Validate input
         validateInput();
     }
 
-    /**
-     * Retrieves the available menus from the controller.
-     *
-     * @return List of available Menu objects.
-     */
-    private List<Menu> getAvailableMenus() {
-        // This method returns only "AVAILABLE" menus, sorted by name, using parallel streams
-        try {
-            List<Menu> allMenus = menuController.getAllMenus(); // Fetch all menus synchronously
-            
-            // Use parallelStream to filter and sort menus with status "AVAILABLE"
-            return allMenus.parallelStream()
-                .filter(menu -> MenuStatusEnum.AVAILABLE.equals(menu.getStatus()))  // Filter menus with status "AVAILABLE"
-                .sorted(Comparator.comparing(Menu::getName))  // Sort by name
-                .collect(Collectors.toList());  // Collect results into a list
-        } catch (IOException e) {
-            Toast.show(CreatePromotionInputForm.this, Toast.Type.ERROR, "Failed to get menus: " + e.getMessage());
-            return new ArrayList<>();  // Return empty list if there is an error
-        }
-    }
+    	private List<Menu> getAvailableMenus() {
+    		try {
+    			ApiResponse apiResponse = menuController.list("", "name", "asc", 1, Integer.MAX_VALUE,
+    					"available");
+
+    			if (apiResponse.getErrors() != null) {
+    				String errorMessage = apiResponse.getErrors().toString();
+    				Toast.show(this, Toast.Type.ERROR, apiResponse.getMessage() + ":\n" + errorMessage);
+    				return new ArrayList<>();
+    			}
+
+    			ObjectMapper objectMapper = new ObjectMapper();
+    			objectMapper.registerModule(new JavaTimeModule());
+
+    			// Ép kiểu data về Map<String, Object>
+    			Map<String, Object> responseData = (Map<String, Object>) apiResponse.getData();
+
+    			// Lấy danh sách data từ response
+    			Object rawData = responseData.get("data");
+
+    			// Chuyển rawData thành JSON string rồi parse thành List<Menu>
+    			String jsonData = objectMapper.writeValueAsString(rawData);
+    			return objectMapper.readValue(jsonData, new TypeReference<List<Menu>>() {
+    			});
+
+    		} catch (Exception e) {
+    			System.err.println(e.getMessage());
+    			Toast.show(this, Toast.Type.ERROR, "Failed to parse data: " + e.getMessage());
+    			return new ArrayList<>();
+    		}
+    	}
 
     private static int index = 1;
     private MenuController menuController = new MenuController();
 
-    /**
-     * Adds a new promotion row for the specified menu ID.
-     *
-     * @param menuId The ID of the menu to be added to the promotion row.
-     */
     private void addPromotionRow(String menuId) {
         Menu menu;
         try {
-            menu = menuController.getMenuById(menuId);
+            ApiResponse apiResponse = menuController.getMenuById(menuId);
+
+            if (apiResponse.getErrors() != null || apiResponse.getData() == null) {
+                String errorMessage = apiResponse.getErrors() != null ? apiResponse.getErrors().toString() : "Unknown error";
+                Toast.show(CreatePromotionInputForm.this, Toast.Type.ERROR, "Failed to fetch menu: " + errorMessage);
+                return;
+            }
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
+
+            // Parse `data` từ API response thành đối tượng `Menu`
+            String jsonData = objectMapper.writeValueAsString(apiResponse.getData());
+            menu = objectMapper.readValue(jsonData, Menu.class);
         } catch (IOException e) {
             Toast.show(CreatePromotionInputForm.this, Toast.Type.ERROR, "Failed to get menu: " + e.getMessage());
             return;
@@ -231,6 +254,7 @@ public class CreatePromotionInputForm extends PopupFormBasic<List<Object[]>> imp
         listContainer.repaint();
         validateInput();
     }
+
 
     /**
      * Creates a popup menu for the promotion row.
@@ -414,7 +438,7 @@ public class CreatePromotionInputForm extends PopupFormBasic<List<Object[]>> imp
             txtDiscountedPrice.setEditable(false);
 
             double discountedPrice = 0;
-            if (cmbDiscountType.getSelectedItem().equals(PromotionDiscountTypeEnum.PERCENT)) {
+            if (cmbDiscountType.getSelectedItem().equals(PromotionDiscountTypeEnum.PERCENTAGE)) {
                 discountedPrice = menu.getSalePrice()
                         - (menu.getSalePrice() * txtDiscountValue.getDoubleValue() / 100);
 
@@ -481,7 +505,8 @@ public class CreatePromotionInputForm extends PopupFormBasic<List<Object[]>> imp
             
             // Validate the discountValueValid
             boolean isDiscountValueValid = false;
-            double discountValue = txtDiscountValue.getDoubleValue();
+            double discountValue = Math.ceil(txtDiscountValue.getDoubleValue());
+            txtDiscountValue.setValue(discountValue);
             txtDiscountedPrice.setValue(0);
             if (discountValue <= 0) {
                 lblDiscountValueError.setText("Discount value cannot be less than or equal to 0.");
@@ -491,7 +516,7 @@ public class CreatePromotionInputForm extends PopupFormBasic<List<Object[]>> imp
                 String discountType = cmbDiscountType.getSelectedItem().toString();
 
                 // Case for percentage discount (PERCENT)
-                if (discountType.equals(PromotionDiscountTypeEnum.PERCENT.getDisplayName())) {
+                if (discountType.equals(PromotionDiscountTypeEnum.PERCENTAGE.getDisplayName())) {
                     if (discountValue > 100) {
                         lblDiscountValueError.setText("Discount value cannot be greater than 100%.");
                         lblDiscountValueError.setForeground(Color.red);
@@ -515,7 +540,7 @@ public class CreatePromotionInputForm extends PopupFormBasic<List<Object[]>> imp
                 }
 
                 // Case for flat discount (FLAT)
-                else if (discountType.equals(PromotionDiscountTypeEnum.FLAT.getDisplayName())) {
+                else if (discountType.equals(PromotionDiscountTypeEnum.FIXED_AMOUNT.getDisplayName())) {
                     double maxDiscount = txtSalePrice.getDoubleValue() - txtOriginalPrice.getDoubleValue();
                     isDiscountValueValid = true;
                     if (discountValue > maxDiscount) {

@@ -207,7 +207,6 @@ public class TableFormUI extends Form {
         JButton btnLast = new JButton(">>");
         btnLast.setPreferredSize(new Dimension(50, 25));
 
-        // Add row 1 components
         panel.add(txtSearch, "growx, pushx");
         panel.add(btnSearch);
         panel.add(btnFirst);
@@ -215,7 +214,6 @@ public class TableFormUI extends Form {
         panel.add(txtTotalPages, "gapx 5");
         panel.add(btnLast, "wrap");
 
-        // Row 2: Checkbox and action buttons
         JCheckBox chkShowDeleted = new JCheckBox("Show Deleted Included");
 
         JButton cmdDetails = new JButton("Details");
@@ -226,7 +224,6 @@ public class TableFormUI extends Form {
         JSpinner spnPageSize = new JSpinner(new SpinnerNumberModel(10, 5, 100, 5));
         spnPageSize.setPreferredSize(new Dimension(50, 25));
 
-        // Add row 2 components
         panel.add(chkShowDeleted);
         panel.add(cmdDetails);
         panel.add(cmdCreate);
@@ -234,8 +231,6 @@ public class TableFormUI extends Form {
         panel.add(cmdDelete);
         panel.add(spnPageSize);
 
-        // Set action listeners at the end for better readability
-     // MouseListener cho chuột phải để xóa nội dung
         txtSearch.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
@@ -245,7 +240,6 @@ public class TableFormUI extends Form {
             }
         });
 
-        // DocumentListener để nhận diện sự thay đổi của nội dung
         txtSearch.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             @Override
             public void insertUpdate(javax.swing.event.DocumentEvent e) {
@@ -263,7 +257,6 @@ public class TableFormUI extends Form {
             }
 
             private void checkAndHandleSearch() {
-                // Nếu txtSearch trống, gọi handleSearchButton
                 if (txtSearch.getText().trim().isEmpty()) {
                     controller.handleSearchButton(txtSearch, spnCurrentPage, txtTotalPages);
                 }
