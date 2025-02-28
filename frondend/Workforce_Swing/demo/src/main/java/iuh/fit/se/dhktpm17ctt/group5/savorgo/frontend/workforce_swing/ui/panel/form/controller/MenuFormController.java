@@ -274,11 +274,16 @@ public class MenuFormController {
 	}
 
 	private void handleCreateMenu(CreateMenuInputForm inputFormCreateMenu) {
-		Object[] menuData = inputFormCreateMenu.getData();
-		menuController.createMenu(menuData);
-		Toast.show(menuFormUI, Toast.Type.SUCCESS, "Create menu successfully");
-		reloadData();
+	    ApiResponse response = menuController.createMenu(inputFormCreateMenu.getData());
+	    if (response.getStatus() == 201 && response.getData() != null) {
+	        Toast.show(menuFormUI, Toast.Type.SUCCESS, "Menu created successfully");
+	        reloadData();
+	    } else {
+	        String errorMessage = response.getErrors() != null ? response.getErrors().toString() : "Unknown error";
+	        Toast.show(menuFormUI, Toast.Type.ERROR, "Failed to create menu: " + errorMessage);
+	    }
 	}
+
 
 	private void showEditModal() {
 		String[] idHolder = { "" };

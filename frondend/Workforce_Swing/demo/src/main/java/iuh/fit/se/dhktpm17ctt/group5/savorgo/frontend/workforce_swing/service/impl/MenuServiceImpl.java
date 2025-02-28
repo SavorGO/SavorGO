@@ -6,8 +6,10 @@ import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.util.HttpU
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.util.JsonUtil;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.ApiResponse;
 import okhttp3.HttpUrl;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 import java.io.IOException;
@@ -99,17 +101,34 @@ public class MenuServiceImpl implements MenuService {
                     .build();
         }
     }
+    
+    @Override
+    public ApiResponse createMenu(Menu menu) {
+        try {
+            HttpUrl url = HttpUrl.parse(API_URL).newBuilder().build();
 
-	@Override
-	public ApiResponse searchMenus(String search) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	@Override
-	public ApiResponse createMenu(Menu menu) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+            String jsonBody = objectMapper.writeValueAsString(menu);
+            RequestBody body = RequestBody.create(jsonBody, MediaType.get("application/json"));
+            System.out.println(jsonBody);
+            Request request = new Request.Builder()
+                    .url(url)
+                    .post(body)
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                return objectMapper.readValue(response.body().string(), ApiResponse.class);
+            }
+
+        } catch (IOException e) {
+            return ApiResponse.builder()
+                    .status(500)
+                    .message("Internal Server Error")
+                    .errors(Map.of("exception", e.getMessage()))
+                    .build();
+        }
+    }
+
+
 	@Override
 	public ApiResponse updateMenu(Menu menu) {
 		// TODO Auto-generated method stub
