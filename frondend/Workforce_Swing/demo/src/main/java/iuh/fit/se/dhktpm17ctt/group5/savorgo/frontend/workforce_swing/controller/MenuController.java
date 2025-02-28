@@ -88,10 +88,6 @@ public class MenuController {
         return menuService.removeMenus(ids);
     }
 
-    public ApiResponse searchMenus(String search) {
-        return menuService.searchMenus(search);
-    }
-
     public Object[] toTableRow(Menu menu) {
         return new Object[]{
             false,
