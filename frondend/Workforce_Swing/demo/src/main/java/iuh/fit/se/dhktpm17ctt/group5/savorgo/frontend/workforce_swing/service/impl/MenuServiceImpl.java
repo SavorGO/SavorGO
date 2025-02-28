@@ -71,11 +71,35 @@ public class MenuServiceImpl implements MenuService {
         }
     }
 
-	@Override
-	public ApiResponse getMenuById(String id) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public ApiResponse getMenuById(String id) {
+        try {
+            HttpUrl url = HttpUrl.parse(API_URL + "/" + id).newBuilder().build();
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .get()
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                if (!response.isSuccessful()) {
+                    return ApiResponse.builder()
+                            .status(response.code())
+                            .message("Failed to fetch menu")
+                            .errors(Map.of("error", "Unexpected response code: " + response.code()))
+                            .build();
+                }
+                return objectMapper.readValue(response.body().string(), ApiResponse.class);
+            }
+        } catch (IOException e) {
+            return ApiResponse.builder()
+                    .status(500)
+                    .message("Internal Server Error")
+                    .errors(Map.of("exception", e.getMessage()))
+                    .build();
+        }
+    }
+
 	@Override
 	public ApiResponse searchMenus(String search) {
 		// TODO Auto-generated method stub

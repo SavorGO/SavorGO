@@ -101,13 +101,13 @@ public class MenuController {
             (menu.getCategory() == null) ? "OTHER" : menu.getCategory().getDisplayName(),
             menu.getOriginalPrice(),
             menu.getSalePrice(),
-            menu.getReservedTime(),
+            menu.getDiscountedPrice(),
+            menu.getCreatedTime(),
             menu.getModifiedTime()
         };
     }
     public MyImageIcon getImage(Menu menu, int height, int width, int round) throws IOException {
         if (height == 0 || width == 0) {
-            // Set default values if height or width is zero
             height = 50;
             width = 50;
             round = 0;
@@ -115,8 +115,15 @@ public class MenuController {
         try {
             return MyImageIcon.getMyImageIconFromCloudinaryImageTag("SavorGO/Menus/" + menu.getPublicId(), height, width, round);
         } catch (URISyntaxException e) {
-            // Return a default image if an error occurs
             return new MyImageIcon("src/main/resources/images/system/no_image_found.png", 55, 55, 10);
         }
+    }
+    public ThumbnailCell getThumbnailCell(Menu menu) {
+        return new ThumbnailCell(
+            menu.getPublicId() == null ? null : "SavorGO/Menus/" + menu.getPublicId(),
+            menu.getName(),
+            menu.getStatus().getDisplayName(),
+            null
+        );
     }
 }

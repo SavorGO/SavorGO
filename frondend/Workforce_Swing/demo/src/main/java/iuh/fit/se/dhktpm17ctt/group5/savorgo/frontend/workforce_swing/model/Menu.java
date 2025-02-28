@@ -34,7 +34,7 @@ public class Menu extends ModelBasic {
     private double originalPrice;
 	@JsonProperty(value = "sale_price")
     private double salePrice;
-    @JsonProperty(value = "discounted_price", access = JsonProperty.Access.READ_ONLY)
+    @JsonProperty(value = "discounted_price")
     private double discountedPrice;
     @JsonProperty("public_id")
     private String publicId;

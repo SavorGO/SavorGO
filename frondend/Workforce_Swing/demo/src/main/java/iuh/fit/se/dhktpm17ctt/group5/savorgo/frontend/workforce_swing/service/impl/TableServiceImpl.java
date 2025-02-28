@@ -17,6 +17,7 @@ import java.util.Map;
 
 public class TableServiceImpl implements TableService {
     private static final String API_URL = "http://localhost:8000/api/tables";
+
     private final OkHttpClient client = new OkHttpClient();
     private final ObjectMapper objectMapper;
 
