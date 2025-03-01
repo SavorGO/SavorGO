@@ -255,16 +255,19 @@ public class PromotionFormController {
     }
 
     private void handleCreatePromotion(CreatePromotionInputForm inputFormCreatePromotion) {
-	    ApiResponse response = promotionController.createPromotions(inputFormCreatePromotion.getData());
+        ApiResponse response = promotionController.createPromotions(inputFormCreatePromotion.getData());
 
-	    if (response.getStatus() == 201 && response.getData() != null) {
-	    	Toast.show(promotionFormUI, Toast.Type.SUCCESS, "Promotion created successfully");
-	    	reloadData();
-	    } else {
-	        String errorMessage = response.getErrors() != null ? response.getErrors().toString() : "Unknown error";
-	        Toast.show(promotionFormUI, Toast.Type.ERROR, "Failed to create promotion: " + errorMessage);
-	    }
-	}
+        if (response != null && response.getStatus() == 201 && response.getData() != null) {
+            Toast.show(promotionFormUI, Toast.Type.SUCCESS, "Promotion created successfully");
+            reloadData();
+        } else {
+            String errorMessage = "Failed to create promotion: " + (response != null ? response.getMessage() : "Unknown error");
+            if (response != null && response.getErrors() != null && !response.getErrors().isEmpty()) {
+                errorMessage += "\nDetails: " + response.getErrors().toString();
+            }
+            Toast.show(promotionFormUI, Toast.Type.ERROR, errorMessage);
+        }
+    }
 
 
     private void showEditModal() {
@@ -394,14 +397,19 @@ public class PromotionFormController {
         Object[] promotionData = inputFormUpdatePromotion.getData();
         ApiResponse response = promotionController.updatePromotion(promotionData);
 
-        if (response.getStatus() == 200 && response.getData() != null) {
+        if (response != null && response.getStatus() == 200 && response.getData() != null) {
             Toast.show(promotionFormUI, Toast.Type.SUCCESS, "Promotion updated successfully");
-            promotionFormUI.formRefresh();
+            reloadData();
         } else {
-            String errorMessage = response.getErrors() != null ? response.getErrors().toString() : "Unknown error";
-            Toast.show(promotionFormUI, Toast.Type.ERROR, "Failed to update promotion: " + errorMessage);
+            String errorMessage = "Failed to update promotion: " + (response != null ? response.getMessage() : "Unknown error");
+            if (response != null && response.getErrors() != null && !response.getErrors().isEmpty()) {
+            	System.err.println( response.getErrors().toString());
+                errorMessage += "\nDetails: " + response.getErrors().toString();
+            }
+            Toast.show(promotionFormUI, Toast.Type.ERROR, errorMessage);
         }
     }
+
 
     private void showDeleteModal() {
         List<Long> findSelectedPromotionIds = findSelectedPromotionIdsForDeletion();
@@ -446,16 +454,40 @@ public class PromotionFormController {
     }
 
     private void deletePromotion(Long promotionId) {
-        promotionController.deletePromotion(promotionId);
-		promotionFormUI.formRefresh();
-		Toast.show(promotionFormUI, Toast.Type.SUCCESS, "Delete promotion successfully");
+        ApiResponse response = promotionController.deletePromotion(promotionId);
+
+        if (response != null && response.getStatus() == 200) {
+            promotionFormUI.formRefresh();
+            Toast.show(promotionFormUI, Toast.Type.SUCCESS, "Promotion deleted successfully");
+        } else {
+            String errorMessage = "Failed to delete promotion: " + (response != null ? response.getMessage() : "Unknown error");
+            if (response != null && response.getErrors() != null && !response.getErrors().isEmpty()) {
+                errorMessage += "\nDetails: " + response.getErrors().toString();
+            }
+            Toast.show(promotionFormUI, Toast.Type.ERROR, errorMessage);
+        }
     }
 
-    private void deletePromotions(List<Long> findSelectedPromotionIds) {
-        promotionController.deletePromotions(findSelectedPromotionIds);
-		promotionFormUI.formRefresh();
-		Toast.show(promotionFormUI, Toast.Type.SUCCESS, "Delete promotions successfully");
+    private void deletePromotions(List<Long> selectedPromotionIds) {
+        if (selectedPromotionIds == null || selectedPromotionIds.isEmpty()) {
+            Toast.show(promotionFormUI, Toast.Type.WARNING, "No promotions selected for deletion");
+            return;
+        }
+
+        ApiResponse response = promotionController.deletePromotions(selectedPromotionIds);
+
+        if (response != null && response.getStatus() == 200) {
+            promotionFormUI.formRefresh();
+            Toast.show(promotionFormUI, Toast.Type.SUCCESS, "Promotions deleted successfully");
+        } else {
+            String errorMessage = "Failed to delete promotions: " + (response != null ? response.getMessage() : "Unknown error");
+            if (response != null && response.getErrors() != null && !response.getErrors().isEmpty()) {
+                errorMessage += "\nDetails: " + response.getErrors().toString();
+            }
+            Toast.show(promotionFormUI, Toast.Type.ERROR, errorMessage);
+        }
     }
+
 
     private static final int CHUNK_SIZE = 4;
 

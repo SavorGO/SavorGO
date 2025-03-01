@@ -1,5 +1,14 @@
 package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.service.impl;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import okhttp3.HttpUrl;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -7,28 +16,17 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Table;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.service.TableService;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.ApiResponse;
-import okhttp3.HttpUrl;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 
 public class TableServiceImpl implements TableService {
     private static final String API_URL = "http://localhost:8000/api/tables";
-
     private final OkHttpClient client = new OkHttpClient();
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public TableServiceImpl() {
-        objectMapper = new ObjectMapper();
         objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
         objectMapper.registerModule(new JavaTimeModule());
     }
-
+    
     @Override
     public ApiResponse list(
             String keyword,
@@ -53,13 +51,6 @@ public class TableServiceImpl implements TableService {
                     .build();
 
             try (Response response = client.newCall(request).execute()) {
-                if (!response.isSuccessful()) {
-                    return ApiResponse.builder()
-                            .status(response.code())
-                            .message("Failed to fetch tables")
-                            .errors(Map.of("error", "Unexpected response code: " + response.code()))
-                            .build();
-                }
                 return objectMapper.readValue(response.body().string(), ApiResponse.class);
             }
         } catch (IOException e) {
@@ -82,13 +73,6 @@ public class TableServiceImpl implements TableService {
                     .build();
 
             try (Response response = client.newCall(request).execute()) {
-                if (!response.isSuccessful()) {
-                    return ApiResponse.builder()
-                            .status(response.code())
-                            .message("Failed to fetch table")
-                            .errors(Map.of("error", "Unexpected response code: " + response.code()))
-                            .build();
-                }
                 return objectMapper.readValue(response.body().string(), ApiResponse.class);
             }
         } catch (IOException e) {
@@ -107,7 +91,7 @@ public class TableServiceImpl implements TableService {
 
             String jsonBody = objectMapper.writeValueAsString(table);
             RequestBody body = RequestBody.create(jsonBody, MediaType.get("application/json"));
-            System.out.println(jsonBody);
+
             Request request = new Request.Builder()
                     .url(url)
                     .post(body)
@@ -116,7 +100,6 @@ public class TableServiceImpl implements TableService {
             try (Response response = client.newCall(request).execute()) {
                 return objectMapper.readValue(response.body().string(), ApiResponse.class);
             }
-
         } catch (IOException e) {
             return ApiResponse.builder()
                     .status(500)
@@ -125,7 +108,6 @@ public class TableServiceImpl implements TableService {
                     .build();
         }
     }
-
 
     @Override
     public ApiResponse updateTable(Table table) {
@@ -143,7 +125,6 @@ public class TableServiceImpl implements TableService {
             try (Response response = client.newCall(request).execute()) {
                 return objectMapper.readValue(response.body().string(), ApiResponse.class);
             }
-
         } catch (IOException e) {
             return ApiResponse.builder()
                     .status(500)
@@ -152,7 +133,6 @@ public class TableServiceImpl implements TableService {
                     .build();
         }
     }
-
 
     @Override
     public ApiResponse deleteTable(long id) {
@@ -165,13 +145,6 @@ public class TableServiceImpl implements TableService {
                     .build();
 
             try (Response response = client.newCall(request).execute()) {
-                if (!response.isSuccessful()) {
-                    return ApiResponse.builder()
-                            .status(response.code())
-                            .message("Failed to delete table")
-                            .errors(Map.of("error", "Unexpected response code: " + response.code()))
-                            .build();
-                }
                 return objectMapper.readValue(response.body().string(), ApiResponse.class);
             }
         } catch (IOException e) {
@@ -186,36 +159,15 @@ public class TableServiceImpl implements TableService {
     @Override
     public ApiResponse deleteTables(List<Long> ids) {
         try {
-            if (ids == null || ids.isEmpty()) {
-                return ApiResponse.builder()
-                        .status(400)
-                        .message("Table IDs list cannot be empty")
-                        .errors(Map.of("error", "No table IDs provided"))
-                        .build();
-            }
-
-            String idParams = ids.stream()
-                    .map(String::valueOf)
-                    .reduce((id1, id2) -> id1 + "," + id2)
-                    .orElse("");
-
-            HttpUrl url = HttpUrl.parse(API_URL).newBuilder()
-                    .addQueryParameter("ids", idParams)
-                    .build();
-
+            String jsonBody = objectMapper.writeValueAsString(Map.of("ids", ids));
+            RequestBody body = RequestBody.create(jsonBody, MediaType.get("application/json"));
+            
             Request request = new Request.Builder()
-                    .url(url)
-                    .delete()
+                    .url(API_URL + "/bulk-delete")
+                    .delete(body)
                     .build();
-
+            
             try (Response response = client.newCall(request).execute()) {
-                if (!response.isSuccessful()) {
-                    return ApiResponse.builder()
-                            .status(response.code())
-                            .message("Failed to delete tables")
-                            .errors(Map.of("error", "Unexpected response code: " + response.code()))
-                            .build();
-                }
                 return objectMapper.readValue(response.body().string(), ApiResponse.class);
             }
         } catch (IOException e) {
@@ -227,3 +179,4 @@ public class TableServiceImpl implements TableService {
         }
     }
 }
+
