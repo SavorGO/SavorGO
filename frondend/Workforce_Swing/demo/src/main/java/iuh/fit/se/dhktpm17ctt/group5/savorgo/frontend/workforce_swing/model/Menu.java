@@ -30,8 +30,12 @@ public class Menu extends ModelBasic {
     private MenuStatusEnum status = MenuStatusEnum.DISCONTINUED;
     private MenuCategoryEnum category;
     private String description;
+	@JsonProperty(value = "original_price")
     private double originalPrice;
+	@JsonProperty(value = "sale_price")
     private double salePrice;
+    @JsonProperty(value = "discounted_price")
+    private double discountedPrice;
     @JsonProperty("public_id")
     private String publicId;
     private List<MenuSize> sizes;  // Danh sách các kích thước
