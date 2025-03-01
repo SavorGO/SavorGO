@@ -627,25 +627,16 @@ public class TableFormController {
 	    moveToFirst(spnCurrentPage, txtTotalPages);
 	}
 
-	/**
-	 * Cập nhật các controls phân trang
-	 */
 	private void updatePaginationControls(JSpinner spnCurrentPage, JTextField txtTotalPages) {
 	    int totalPages = getTotalPages();
 	    ((SpinnerNumberModel) spnCurrentPage.getModel()).setMaximum(totalPages);
 	    txtTotalPages.setText("/   " + totalPages);
 	}
 
-	/**
-	 * Load lại dữ liệu và fetchTables
-	 */
 	public void reloadData() {
 	    loadData();
 	}
 
-	/**
-	 * Lấy tổng số trang, không thay đổi tham số truyền vào
-	 */
 	public int getTotalPages() {
 	    fetchTables();
 	    return totalPages;

@@ -162,15 +162,73 @@ public class MenuServiceImpl implements MenuService {
         }
     }
 
-    
-	@Override
-	public ApiResponse removeMenu(String id) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	@Override
-	public ApiResponse removeMenus(List<String> ids) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public ApiResponse deleteMenu(String id) {
+        try {
+            HttpUrl url = HttpUrl.parse(API_URL + "/" + id).newBuilder().build();
+            System.out.println(url);
+            Request request = new Request.Builder()
+                    .url(url)
+                    .delete()
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                if (!response.isSuccessful()) {
+                    return ApiResponse.builder()
+                            .status(response.code())
+                            .message("Failed to delete menu")
+                            .errors(Map.of("error", "Unexpected response code: " + response.code()))
+                            .build();
+                }
+                return objectMapper.readValue(response.body().string(), ApiResponse.class);
+            }
+        } catch (IOException e) {
+            return ApiResponse.builder()
+                    .status(500)
+                    .message("Internal Server Error")
+                    .errors(Map.of("exception", e.getMessage()))
+                    .build();
+        }
+    }
+
+    @Override
+    public ApiResponse deleteMenus(List<String> ids) {
+        try {
+            if (ids == null || ids.isEmpty()) {
+                return ApiResponse.builder()
+                        .status(400)
+                        .message("Menu IDs list cannot be empty")
+                        .errors(Map.of("error", "No menu IDs provided"))
+                        .build();
+            }
+
+            String idParams = String.join(",", ids); // Nối các ID thành chuỗi duy nhất
+
+            HttpUrl url = HttpUrl.parse(API_URL).newBuilder()
+                    .addQueryParameter("ids", idParams)
+                    .build();
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .delete()
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                if (!response.isSuccessful()) {
+                    return ApiResponse.builder()
+                            .status(response.code())
+                            .message("Failed to delete menus")
+                            .errors(Map.of("error", "Unexpected response code: " + response.code()))
+                            .build();
+                }
+                return objectMapper.readValue(response.body().string(), ApiResponse.class);
+            }
+        } catch (IOException e) {
+            return ApiResponse.builder()
+                    .status(500)
+                    .message("Internal Server Error")
+                    .errors(Map.of("exception", e.getMessage()))
+                    .build();
+        }
+    }
 }

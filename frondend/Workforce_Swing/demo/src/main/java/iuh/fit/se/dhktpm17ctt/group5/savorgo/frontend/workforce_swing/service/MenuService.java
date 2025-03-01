@@ -9,6 +9,6 @@ public interface MenuService {
     ApiResponse getMenuById(String id);
     ApiResponse createMenu(Menu menu);
     ApiResponse updateMenu(Menu menu);
-    ApiResponse removeMenu(String id);
-    ApiResponse removeMenus(List<String> ids);
+    ApiResponse deleteMenu(String id);
+    ApiResponse deleteMenus(List<String> ids);
 }

@@ -80,11 +80,11 @@ public class MenuController {
 
 
     public ApiResponse deleteMenu(String id) {
-        return menuService.removeMenu(id);
+        return menuService.deleteMenu(id);
     }
 
     public ApiResponse deleteMenus(List<String> ids) {
-        return menuService.removeMenus(ids);
+        return menuService.deleteMenus(ids);
     }
 
     public Object[] toTableRow(Menu menu) {

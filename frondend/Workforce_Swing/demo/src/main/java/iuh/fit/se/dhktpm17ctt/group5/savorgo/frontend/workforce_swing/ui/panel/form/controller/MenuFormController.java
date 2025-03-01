@@ -281,18 +281,20 @@ public class MenuFormController {
 	    }
 	}
 
-
 	private void handleCreateMenu(CreateMenuInputForm inputFormCreateMenu) {
 	    ApiResponse response = menuController.createMenu(inputFormCreateMenu.getData());
+
 	    if (response.getStatus() == 201 && response.getData() != null) {
 	        Toast.show(menuFormUI, Toast.Type.SUCCESS, "Menu created successfully");
 	        reloadData();
 	    } else {
-	        String errorMessage = response.getErrors() != null ? response.getErrors().toString() : "Unknown error";
-	        Toast.show(menuFormUI, Toast.Type.ERROR, "Failed to create menu: " + errorMessage);
+	        String errorMessage = "Failed to create menu: " + response.getMessage();
+	        if (response.getErrors() != null && !response.getErrors().isEmpty()) {
+	            errorMessage += "\nDetails: " + response.getErrors().toString();
+	        }
+	        Toast.show(menuFormUI, Toast.Type.ERROR, errorMessage);
 	    }
 	}
-
 
 	private void showEditModal() {
 		String[] idHolder = { "" };
@@ -316,7 +318,6 @@ public class MenuFormController {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
 
-        // Parse `data` từ API response thành đối tượng `Menu`
         String jsonData;
 		try {
 			jsonData = objectMapper.writeValueAsString(apiResponse.getData());
@@ -376,7 +377,7 @@ public class MenuFormController {
 			return null;
 		}
 	}
-
+	
 	private void handleUpdateMenu(UpdateMenuInputForm inputFormUpdateMenu) {
 	    Object[] menuData = inputFormUpdateMenu.getData();
 	    ApiResponse response = menuController.updateMenu(menuData);
@@ -385,11 +386,13 @@ public class MenuFormController {
 	        Toast.show(menuFormUI, Toast.Type.SUCCESS, "Menu updated successfully");
 	        reloadData();
 	    } else {
-	        String errorMessage = response.getErrors() != null ? response.getErrors().toString() : "Unknown error";
-	        Toast.show(menuFormUI, Toast.Type.ERROR, "Failed to update menu: " + errorMessage);
+	        String errorMessage = "Failed to update menu: " + response.getMessage();
+	        if (response.getErrors() != null && !response.getErrors().isEmpty()) {
+	            errorMessage += "\nDetails: " + response.getErrors().toString();
+	        }
+	        Toast.show(menuFormUI, Toast.Type.ERROR, errorMessage);
 	    }
 	}
-
 
 	private void showDeleteModal() {
 		List<String> findSelectedMenuIds = getSelectedMenuIdsForDeletion();
@@ -443,15 +446,33 @@ public class MenuFormController {
 	}
 
 	private void deleteMenu(String menuId) {
-		menuController.deleteMenu(menuId);
-		reloadData();
-		Toast.show(menuFormUI, Toast.Type.SUCCESS, "Delete menu successfully");
+	    ApiResponse response = menuController.deleteMenu(menuId);
+
+	    if (response.getStatus() == 200 && response.getData() != null) {
+	        reloadData();
+	        Toast.show(menuFormUI, Toast.Type.SUCCESS, "Delete menu successfully");
+	    } else {
+	        String errorMessage = "Failed to delete menu: " + response.getMessage();
+	        if (response.getErrors() != null && !response.getErrors().isEmpty()) {
+	            errorMessage += "\nDetails: " + response.getErrors().toString();
+	        }
+	        Toast.show(menuFormUI, Toast.Type.ERROR, errorMessage);
+	    }
 	}
 
-	private void deleteMenus(List<String> findSelectedMenuIds) {
-		menuController.deleteMenus(findSelectedMenuIds);
-		reloadData(); // Reload menu data after successful deletion
-		Toast.show(menuFormUI, Toast.Type.SUCCESS, "Delete menus successfully");
+	private void deleteMenus(List<String> menuIds) {
+	    ApiResponse response = menuController.deleteMenus(menuIds);
+
+	    if (response.getStatus() == 200 && response.getData() != null) {
+	        reloadData();
+	        Toast.show(menuFormUI, Toast.Type.SUCCESS, "Delete menus successfully");
+	    } else {
+	        String errorMessage = "Failed to delete menus: " + response.getMessage();
+	        if (response.getErrors() != null && !response.getErrors().isEmpty()) {
+	            errorMessage += "\nDetails: " + response.getErrors().toString();
+	        }
+	        Toast.show(menuFormUI, Toast.Type.ERROR, errorMessage);
+	    }
 	}
 
 	private static final int CHUNK_SIZE = 4;

@@ -418,7 +418,7 @@ class MenuViewSet(ViewSet):
             )
 
         # Update status to "DELETED" instead of actual deletion
-        menu.status = "Deleted"
+        menu.status = "DELETED"
         menu.modified_time = timezone.now()
         menu.save()
         logger.info(f"Menu with ID {pk} has been marked as DELETED.")
@@ -498,7 +498,7 @@ class MenuViewSet(ViewSet):
             if menu.status == "Deleted":
                 logger.info(f"Menu with ID {menu.id} is already deleted.")
             else:
-                menu.status = "Deleted"
+                menu.status = "DELETED"
                 menu.modified_time = timezone.now()
                 menu.save()
                 logger.info(f"Menu with ID {menu.id} has been marked as DELETED.")
