@@ -11,6 +11,7 @@ from bson import ObjectId, errors
 import logging
 from rest_framework import serializers
 from .models import Menu, Size, Option, Status
+from promotion_management.models import Promotion
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.exceptions import NotFound
 from django.utils import timezone
@@ -398,34 +399,40 @@ class MenuViewSet(ViewSet):
             },
         )
     def delete_by_id(self, request, pk=None):
-        """Soft delete menu by updating status to 'DELETED', with logging and API documentation"""
+        """Soft delete menu by updating status to 'DELETED'."""
         try:
             menu = Menu.objects.get(pk=pk)
         except Menu.DoesNotExist:
             logger.warning(f"Menu with ID {pk} not found.")
             raise NotFound("Menu not found.")
+
         serializer = MenuSerializer(menu)
+
         if menu.status == "DELETED":
-                    logger.info(f"Menu with ID {pk} is already deleted.")
-                    return Response(
-                        {
-                            "status": status.HTTP_200_OK,
-                            "message": "Menu is already deleted.",
-                            "errors": None,
-                            "data": serializer.data,
-                        },
-                        status=status.HTTP_200_OK,
+            logger.info(f"Menu with ID {pk} is already deleted.")
+            return Response(
+                {
+                    "status": status.HTTP_200_OK,
+                    "message": "Menu is already deleted.",
+                    "errors": None,
+                    "data": serializer.data,
+                },
+                status=status.HTTP_200_OK,
             )
 
-        # Update status to "DELETED" instead of actual deletion
+        # Cập nhật trạng thái menu
         menu.status = "DELETED"
         menu.modified_time = timezone.now()
         menu.save()
+
+        # GỌI mark_promotions_as_ended()
+        self.mark_promotions_as_ended(menu.id)
+
         logger.info(f"Menu with ID {pk} has been marked as DELETED.")
         return Response(
             {
                 "status": status.HTTP_200_OK,
-                "message": "Menu is already deleted.",
+                "message": "Menu has been deleted.",
                 "errors": None,
                 "data": serializer.data,
             },
@@ -501,10 +508,27 @@ class MenuViewSet(ViewSet):
                 menu.status = "DELETED"
                 menu.modified_time = timezone.now()
                 menu.save()
+
+                # GỌI mark_promotions_as_ended()
+                self.mark_promotions_as_ended(menu.id)
+
                 logger.info(f"Menu with ID {menu.id} has been marked as DELETED.")
+
 
         response_data["data"] = MenuSerializer(existing_menus, many=True).data
 
         if not_found_ids:
             response_data["errors"] = {id_: "Menu not found." for id_ in not_found_ids}
         return Response(response_data, status=status.HTTP_200_OK)
+    def mark_promotions_as_ended(self, menu_id):
+        """Cập nhật tất cả khuyến mãi của menu thành ENDED nếu menu không còn AVAILABLE, trừ những cái đã bị DELETED."""
+        promotions = Promotion.objects.filter(
+            menu_id=menu_id,
+            status="AVAILABLE"
+        )
+
+        logger.info(f"Found {promotions.count()} promotions to update for menu_id={menu_id}")
+
+        if promotions.exists():
+            promotions.update(status="ENDED")
+            logger.info(f"Updated promotions for menu_id={menu_id} to ENDED")

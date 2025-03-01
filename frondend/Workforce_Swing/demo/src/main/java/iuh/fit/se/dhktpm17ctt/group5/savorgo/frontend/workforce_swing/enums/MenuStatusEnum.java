@@ -11,25 +11,26 @@ public enum MenuStatusEnum {
 
     private final String displayName;
 
-    // Constructor
+   
     MenuStatusEnum(String displayName) {
         this.displayName = displayName;
     }
-    @JsonValue
-    // Getter cho tên hiển thị (nếu cần)
+    
     public String getDisplayName() {
         return displayName;
     }
+    
     @JsonCreator
-    // Phương thức chuyển từ tên hiển thị sang enum
-    public static MenuStatusEnum fromDisplayName(String displayName) {
+    public static MenuStatusEnum fromDisplayName(String value) {
         for (MenuStatusEnum status : MenuStatusEnum.values()) {
-            if (status.getDisplayName().equalsIgnoreCase(displayName)) {
+            // So sánh cả name() và displayName
+            if (status.name().equalsIgnoreCase(value) || status.displayName.equalsIgnoreCase(value)) {
                 return status;
             }
         }
-        throw new IllegalArgumentException("No enum constant with display name " + displayName);
+        throw new IllegalArgumentException("No enum constant with display name " + value);
     }
+
     // return String[]
     public static String[] getDisplayNames() {
         return java.util.Arrays.stream(MenuStatusEnum.values())

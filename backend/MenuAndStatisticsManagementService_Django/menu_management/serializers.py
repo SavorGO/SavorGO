@@ -114,25 +114,36 @@ class MenuSerializer(serializers.Serializer):
 
 
     def update(self, instance, validated_data):
-        # Cập nhật các trường trong instance
+        # Cập nhật các trường của menu
         instance.name = validated_data.get('name', instance.name)
-        instance.category = validated_data.get('category', instance.category).upper()  # Chuyển đổi thành chữ in hoa
+        instance.category = validated_data.get('category', instance.category).upper()
         instance.description = validated_data.get('description', instance.description)
         instance.original_price = validated_data.get('original_price', instance.original_price)
         instance.sale_price = validated_data.get('sale_price', instance.sale_price)
         instance.public_id = validated_data.get('public_id', instance.public_id)
-        instance.status = validated_data.get('status', instance.status).upper()  # Chuyển đổi thành chữ in hoa
+        instance.status = validated_data.get('status', instance.status).upper()
+        print("hello")
 
-        # Cập nhật sizes nếu có
-        sizes_data = validated_data.get('sizes', [])
-        if sizes_data:
-            instance.sizes = [Size(**size_data) for size_data in sizes_data]
+        # Kiểm tra nếu status khác AVAILABLE thì cập nhật Promotion
+        if instance.status != "AVAILABLE":
+            self.mark_promotions_as_ended(instance.id)
 
-        # Cập nhật options nếu có
-        options_data = validated_data.get('options', [])
-        if options_data:
-            instance.options = [Option(**option_data) for option_data in options_data]
+        # Cập nhật sizes và options nếu có
+        instance.sizes = [Size(**size_data) for size_data in validated_data.get('sizes', [])]
+        instance.options = [Option(**option_data) for option_data in validated_data.get('options', [])]
 
-        # Lưu đối tượng đã cập nhật
         instance.save()
         return instance
+
+    def mark_promotions_as_ended(self, menu_id):
+        """Cập nhật tất cả khuyến mãi của menu thành ENDED nếu menu không còn AVAILABLE, trừ những cái đã bị DELETED."""
+        promotions = Promotion.objects.filter(
+            menu_id=menu_id,
+            status="AVAILABLE"
+        )
+
+        logger.info(f"Found {promotions.count()} promotions to update for menu_id={menu_id}")
+
+        if promotions.exists():
+            promotions.update(status="ENDED")
+            logger.info(f"Updated promotions for menu_id={menu_id} to ENDED")
