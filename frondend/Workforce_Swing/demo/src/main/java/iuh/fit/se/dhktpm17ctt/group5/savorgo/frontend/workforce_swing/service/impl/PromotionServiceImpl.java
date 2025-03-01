@@ -23,11 +23,10 @@ public class PromotionServiceImpl implements PromotionService {
     private final OkHttpClient client = new OkHttpClient();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-	public PromotionServiceImpl() {
-		objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
-		objectMapper.registerModule(new JavaTimeModule());
-	}
-    
+    public PromotionServiceImpl() {
+        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+        objectMapper.registerModule(new JavaTimeModule());
+    }
     
     @Override
     public ApiResponse list(
@@ -53,13 +52,6 @@ public class PromotionServiceImpl implements PromotionService {
                     .build();
 
             try (Response response = client.newCall(request).execute()) {
-                if (!response.isSuccessful()) {
-                    return ApiResponse.builder()
-                            .status(response.code())
-                            .message("Failed to fetch promotions")
-                            .errors(Map.of("error", "Unexpected response code: " + response.code()))
-                            .build();
-                }
                 return objectMapper.readValue(response.body().string(), ApiResponse.class);
             }
         } catch (IOException e) {
@@ -82,13 +74,6 @@ public class PromotionServiceImpl implements PromotionService {
                     .build();
 
             try (Response response = client.newCall(request).execute()) {
-                if (!response.isSuccessful()) {
-                    return ApiResponse.builder()
-                            .status(response.code())
-                            .message("Failed to fetch promotion")
-                            .errors(Map.of("error", "Unexpected response code: " + response.code()))
-                            .build();
-                }
                 return objectMapper.readValue(response.body().string(), ApiResponse.class);
             }
         } catch (IOException e) {
@@ -117,7 +102,6 @@ public class PromotionServiceImpl implements PromotionService {
             try (Response response = client.newCall(request).execute()) {
                 return objectMapper.readValue(response.body().string(), ApiResponse.class);
             }
-
         } catch (IOException e) {
             return ApiResponse.builder()
                     .status(500)
@@ -126,7 +110,6 @@ public class PromotionServiceImpl implements PromotionService {
                     .build();
         }
     }
-
 
     @Override
     public ApiResponse updatePromotion(Promotion promotion) {
@@ -144,16 +127,30 @@ public class PromotionServiceImpl implements PromotionService {
                     .build();
 
             try (Response response = client.newCall(request).execute()) {
-                if (!response.isSuccessful()) {
-                    return ApiResponse.builder()
-                            .status(response.code())
-                            .message("Failed to update promotion")
-                            .errors(Map.of("error", "Unexpected response code: " + response.code()))
-                            .build();
-                }
                 return objectMapper.readValue(response.body().string(), ApiResponse.class);
             }
+        } catch (IOException e) {
+            return ApiResponse.builder()
+                    .status(500)
+                    .message("Internal Server Error")
+                    .errors(Map.of("exception", e.getMessage()))
+                    .build();
+        }
+    }
+    
+    @Override
+    public ApiResponse deletePromotion(long id) {
+        try {
+            HttpUrl url = HttpUrl.parse(API_URL + "/" + id).newBuilder().build();
 
+            Request request = new Request.Builder()
+                    .url(url)
+                    .delete()
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                return objectMapper.readValue(response.body().string(), ApiResponse.class);
+            }
         } catch (IOException e) {
             return ApiResponse.builder()
                     .status(500)
@@ -163,14 +160,40 @@ public class PromotionServiceImpl implements PromotionService {
         }
     }
 
-
-    @Override
-    public ApiResponse deletePromotion(long id) {
-        return null;
-    }
-
     @Override
     public ApiResponse deletePromotions(List<Long> ids) {
-        return null;
+        try {
+            if (ids == null || ids.isEmpty()) {
+                return ApiResponse.builder()
+                        .status(400)
+                        .message("Promotion IDs list cannot be empty")
+                        .errors(Map.of("error", "No promotion IDs provided"))
+                        .build();
+            }
+
+            String idParams = ids.stream()
+                    .map(String::valueOf)
+                    .reduce((id1, id2) -> id1 + "," + id2)
+                    .orElse("");
+
+            HttpUrl url = HttpUrl.parse(API_URL).newBuilder()
+                    .addQueryParameter("ids", idParams)
+                    .build();
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .delete()
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                return objectMapper.readValue(response.body().string(), ApiResponse.class);
+            }
+        } catch (IOException e) {
+            return ApiResponse.builder()
+                    .status(500)
+                    .message("Internal Server Error")
+                    .errors(Map.of("exception", e.getMessage()))
+                    .build();
+        }
     }
 }

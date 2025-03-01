@@ -272,14 +272,18 @@ public class MenuFormController {
 	private void handleCreatePromotion(CreatePromotionInputForm inputFormCreatePromotion) {
 	    ApiResponse response = promotionController.createPromotions(inputFormCreatePromotion.getData());
 
-	    if (response.getStatus() == 201 && response.getData() != null) {
-	    	Toast.show(menuFormUI, Toast.Type.SUCCESS, "Promotion created successfully");
-	    	Drawer.setSelectedItemClass(PromotionFormUI.class);
+	    if (response != null && response.getStatus() == 201 && response.getData() != null) {
+	        Toast.show(menuFormUI, Toast.Type.SUCCESS, "Promotion created successfully");
+	        Drawer.setSelectedItemClass(PromotionFormUI.class);
 	    } else {
-	        String errorMessage = response.getErrors() != null ? response.getErrors().toString() : "Unknown error";
-	        Toast.show(menuFormUI, Toast.Type.ERROR, "Failed to create promotion: " + errorMessage);
+	        String errorMessage = "Failed to create promotion: " + (response != null ? response.getMessage() : "Unknown error");
+	        if (response != null && response.getErrors() != null && !response.getErrors().isEmpty()) {
+	            errorMessage += "\nDetails: " + response.getErrors().toString();
+	        }
+	        Toast.show(menuFormUI, Toast.Type.ERROR, errorMessage);
 	    }
 	}
+
 
 	private void handleCreateMenu(CreateMenuInputForm inputFormCreateMenu) {
 	    ApiResponse response = menuController.createMenu(inputFormCreateMenu.getData());
