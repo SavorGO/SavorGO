@@ -86,6 +86,7 @@ public class MenuServiceImpl implements MenuService {
         try {
             HttpUrl url = HttpUrl.parse(API_URL + "/" + menu.getId()).newBuilder().build();
             String jsonBody = objectMapper.writeValueAsString(menu);
+            System.out.println(jsonBody);
             RequestBody body = RequestBody.create(jsonBody, MediaType.get("application/json"));
             Request request = new Request.Builder().url(url).put(body).build();
 

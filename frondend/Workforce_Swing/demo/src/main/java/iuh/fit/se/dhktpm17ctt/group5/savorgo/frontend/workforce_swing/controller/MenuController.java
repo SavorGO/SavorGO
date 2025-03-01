@@ -74,7 +74,7 @@ public class MenuController {
                 .publicId(publicId)
                 .description(menuData[9].toString())
                 .build();
-
+        System.out.println("menu: "+menu.getStatus());
         return menuService.updateMenu(menu);
     }
 
