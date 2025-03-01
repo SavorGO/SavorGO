@@ -154,15 +154,76 @@ public class TableServiceImpl implements TableService {
     }
 
 
-	@Override
-	public ApiResponse removeTable(long id){
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public ApiResponse deleteTable(long id) {
+        try {
+            HttpUrl url = HttpUrl.parse(API_URL + "/" + id).newBuilder().build();
 
-	@Override
-	public ApiResponse removeTables(List<Long> ids){
-		// TODO Auto-generated method stub
-		return null;
-	}
+            Request request = new Request.Builder()
+                    .url(url)
+                    .delete()
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                if (!response.isSuccessful()) {
+                    return ApiResponse.builder()
+                            .status(response.code())
+                            .message("Failed to delete table")
+                            .errors(Map.of("error", "Unexpected response code: " + response.code()))
+                            .build();
+                }
+                return objectMapper.readValue(response.body().string(), ApiResponse.class);
+            }
+        } catch (IOException e) {
+            return ApiResponse.builder()
+                    .status(500)
+                    .message("Internal Server Error")
+                    .errors(Map.of("exception", e.getMessage()))
+                    .build();
+        }
+    }
+    
+    @Override
+    public ApiResponse deleteTables(List<Long> ids) {
+        try {
+            if (ids == null || ids.isEmpty()) {
+                return ApiResponse.builder()
+                        .status(400)
+                        .message("Table IDs list cannot be empty")
+                        .errors(Map.of("error", "No table IDs provided"))
+                        .build();
+            }
+
+            String idParams = ids.stream()
+                    .map(String::valueOf)
+                    .reduce((id1, id2) -> id1 + "," + id2)
+                    .orElse("");
+
+            HttpUrl url = HttpUrl.parse(API_URL).newBuilder()
+                    .addQueryParameter("ids", idParams)
+                    .build();
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .delete()
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                if (!response.isSuccessful()) {
+                    return ApiResponse.builder()
+                            .status(response.code())
+                            .message("Failed to delete tables")
+                            .errors(Map.of("error", "Unexpected response code: " + response.code()))
+                            .build();
+                }
+                return objectMapper.readValue(response.body().string(), ApiResponse.class);
+            }
+        } catch (IOException e) {
+            return ApiResponse.builder()
+                    .status(500)
+                    .message("Internal Server Error")
+                    .errors(Map.of("exception", e.getMessage()))
+                    .build();
+        }
+    }
 }

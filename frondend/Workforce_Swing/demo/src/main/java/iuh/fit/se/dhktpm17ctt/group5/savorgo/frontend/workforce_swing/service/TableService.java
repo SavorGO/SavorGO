@@ -9,6 +9,6 @@ public interface TableService {
     ApiResponse getTableById(long id);
     ApiResponse createTable(Table table);
     ApiResponse updateTable(Table table);
-    ApiResponse removeTable(long id);
-    ApiResponse removeTables(List<Long> ids);
+    ApiResponse deleteTable(long id);
+	ApiResponse deleteTables(List<Long> ids);
 }

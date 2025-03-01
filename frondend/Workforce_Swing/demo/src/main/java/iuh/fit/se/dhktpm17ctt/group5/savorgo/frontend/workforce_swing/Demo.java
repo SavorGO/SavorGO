@@ -12,27 +12,14 @@ import raven.modal.Drawer;
 import javax.swing.*;
 import java.awt.*;
 
-/**
- * The Demo class represents the main application window for the Savorgo workforce management system.
- * It initializes the user interface and sets up the application environment.
- */
 public class Demo extends JFrame {
 
-    /** The version of the demo application. */
     public static final String DEMO_VERSION = "2.3.0-SNAPSHOT";
 
-    /**
-     * Constructor for the Demo class.
-     * Initializes the application window.
-     */
     public Demo() {
         init();
     }
 
-    /**
-     * Initializes the main application window settings.
-     * Sets default close operation, installs the drawer, and sets the size and location of the window.
-     */
     private void init() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Set the default close operation
         getRootPane().putClientProperty(FlatClientProperties.FULL_WINDOW_CONTENT, true); // Enable full window content
@@ -42,9 +29,6 @@ public class Demo extends JFrame {
         setLocationRelativeTo(null); // Center the window on the screen
     }
 
-    /**
-     * Initializes the application environment and starts the UI.
-     */
     public static void launchApplication() {
         DemoPreferences.init(); // Initialize demo preferences
         FlatRobotoFont.install(); // Install the Roboto font
@@ -54,11 +38,6 @@ public class Demo extends JFrame {
         SwingUtilities.invokeLater(() -> new Demo().setVisible(true)); // Run the UI on the Event Dispatch Thread
     }
 
-    /**
-     * The main method that serves as the entry point for the application.
-     *
-     * @param args Command line arguments (not used).
-     */
     public static void main(String[] args) {
         launchApplication();
     }

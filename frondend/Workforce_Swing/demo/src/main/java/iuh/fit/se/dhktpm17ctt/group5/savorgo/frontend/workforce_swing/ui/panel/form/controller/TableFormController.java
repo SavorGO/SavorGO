@@ -294,15 +294,18 @@ public class TableFormController {
 
 	private void handleCreateTable(CreateTableInputForm inputFormCreateTable) {
 	    ApiResponse response = tableController.createTable(inputFormCreateTable.getData());
+
 	    if (response.getStatus() == 201 && response.getData() != null) {
 	        Toast.show(tableFormUI, Toast.Type.SUCCESS, "Table created successfully");
 	        reloadData();
 	    } else {
-	        String errorMessage = response.getErrors() != null ? response.getErrors().toString() : "Unknown error";
-	        Toast.show(tableFormUI, Toast.Type.ERROR, "Failed to create table: " + errorMessage);
+	        String errorMessage = "Failed to create table: " + response.getMessage();
+	        if (response.getErrors() != null && !response.getErrors().isEmpty()) {
+	            errorMessage += "\nDetails: " + response.getErrors().toString();
+	        }
+	        Toast.show(tableFormUI, Toast.Type.ERROR, errorMessage);
 	    }
 	}
-
 
 	private void showEditModal() {
 		long[] idHolder = { -1L };
@@ -361,15 +364,25 @@ public class TableFormController {
 	}
 
 	private void handleUpdateTable(UpdateTableInputForm inputFormUpdateTable) {
-		try {
-			tableController.updateTable(inputFormUpdateTable.getData());
-			Toast.show(tableFormUI, Toast.Type.SUCCESS, "Update table successfully");
-			loadData();
-		} catch (IOException | BusinessException e) {
-			Toast.show(tableFormUI, Toast.Type.ERROR, "Failed to update table: " + e.getMessage());
-			e.printStackTrace();
-		}
+	    try {
+	        ApiResponse response = tableController.updateTable(inputFormUpdateTable.getData());
+
+	        if (response.getStatus() == 200 && response.getData() != null) {
+	            Toast.show(tableFormUI, Toast.Type.SUCCESS, "Update table successfully");
+	            loadData();
+	        } else {
+	            String errorMessage = "Failed to update table: " + response.getMessage();
+	            if (response.getErrors() != null && !response.getErrors().isEmpty()) {
+	                errorMessage += "\nDetails: " + response.getErrors().toString();
+	            }
+	            Toast.show(tableFormUI, Toast.Type.ERROR, errorMessage);
+	        }
+	    } catch (IOException | BusinessException e) {
+	        Toast.show(tableFormUI, Toast.Type.ERROR, "Failed to update table: " + e.getMessage());
+	        e.printStackTrace();
+	    }
 	}
+
 
 	private void showDeleteModal() {
 		List<Long> findSelectedTableIds = getSelectedTableIdsForDeletion();
@@ -423,15 +436,33 @@ public class TableFormController {
 	}
 
 	private void deleteTable(Long tableId) {
-		tableController.deleteTable(tableId);
-		loadData();
-		Toast.show(tableFormUI, Toast.Type.SUCCESS, "Delete table successfully");
+	    ApiResponse response = tableController.deleteTable(tableId);
+
+	    if (response.getStatus() == 200 && response.getData() != null) {
+	        reloadData();
+	        Toast.show(tableFormUI, Toast.Type.SUCCESS, "Delete table successfully");
+	    } else {
+	        String errorMessage = "Failed to delete table: " + response.getMessage();
+	        if (response.getErrors() != null && !response.getErrors().isEmpty()) {
+	            errorMessage += "\nDetails: " + response.getErrors().toString();
+	        }
+	        Toast.show(tableFormUI, Toast.Type.ERROR, errorMessage);
+	    }
 	}
 
 	private void deleteTables(List<Long> tableIds) {
-		tableController.deleteTables(tableIds);
-		loadData();
-		Toast.show(tableFormUI, Toast.Type.SUCCESS, "Delete tables successfully");
+	    ApiResponse response = tableController.deleteTables(tableIds);
+
+	    if (response.getStatus() == 200 && response.getData() != null) {
+	        reloadData();
+	        Toast.show(tableFormUI, Toast.Type.SUCCESS, "Delete tables successfully");
+	    } else {
+	        String errorMessage = "Failed to delete tables: " + response.getMessage();
+	        if (response.getErrors() != null && !response.getErrors().isEmpty()) {
+	            errorMessage += "\nDetails: " + response.getErrors().toString();
+	        }
+	        Toast.show(tableFormUI, Toast.Type.ERROR, errorMessage);
+	    }
 	}
 
 	public List<Long> findSelectedTableIds() {

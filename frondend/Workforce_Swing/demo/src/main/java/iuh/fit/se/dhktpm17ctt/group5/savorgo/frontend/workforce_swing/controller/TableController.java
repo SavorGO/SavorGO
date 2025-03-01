@@ -32,11 +32,11 @@ public class TableController {
     }
 
     public ApiResponse deleteTable(long id) {
-        return tableService.removeTable(id);
+        return tableService.deleteTable(id);
     }
 
     public ApiResponse deleteTables(List<Long> ids) {
-        return tableService.removeTables(ids);
+        return tableService.deleteTables(ids);
     }
 
     public Object[] toTableRow(Table table) {
