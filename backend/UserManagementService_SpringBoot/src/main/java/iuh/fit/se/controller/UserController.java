@@ -3,11 +3,10 @@ package iuh.fit.se.controller;
 import java.util.List;
 import java.util.Map;
 
-import com.nimbusds.jose.proc.SecurityContext;
 import jakarta.validation.Valid;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +18,7 @@ import iuh.fit.se.service.UserService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -67,10 +67,10 @@ public class UserController {
      * @param role the role of users to search for
      * @return a list of users with the specified role
      */
-//    @GetMapping("/search/r/{role}")
-//    public ResponseEntity<List<UserResponse>> getUsersByRole(@PathVariable String role) {
-//        return ResponseEntity.ok(userService.findByRole(role));
-//    }
+    //    @GetMapping("/search/r/{role}")
+    //    public ResponseEntity<List<UserResponse>> getUsersByRole(@PathVariable String role) {
+    //        return ResponseEntity.ok(userService.findByRole(role));
+    //    }
 
     /**
      * Get a user by email.
@@ -78,13 +78,14 @@ public class UserController {
      * @param email the email of the user
      * @return the user information
      */
+    @PreAuthorize("hasRole('MANAGER')")
     @GetMapping("/search/e/{email}")
     public ResponseEntity<UserResponse> getUserByEmail(@PathVariable String email) {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         log.info("User: {}", authentication.getPrincipal());
         log.info("Name: {}", authentication.getName());
         log.info("Authorities: ");
-        authentication.getAuthorities().forEach(s->log.info(s.getAuthority()));
+        authentication.getAuthorities().forEach(s -> log.info(s.getAuthority()));
         return ResponseEntity.ok(userService.findByEmail(email));
     }
 
@@ -94,7 +95,7 @@ public class UserController {
      * @param request the user creation request containing user details
      * @return the created user
      */
-    @PostMapping
+    @PostMapping("/create")
     public ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreationRequest request) {
         //        return ResponseEntity.ok(userService.createUser(request));
         return ApiResponse.<UserResponse>builder()
@@ -109,6 +110,7 @@ public class UserController {
      * @param request the user update request containing updated user details
      * @return the updated user
      */
+    @PreAuthorize("hasAuthority('UPDATE_USER')")
     @PutMapping("/{id}")
     public ResponseEntity<UserResponse> updateUser(@PathVariable String id, @RequestBody UserUpdateRequest request) {
         return ResponseEntity.ok(userService.updateUser(id, request));
@@ -120,6 +122,7 @@ public class UserController {
      * @param id the unique ID of the user to delete
      * @return a confirmation message
      */
+    @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable String id) {
         userService.deleteUser(id);
@@ -132,10 +135,18 @@ public class UserController {
      * @param requestBody a map containing a list of user IDs to delete
      * @return a confirmation message
      */
+    @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping
     public ResponseEntity<String> deleteUsers(@RequestBody Map<String, List<String>> requestBody) {
         List<String> ids = requestBody.get("ids");
         userService.deleteUsers(ids);
         return ResponseEntity.ok("Users have been deleted");
+    }
+    @PreAuthorize("hasAuthority('VIEW_USER')")
+    @GetMapping("/myinfo")
+    public ApiResponse<UserResponse> getMyInfo() {
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.getMyInfo())
+                .build();
     }
 }

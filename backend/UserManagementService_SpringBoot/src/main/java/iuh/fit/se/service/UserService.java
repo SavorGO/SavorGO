@@ -9,6 +9,8 @@ import iuh.fit.se.dto.response.UserResponse;
 public interface UserService {
     UserResponse findById(String id);
 
+    UserResponse getMyInfo();
+
     UserResponse createUser(UserCreationRequest request);
 
     UserResponse updateUser(String id, UserUpdateRequest request);
@@ -19,7 +21,7 @@ public interface UserService {
 
     List<UserResponse> findUsers();
 
-//    List<UserResponse> findByRole(String role);
+    //    List<UserResponse> findByRole(String role);
 
     void deleteUsers(List<String> ids);
 

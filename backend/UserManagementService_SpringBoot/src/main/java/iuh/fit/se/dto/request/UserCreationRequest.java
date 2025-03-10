@@ -36,8 +36,8 @@ public class UserCreationRequest {
     @Pattern(regexp = "^[a-zA-Z\\s]+$", message = "NAME_INVALID")
     String lastName;
 
-//    UserRoleEnum role;
-private Set<UserRoleEnum> roles;
+    //    UserRoleEnum role;
+    private Set<UserRoleEnum> roles;
     int points;
     UserTierEnum tier;
     String address;

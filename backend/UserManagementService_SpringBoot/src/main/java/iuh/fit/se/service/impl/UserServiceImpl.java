@@ -1,13 +1,13 @@
 package iuh.fit.se.service.impl;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
-import iuh.fit.se.mapper.UserMapper;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import iuh.fit.se.repository.RoleRepository;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,10 +19,10 @@ import iuh.fit.se.dto.request.UserCreationRequest;
 import iuh.fit.se.dto.request.UserUpdateRequest;
 import iuh.fit.se.dto.response.UserResponse;
 import iuh.fit.se.entity.User;
-import iuh.fit.se.enums.UserRoleEnum;
 import iuh.fit.se.enums.UserStatusEnum;
 import iuh.fit.se.exception.AppException;
 import iuh.fit.se.exception.ErrorCode;
+import iuh.fit.se.mapper.UserMapper;
 import iuh.fit.se.repository.UserRepository;
 import iuh.fit.se.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +34,16 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
+    private final RoleRepository roleRepository;
+
+
+    @Override
+    public UserResponse getMyInfo() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        return userMapper.toUserResponse(user);
+    }
+
     /**
      * Creates a new user based on the provided UserCreationRequest.
      *
@@ -42,7 +52,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserResponse createUser(UserCreationRequest request) {
-        User user =  userMapper.toUser(request);
+        User user = userMapper.toUser(request);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userMapper.toUserResponse(userRepository.save(user));
     }
@@ -57,15 +67,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse updateUser(String id, UserUpdateRequest request) {
         User user = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-
-        try {
-            objectMapper.updateValue(user, request);
-        } catch (JsonMappingException e) {
-            e.printStackTrace();
-        }
+            userMapper.updateUser(user,request);
         if (request.getPassword() != null) {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
+        var roles = roleRepository.findAllById(request.getRoles());
+        user.setRoles(new HashSet<>(roles));
+        user.setModifiedTime(LocalDateTime.now());
+
         return objectMapper.convertValue(userRepository.save(user), UserResponse.class);
     }
 
@@ -110,12 +119,12 @@ public class UserServiceImpl implements UserService {
      * @param role the role of the users to be found
      * @return List<UserResponse> a list of users with the specified role
      */
-//    @Override
-//    public List<UserResponse> findByRole(String role) {
-//        UserRoleEnum roleEnum = UserRoleEnum.valueOf(role.toUpperCase());
-//        List<User> users = userRepository.findByRole(roleEnum);
-//        return objectMapper.convertValue(users, new TypeReference<List<UserResponse>>() {});
-//    }
+    //    @Override
+    //    public List<UserResponse> findByRole(String role) {
+    //        UserRoleEnum roleEnum = UserRoleEnum.valueOf(role.toUpperCase());
+    //        List<User> users = userRepository.findByRole(roleEnum);
+    //        return objectMapper.convertValue(users, new TypeReference<List<UserResponse>>() {});
+    //    }
 
     /**
      * Finds a user by their id.

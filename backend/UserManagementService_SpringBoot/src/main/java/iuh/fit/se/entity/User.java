@@ -14,7 +14,6 @@ import iuh.fit.se.enums.UserStatusEnum;
 import iuh.fit.se.enums.UserTierEnum;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Data
 @NoArgsConstructor
@@ -40,10 +39,10 @@ public class User {
     @Column(name = "last_name")
     String lastName;
 
-//    @Enumerated(EnumType.STRING)
-//    UserRoleEnum role;
-
-    Set<UserRoleEnum> roles;
+    //    @Enumerated(EnumType.STRING)
+    //    UserRoleEnum role;
+    @ManyToMany
+    Set<Role> roles;
 
     int points;
 
@@ -66,8 +65,8 @@ public class User {
     void GenerateValue() {
         if (this.roles == null || this.roles.isEmpty()) {
             this.roles = new HashSet<>();
-            this.roles.add(UserRoleEnum.CUSTOMER);
-        }else{
+//            this.roles.add(UserRoleEnum.CUSTOMER);
+        } else {
             this.roles = roles;
         }
         this.points = 0;

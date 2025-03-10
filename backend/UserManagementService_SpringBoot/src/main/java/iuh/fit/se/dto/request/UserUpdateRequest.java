@@ -1,6 +1,8 @@
 package iuh.fit.se.dto.request;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -19,16 +21,14 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonIgnoreProperties(value = {"email"})
 public class UserUpdateRequest {
-    String id;
     String password;
     String firstName;
     String lastName;
-    UserRoleEnum role;
+    List<String> roles;
     int points;
     UserTierEnum tier;
     String address;
     String publicId;
     UserStatusEnum status;
-    LocalDateTime createdTime;
     LocalDateTime modifiedTime;
 }

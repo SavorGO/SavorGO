@@ -8,6 +8,7 @@ import java.util.StringJoiner;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
@@ -19,7 +20,6 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import iuh.fit.se.entity.User;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.CollectionUtils;
 
 @Slf4j
 @Component
@@ -62,8 +62,13 @@ public class JwtUtil {
 
     private String buildScope(User user) {
         StringJoiner stringJoiner = new StringJoiner(" ");
-        if(!CollectionUtils.isEmpty(user.getRoles())){
-            user.getRoles().forEach(s -> stringJoiner.add(s.toString()));
+        if (!CollectionUtils.isEmpty(user.getRoles())) {
+            user.getRoles().forEach(s -> {
+                stringJoiner.add("ROLE_"+s.getName());
+                if(!CollectionUtils.isEmpty(s.getPermissions()))
+                s.getPermissions().forEach(p -> stringJoiner.add(p.getName()));
+            });
+
         }
         return stringJoiner.toString();
     }

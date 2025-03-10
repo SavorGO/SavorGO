@@ -19,7 +19,7 @@ public class UserResponse {
     String email;
     String firstName;
     String lastName;
-    Set<UserRoleEnum> roles;
+    Set<RoleResponse> roles;
     int points;
     UserTierEnum tier;
     String address;
