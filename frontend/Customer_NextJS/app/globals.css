@@ -1,0 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
+@tailwind base;
+  @tailwind components;
+  @tailwind utilities;
+  
+@layer components {
+  .product-carousel {
+    @apply hidden md:overflow-hidden md:max-w-full max-w-[320px] items-center md:grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-24 mt-12
+  }
+  .overlay {
+    @apply fixed overflow-hidden left-0 top-0 w-full h-screen z-[10] bg-black/50
+}
+}
