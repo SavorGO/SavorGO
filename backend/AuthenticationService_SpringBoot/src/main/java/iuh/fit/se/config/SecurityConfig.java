@@ -3,6 +3,7 @@ package iuh.fit.se.config;
 import javax.crypto.spec.SecretKeySpec;
 
 import iuh.fit.se.enums.UserRoleEnum;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -28,8 +29,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final String[] PULIC_ENDPOINTS = {"/authentication/login-email-password", "/authentication/introspect",
-            "/users/create"};
+            "/users/create","authentication/logout"};
     private final JwtUtil jwtUtil;
+
+    private CustomJwtDecoder customJwtDecoder;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
@@ -42,7 +45,7 @@ public class SecurityConfig {
                         .authenticated())
                 .csrf(AbstractHttpConfigurer::disable)
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwtConfigurer ->
-                        jwtConfigurer.decoder(jwtDecoder()).jwtAuthenticationConverter(jwtAuthenticationConverter()))
+                        jwtConfigurer.decoder(customJwtDecoder).jwtAuthenticationConverter(jwtAuthenticationConverter()))
                         .authenticationEntryPoint(new JwtAuthenticationEntryPoint()));
 
         return httpSecurity.build();

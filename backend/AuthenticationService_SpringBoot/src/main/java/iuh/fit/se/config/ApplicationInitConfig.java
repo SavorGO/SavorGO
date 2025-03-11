@@ -57,6 +57,15 @@ public class ApplicationInitConfig {
                     .permissions(permissions)
                     .build());
             roleRepository.saveAll(roles);
+            var roles1 = new HashSet<Role>();
+            roles1.add(Role.builder()
+                    .name(UserRoleEnum.CUSTOMER.name())
+                    .description("Customer role")
+                    .permissions(permissions)
+                    .build());
+            roleRepository.saveAll(roles1);
+
+
 
             // Initialize admin user
             if (userRepository.findByEmail("admin").isEmpty()) {

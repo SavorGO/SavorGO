@@ -1,20 +1,7 @@
 package iuh.fit.se.service.impl;
 
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import iuh.fit.se.repository.RoleRepository;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import iuh.fit.se.dto.request.UserCreationRequest;
 import iuh.fit.se.dto.request.UserUpdateRequest;
 import iuh.fit.se.dto.response.UserResponse;
@@ -26,23 +13,23 @@ import iuh.fit.se.mapper.UserMapper;
 import iuh.fit.se.repository.UserRepository;
 import iuh.fit.se.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserServiceImpl implements UserService {
     private final ObjectMapper objectMapper;
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
-    private final RoleRepository roleRepository;
-
-
-    @Override
-    public UserResponse getMyInfo() {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        return userMapper.toUserResponse(user);
-    }
 
     /**
      * Creates a new user based on the provided UserCreationRequest.
@@ -50,10 +37,16 @@ public class UserServiceImpl implements UserService {
      * @param request the UserCreationRequest containing user details
      * @return UserResponse the created user details
      */
+    @Transactional
     @Override
     public UserResponse createUser(UserCreationRequest request) {
+//        log.info( "1111111111: "+request.getFirstName() + " " + request.getLastName()+ request.getAccountId());
         User user = userMapper.toUser(request);
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setAccountId(request.getAccountId());
+//        user.setFirstName(request.getFirstName());
+//        user.setLastName(request.getLastName());
+//        User user = new User();
+//        user.setAccountId(request.getAccountId());
         return userMapper.toUserResponse(userRepository.save(user));
     }
 
@@ -68,13 +61,7 @@ public class UserServiceImpl implements UserService {
     public UserResponse updateUser(String id, UserUpdateRequest request) {
         User user = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
             userMapper.updateUser(user,request);
-        if (request.getPassword() != null) {
-            user.setPassword(passwordEncoder.encode(request.getPassword()));
-        }
-        var roles = roleRepository.findAllById(request.getRoles());
-        user.setRoles(new HashSet<>(roles));
-        user.setModifiedTime(LocalDateTime.now());
-
+            user.setModifiedTime(LocalDateTime.now());
         return objectMapper.convertValue(userRepository.save(user), UserResponse.class);
     }
 
@@ -89,18 +76,18 @@ public class UserServiceImpl implements UserService {
         user.setStatus(UserStatusEnum.DELETED);
         userRepository.save(user);
     }
-
-    /**
-     * Finds a user by their email address.
-     *
-     * @param email the email address of the user to be found
-     * @return UserResponse the found user details
-     */
-    @Override
-    public UserResponse findByEmail(String email) {
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        return objectMapper.convertValue(user, UserResponse.class);
-    }
+//
+//    /**
+//     * Finds a user by their email address.
+//     *
+//     * @param email the email address of the user to be found
+//     * @return UserResponse the found user details
+//     */
+//    @Override
+//    public UserResponse findByEmail(String email) {
+//        User user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+//        return objectMapper.convertValue(user, UserResponse.class);
+//    }
 
     /**
      * Retrieves all users.
@@ -138,6 +125,7 @@ public class UserServiceImpl implements UserService {
         return objectMapper.convertValue(user.get(), UserResponse.class);
     }
 
+
     /**
      * Deletes multiple users identified by their ids by marking them as deleted.
      *
@@ -164,7 +152,6 @@ public class UserServiceImpl implements UserService {
         String searchLower = searchQuery.toLowerCase();
         List<User> filteredUsers = users.stream()
                 .filter(user -> user.getId().contains(searchQuery)
-                        || user.getEmail().contains(searchQuery)
                         || user.getFirstName().toLowerCase().contains(searchLower)
                         || user.getLastName().toLowerCase().contains(searchLower)
                         || user.getAddress().toLowerCase().contains(searchLower)

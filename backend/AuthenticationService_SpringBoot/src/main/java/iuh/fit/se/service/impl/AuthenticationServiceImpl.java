@@ -3,6 +3,9 @@ package iuh.fit.se.service.impl;
 import java.text.ParseException;
 import java.util.Date;
 
+import iuh.fit.se.entity.InvalidatedToken;
+import iuh.fit.se.repository.InvalidatedTokenRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +38,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final ObjectMapper objectMapper;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
-
+    private final InvalidatedTokenRepository invalidatedTokenRepository;
     // Xác thực ID Token từ Google, tạo JWT và trả về AuthenticationResponse
     @Override
     public AuthenticationResponse verifyGoogleToken(TokenRequest tokenRequest) throws FirebaseAuthException {
@@ -81,13 +84,39 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public IntrospectResponse introspect(IntrospectRequest request) throws JOSEException, ParseException {
         var token = request.getToken();
+        boolean valid = true;
+        try {
+            verifyToken(token);
+        }catch (AppException e){
+            valid = false;
+        }
+        return IntrospectResponse.builder()
+                .valid(valid)
+                .build();
+    }
+
+    private SignedJWT verifyToken(String token) throws JOSEException, ParseException {
         JWSVerifier verifier = new MACVerifier(jwtUtil.getSecretKey());
         SignedJWT signedJWT = SignedJWT.parse(token);
         Date expityTime = signedJWT.getJWTClaimsSet().getExpirationTime();
         var verified = signedJWT.verify(verifier);
-        return IntrospectResponse.builder()
-                .valid(verified && expityTime.after(new Date()))
+        if (!verified && expityTime.after(new Date()))
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        if(invalidatedTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID()))
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        return signedJWT;
+    }
+
+    @Override
+    public void logout(LogoutRequest request) throws ParseException, JOSEException {
+        var signToken = verifyToken(request.getToken());
+        String jit = signToken.getJWTClaimsSet().getJWTID();
+        Date expiryTime = signToken.getJWTClaimsSet().getExpirationTime();
+        InvalidatedToken invalidatedToken = InvalidatedToken.builder()
+                .id(jit)
+                .expiryTime(expiryTime)
                 .build();
+        invalidatedTokenRepository.save(invalidatedToken);
     }
 
     // Xác thực JWT và trả về thông tin người dùng
@@ -130,8 +159,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         //        user.setFirstName(request.getFirstName());
-        user.setLastName(request.getLastName());
-        user.setAddress(request.getAddress());
+//        user.setLastName(request.getLastName());
+//        user.setAddress(request.getAddress());
 
         // Save the user to the database
         userRepository.save(user);

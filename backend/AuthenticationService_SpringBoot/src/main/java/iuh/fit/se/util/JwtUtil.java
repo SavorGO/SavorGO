@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.StringJoiner;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -41,11 +42,12 @@ public class JwtUtil {
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .subject(user.getEmail())
                 .issuer("SavorGo")
-                .audience(user.getFirstName())
+//                .audience(user.getFirstName())
                 .claim("scope", buildScope(user))
                 .issueTime(new Date())
                 .expirationTime(
                         new Date(Instant.now().plus(30, ChronoUnit.MINUTES).toEpochMilli()))
+                .jwtID(UUID.randomUUID().toString())
                 .build();
 
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());

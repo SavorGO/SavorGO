@@ -15,6 +15,8 @@ public interface AuthenticationService {
 
     IntrospectResponse introspect(IntrospectRequest request) throws JOSEException, ParseException;
 
+    void logout(LogoutRequest request) throws ParseException, JOSEException;
+
     UserResponse verifyJwtToken(String jwtToken);
 
     AuthenticationResponse loginWithEmailPassword(AuthenticationRequest request);

@@ -1,24 +1,24 @@
 package iuh.fit.se.controller;
 
-import java.util.List;
-import java.util.Map;
-
-import jakarta.validation.Valid;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import iuh.fit.se.dto.request.UserCreationRequest;
 import iuh.fit.se.dto.request.UserUpdateRequest;
 import iuh.fit.se.dto.response.ApiResponse;
 import iuh.fit.se.dto.response.UserResponse;
 import iuh.fit.se.service.UserService;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+//import org.springframework.security.access.prepost.PreAuthorize;
+//import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -78,16 +78,16 @@ public class UserController {
      * @param email the email of the user
      * @return the user information
      */
-    @PreAuthorize("hasRole('MANAGER')")
-    @GetMapping("/search/e/{email}")
-    public ResponseEntity<UserResponse> getUserByEmail(@PathVariable String email) {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        log.info("User: {}", authentication.getPrincipal());
-        log.info("Name: {}", authentication.getName());
-        log.info("Authorities: ");
-        authentication.getAuthorities().forEach(s -> log.info(s.getAuthority()));
-        return ResponseEntity.ok(userService.findByEmail(email));
-    }
+//    @PreAuthorize("hasRole('MANAGER')")
+//    @GetMapping("/search/e/{email}")
+//    public ResponseEntity<UserResponse> getUserByEmail(@PathVariable String email) {
+//        var authentication = SecurityContextHolder.getContext().getAuthentication();
+//        log.info("User: {}", authentication.getPrincipal());
+//        log.info("Name: {}", authentication.getName());
+//        log.info("Authorities: ");
+//        authentication.getAuthorities().forEach(s -> log.info(s.getAuthority()));
+//        return ResponseEntity.ok(userService.findByEmail(email));
+//    }
 
     /**
      * Create a new user.
@@ -96,8 +96,10 @@ public class UserController {
      * @return the created user
      */
     @PostMapping("/create")
-    public ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreationRequest request) {
+    public ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreationRequest request) throws JsonProcessingException {
         //        return ResponseEntity.ok(userService.createUser(request));
+        ObjectMapper objectMapper = new ObjectMapper();
+        log.info("UserClientRequest JSON: {}", objectMapper.writeValueAsString(request));
         return ApiResponse.<UserResponse>builder()
                 .result(userService.createUser(request))
                 .build();
@@ -110,7 +112,7 @@ public class UserController {
      * @param request the user update request containing updated user details
      * @return the updated user
      */
-    @PreAuthorize("hasAuthority('UPDATE_USER')")
+//    @PreAuthorize("hasAuthority('UPDATE_USER')")
     @PutMapping("/{id}")
     public ResponseEntity<UserResponse> updateUser(@PathVariable String id, @RequestBody UserUpdateRequest request) {
         return ResponseEntity.ok(userService.updateUser(id, request));
@@ -122,7 +124,7 @@ public class UserController {
      * @param id the unique ID of the user to delete
      * @return a confirmation message
      */
-    @PreAuthorize("hasRole('MANAGER')")
+//    @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable String id) {
         userService.deleteUser(id);
@@ -135,18 +137,18 @@ public class UserController {
      * @param requestBody a map containing a list of user IDs to delete
      * @return a confirmation message
      */
-    @PreAuthorize("hasRole('MANAGER')")
+//    @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping
     public ResponseEntity<String> deleteUsers(@RequestBody Map<String, List<String>> requestBody) {
         List<String> ids = requestBody.get("ids");
         userService.deleteUsers(ids);
         return ResponseEntity.ok("Users have been deleted");
     }
-    @PreAuthorize("hasAuthority('VIEW_USER')")
-    @GetMapping("/myinfo")
-    public ApiResponse<UserResponse> getMyInfo() {
-        return ApiResponse.<UserResponse>builder()
-                .result(userService.getMyInfo())
-                .build();
-    }
+//    @PreAuthorize("hasAuthority('VIEW_USER')")
+//    @GetMapping("/myinfo")
+//    public ApiResponse<UserResponse> getMyInfo() {
+//        return ApiResponse.<UserResponse>builder()
+//                .result(userService.getMyInfo())
+//                .build();
+//    }
 }

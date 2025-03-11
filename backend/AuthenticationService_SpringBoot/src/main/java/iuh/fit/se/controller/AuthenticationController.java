@@ -49,6 +49,12 @@ public class AuthenticationController {
         return ApiResponse.<IntrospectResponse>builder().result(result).build();
     }
 
+    @PostMapping("/logout")
+    public ApiResponse<Void> logout(@RequestBody LogoutRequest request) throws ParseException, JOSEException {
+        authenticationService.logout(request);
+        return ApiResponse.<Void>builder().build();
+    }
+
     // Xác thực JWT và trả về thông tin người dùng
     @GetMapping("/verify-jwt")
     public ApiResponse<UserResponse> verifyJwtToken(@RequestHeader("Authorization") String token) {

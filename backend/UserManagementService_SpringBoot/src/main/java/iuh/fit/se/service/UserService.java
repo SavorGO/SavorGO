@@ -1,15 +1,14 @@
 package iuh.fit.se.service;
 
-import java.util.List;
-
 import iuh.fit.se.dto.request.UserCreationRequest;
 import iuh.fit.se.dto.request.UserUpdateRequest;
 import iuh.fit.se.dto.response.UserResponse;
 
+import java.util.List;
+
 public interface UserService {
     UserResponse findById(String id);
 
-    UserResponse getMyInfo();
 
     UserResponse createUser(UserCreationRequest request);
 
@@ -17,7 +16,7 @@ public interface UserService {
 
     void deleteUser(String id);
 
-    UserResponse findByEmail(String email);
+//    UserResponse findByEmail(String email);
 
     List<UserResponse> findUsers();
 
