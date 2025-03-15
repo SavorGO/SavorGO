@@ -1,17 +1,11 @@
 package iuh.fit.se.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import iuh.fit.se.enums.UserRoleEnum;
-import iuh.fit.se.enums.UserStatusEnum;
-import iuh.fit.se.enums.UserTierEnum;
+import java.util.Set;
+
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Size;
+
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -22,6 +16,7 @@ import java.util.Set;
 public class Role {
     @Id
     String name;
+
     String description;
 
     @ManyToMany

@@ -1,9 +1,10 @@
 package iuh.fit.se.exception;
 
-import lombok.*;
-import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
@@ -20,9 +21,10 @@ public enum ErrorCode {
             1007,
             "Password must contain at least one uppercase letter,"
                     + " one special character, and be at least 8 characters long"
-                    + "Ex: Thinh@123",HttpStatus.BAD_REQUEST),
+                    + "Ex: Thinh@123",
+            HttpStatus.BAD_REQUEST),
     UNAUTHENTICATED(1008, "Email or password is incorrect", HttpStatus.UNAUTHORIZED),
-        UNAUTHORIZED(1009, "You are not authorized to perform this action", HttpStatus.BAD_REQUEST),
+    UNAUTHORIZED(1009, "You are not authorized to perform this action", HttpStatus.BAD_REQUEST),
     ;
     int code;
     String message;

@@ -1,9 +1,5 @@
 package iuh.fit.se.controller;
 
-import java.util.List;
-import java.util.Map;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
@@ -11,8 +7,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 import iuh.fit.se.dto.request.UserCreationRequest;
-import iuh.fit.se.dto.request.UserUpdateRequest;
 import iuh.fit.se.dto.response.ApiResponse;
 import iuh.fit.se.dto.response.UserResponse;
 import iuh.fit.se.service.UserService;
@@ -34,10 +31,10 @@ public class UserController {
      *
      * @return a list of all users
      */
-//    @GetMapping
-//    public ResponseEntity<List<UserResponse>> getUsers() {
-//        return ResponseEntity.ok(userService.findUsers());
-//    }
+    //    @GetMapping
+    //    public ResponseEntity<List<UserResponse>> getUsers() {
+    //        return ResponseEntity.ok(userService.findUsers());
+    //    }
 
     /**
      * Get a user by ID.
@@ -45,10 +42,10 @@ public class UserController {
      * @param id the unique ID of the user
      * @return the user information
      */
-//    @GetMapping("/{id}")
-//    public ResponseEntity<UserResponse> getUser(@PathVariable String id) {
-//        return ResponseEntity.ok(userService.findById(id));
-//    }
+    //    @GetMapping("/{id}")
+    //    public ResponseEntity<UserResponse> getUser(@PathVariable String id) {
+    //        return ResponseEntity.ok(userService.findById(id));
+    //    }
 
     /**
      * Search users by a query string.
@@ -56,11 +53,11 @@ public class UserController {
      * @param query the search query to filter users
      * @return a list of users matching the search query
      */
-//    @GetMapping("/search")
-//    public ResponseEntity<List<UserResponse>> searchUsers(@RequestParam(name = "q") String query) {
-//        List<UserResponse> users = userService.searchUsers(query);
-//        return ResponseEntity.ok(users);
-//    }
+    //    @GetMapping("/search")
+    //    public ResponseEntity<List<UserResponse>> searchUsers(@RequestParam(name = "q") String query) {
+    //        List<UserResponse> users = userService.searchUsers(query);
+    //        return ResponseEntity.ok(users);
+    //    }
 
     /**
      * Get users by role.
@@ -97,7 +94,8 @@ public class UserController {
      * @return the created user
      */
     @PostMapping("/create")
-    public ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreationRequest request) throws JsonProcessingException {
+    public ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreationRequest request)
+            throws JsonProcessingException {
         //        return ResponseEntity.ok(userService.createUser(request));
         return ApiResponse.<UserResponse>builder()
                 .result(userService.createUser(request))
@@ -111,11 +109,12 @@ public class UserController {
      * @param request the user update request containing updated user details
      * @return the updated user
      */
-//    @PreAuthorize("hasAuthority('UPDATE_USER')")
-//    @PutMapping("/{id}")
-//    public ResponseEntity<UserResponse> updateUser(@PathVariable String id, @RequestBody UserUpdateRequest request) {
-//        return ResponseEntity.ok(userService.updateUser(id, request));
-//    }
+    //    @PreAuthorize("hasAuthority('UPDATE_USER')")
+    //    @PutMapping("/{id}")
+    //    public ResponseEntity<UserResponse> updateUser(@PathVariable String id, @RequestBody UserUpdateRequest
+    // request) {
+    //        return ResponseEntity.ok(userService.updateUser(id, request));
+    //    }
 
     /**
      * Delete a user by ID.
@@ -123,12 +122,12 @@ public class UserController {
      * @param id the unique ID of the user to delete
      * @return a confirmation message
      */
-//    @PreAuthorize("hasRole('MANAGER')")
-//    @DeleteMapping("/{id}")
-//    public ResponseEntity<String> deleteUser(@PathVariable String id) {
-//        userService.deleteUser(id);
-//        return ResponseEntity.ok("User has been deleted");
-//    }
+    //    @PreAuthorize("hasRole('MANAGER')")
+    //    @DeleteMapping("/{id}")
+    //    public ResponseEntity<String> deleteUser(@PathVariable String id) {
+    //        userService.deleteUser(id);
+    //        return ResponseEntity.ok("User has been deleted");
+    //    }
 
     /**
      * Delete multiple users.
@@ -136,18 +135,18 @@ public class UserController {
      * @param requestBody a map containing a list of user IDs to delete
      * @return a confirmation message
      */
-//    @PreAuthorize("hasRole('MANAGER')")
-//    @DeleteMapping
-//    public ResponseEntity<String> deleteUsers(@RequestBody Map<String, List<String>> requestBody) {
-//        List<String> ids = requestBody.get("ids");
-//        userService.deleteUsers(ids);
-//        return ResponseEntity.ok("Users have been deleted");
-//    }
-//    @PreAuthorize("hasAuthority('VIEW_USER')")
-//    @GetMapping("/myinfo")
-//    public ApiResponse<UserResponse> getMyInfo() {
-//        return ApiResponse.<UserResponse>builder()
-//                .result(userService.getMyInfo())
-//                .build();
-//    }
+    //    @PreAuthorize("hasRole('MANAGER')")
+    //    @DeleteMapping
+    //    public ResponseEntity<String> deleteUsers(@RequestBody Map<String, List<String>> requestBody) {
+    //        List<String> ids = requestBody.get("ids");
+    //        userService.deleteUsers(ids);
+    //        return ResponseEntity.ok("Users have been deleted");
+    //    }
+    //    @PreAuthorize("hasAuthority('VIEW_USER')")
+    //    @GetMapping("/myinfo")
+    //    public ApiResponse<UserResponse> getMyInfo() {
+    //        return ApiResponse.<UserResponse>builder()
+    //                .result(userService.getMyInfo())
+    //                .build();
+    //    }
 }

@@ -28,8 +28,22 @@ public class JwtUtil {
     @Value("${jwt.signerKey}")
     private String secretKey;
 
+    @Value("${jwt.valid-duration}")
+    private long VALID_DURATION;
+
+    @Value("${jwt.refreshable-duration}")
+    private long REFRESH_DURATION;
+
     public String getSecretKey() {
         return secretKey;
+    }
+
+    public long getVALID_DURATION() {
+        return VALID_DURATION;
+    }
+
+    public long getREFRESH_DURATION() {
+        return REFRESH_DURATION;
     }
 
     private Key getSignKey() {
@@ -42,11 +56,11 @@ public class JwtUtil {
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .subject(user.getEmail())
                 .issuer("SavorGo")
-//                .audience(user.getFirstName())
+                //                .audience(user.getFirstName())
                 .claim("scope", buildScope(user))
                 .issueTime(new Date())
                 .expirationTime(
-                        new Date(Instant.now().plus(30, ChronoUnit.MINUTES).toEpochMilli()))
+                        new Date(Instant.now().plus(VALID_DURATION, ChronoUnit.SECONDS).toEpochMilli()))
                 .jwtID(UUID.randomUUID().toString())
                 .build();
 
@@ -66,11 +80,10 @@ public class JwtUtil {
         StringJoiner stringJoiner = new StringJoiner(" ");
         if (!CollectionUtils.isEmpty(user.getRoles())) {
             user.getRoles().forEach(s -> {
-                stringJoiner.add("ROLE_"+s.getName());
-                if(!CollectionUtils.isEmpty(s.getPermissions()))
-                s.getPermissions().forEach(p -> stringJoiner.add(p.getName()));
+                stringJoiner.add("ROLE_" + s.getName());
+                if (!CollectionUtils.isEmpty(s.getPermissions()))
+                    s.getPermissions().forEach(p -> stringJoiner.add(p.getName()));
             });
-
         }
         return stringJoiner.toString();
     }

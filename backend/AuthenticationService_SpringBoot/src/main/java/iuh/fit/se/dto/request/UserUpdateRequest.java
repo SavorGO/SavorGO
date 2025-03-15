@@ -2,11 +2,9 @@ package iuh.fit.se.dto.request;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import iuh.fit.se.enums.UserRoleEnum;
 import iuh.fit.se.enums.UserStatusEnum;
 import iuh.fit.se.enums.UserTierEnum;
 import lombok.AccessLevel;

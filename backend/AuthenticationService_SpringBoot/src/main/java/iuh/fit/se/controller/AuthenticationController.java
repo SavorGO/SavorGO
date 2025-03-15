@@ -55,6 +55,13 @@ public class AuthenticationController {
         return ApiResponse.<Void>builder().build();
     }
 
+    @PostMapping("/refresh")
+    public ApiResponse<AuthenticationResponse> refresh(@RequestBody RefreshRequest request)
+            throws ParseException, JOSEException {
+        AuthenticationResponse response = authenticationService.refreshToken(request);
+        return ApiResponse.<AuthenticationResponse>builder().result(response).build();
+    }
+
     // Xác thực JWT và trả về thông tin người dùng
     @GetMapping("/verify-jwt")
     public ApiResponse<UserResponse> verifyJwtToken(@RequestHeader("Authorization") String token) {

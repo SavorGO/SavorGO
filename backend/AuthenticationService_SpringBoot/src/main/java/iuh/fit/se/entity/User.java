@@ -9,9 +9,6 @@ import jakarta.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import iuh.fit.se.enums.UserRoleEnum;
-import iuh.fit.se.enums.UserStatusEnum;
-import iuh.fit.se.enums.UserTierEnum;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -26,14 +23,19 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
+
     String email;
+
     @JsonIgnore
     @Size(min = 8, message = "Password must be at least 8 characters")
     String password;
+
     @ManyToMany
     Set<Role> roles;
+
     @Column(name = "created_time")
     LocalDateTime createdTime;
+
     @Column(name = "modified_time")
     LocalDateTime modifiedTime;
 
@@ -41,7 +43,7 @@ public class User {
     void GenerateValue() {
         if (this.roles == null || this.roles.isEmpty()) {
             this.roles = new HashSet<>();
-//            this.roles.add(UserRoleEnum.CUSTOMER);
+            //            this.roles.add(UserRoleEnum.CUSTOMER);
         } else {
             this.roles = roles;
         }

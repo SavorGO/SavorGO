@@ -17,6 +17,8 @@ public interface AuthenticationService {
 
     void logout(LogoutRequest request) throws ParseException, JOSEException;
 
+    AuthenticationResponse refreshToken(RefreshRequest request) throws ParseException, JOSEException;
+
     UserResponse verifyJwtToken(String jwtToken);
 
     AuthenticationResponse loginWithEmailPassword(AuthenticationRequest request);

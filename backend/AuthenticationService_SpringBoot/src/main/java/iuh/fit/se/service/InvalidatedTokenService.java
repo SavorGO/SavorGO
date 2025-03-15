@@ -1,4 +1,3 @@
 package iuh.fit.se.service;
 
-public interface InvalidatedTokenService {
-}
+public interface InvalidatedTokenService {}

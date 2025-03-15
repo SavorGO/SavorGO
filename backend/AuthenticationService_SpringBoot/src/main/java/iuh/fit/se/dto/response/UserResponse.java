@@ -3,9 +3,6 @@ package iuh.fit.se.dto.response;
 import java.time.LocalDateTime;
 import java.util.Set;
 
-import iuh.fit.se.enums.UserRoleEnum;
-import iuh.fit.se.enums.UserStatusEnum;
-import iuh.fit.se.enums.UserTierEnum;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -20,5 +17,5 @@ public class UserResponse {
     Set<RoleResponse> roles;
     LocalDateTime createdTime;
     LocalDateTime modifiedTime;
-//    String publicId;
+    //    String publicId;
 }

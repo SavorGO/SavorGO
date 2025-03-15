@@ -2,17 +2,17 @@ package iuh.fit.se.config;
 
 import java.util.HashSet;
 
-import iuh.fit.se.entity.Permission;
-import iuh.fit.se.entity.Role;
-import iuh.fit.se.repository.PermissionRepository;
-import iuh.fit.se.repository.RoleRepository;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import iuh.fit.se.entity.Permission;
+import iuh.fit.se.entity.Role;
 import iuh.fit.se.entity.User;
 import iuh.fit.se.enums.UserRoleEnum;
+import iuh.fit.se.repository.PermissionRepository;
+import iuh.fit.se.repository.RoleRepository;
 import iuh.fit.se.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,8 @@ public class ApplicationInitConfig {
     PasswordEncoder passwordEncoder;
 
     @Bean
-    ApplicationRunner applicationRunner(UserRepository userRepository, PermissionRepository permissionRepository, RoleRepository roleRepository) {
+    ApplicationRunner applicationRunner(
+            UserRepository userRepository, PermissionRepository permissionRepository, RoleRepository roleRepository) {
         return args -> {
             // Initialize permissions
             var permissions = new HashSet<Permission>();
@@ -64,8 +65,6 @@ public class ApplicationInitConfig {
                     .permissions(permissions)
                     .build());
             roleRepository.saveAll(roles1);
-
-
 
             // Initialize admin user
             if (userRepository.findByEmail("admin").isEmpty()) {

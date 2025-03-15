@@ -1,11 +1,10 @@
 package iuh.fit.se.service.impl;
 
 import java.text.ParseException;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
-import iuh.fit.se.entity.InvalidatedToken;
-import iuh.fit.se.repository.InvalidatedTokenRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -22,14 +21,17 @@ import iuh.fit.se.dto.request.*;
 import iuh.fit.se.dto.response.AuthenticationResponse;
 import iuh.fit.se.dto.response.IntrospectResponse;
 import iuh.fit.se.dto.response.UserResponse;
+import iuh.fit.se.entity.InvalidatedToken;
 import iuh.fit.se.entity.User;
 import iuh.fit.se.exception.AppException;
 import iuh.fit.se.exception.ErrorCode;
+import iuh.fit.se.repository.InvalidatedTokenRepository;
 import iuh.fit.se.repository.UserRepository;
 import iuh.fit.se.service.AuthenticationService;
 import iuh.fit.se.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthenticationServiceImpl implements AuthenticationService {
@@ -86,37 +88,63 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         var token = request.getToken();
         boolean valid = true;
         try {
-            verifyToken(token);
-        }catch (AppException e){
+            verifyToken(token, false);
+        } catch (AppException e) {
             valid = false;
         }
-        return IntrospectResponse.builder()
-                .valid(valid)
-                .build();
+        return IntrospectResponse.builder().valid(valid).build();
     }
 
-    private SignedJWT verifyToken(String token) throws JOSEException, ParseException {
+    private SignedJWT verifyToken(String token, boolean isRefresh) throws JOSEException, ParseException {
         JWSVerifier verifier = new MACVerifier(jwtUtil.getSecretKey());
         SignedJWT signedJWT = SignedJWT.parse(token);
-        Date expityTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+        Date expityTime = !isRefresh
+                ? signedJWT.getJWTClaimsSet().getExpirationTime()
+                : new Date(signedJWT
+                        .getJWTClaimsSet()
+                        .getIssueTime()
+                        .toInstant()
+                        .plus(jwtUtil.getREFRESH_DURATION(), ChronoUnit.SECONDS)
+                        .toEpochMilli());
         var verified = signedJWT.verify(verifier);
         if (!verified && expityTime.after(new Date()))
             throw new AppException(ErrorCode.UNAUTHENTICATED);
-        if(invalidatedTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID()))
+        if (invalidatedTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID()))
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         return signedJWT;
     }
 
     @Override
     public void logout(LogoutRequest request) throws ParseException, JOSEException {
-        var signToken = verifyToken(request.getToken());
-        String jit = signToken.getJWTClaimsSet().getJWTID();
-        Date expiryTime = signToken.getJWTClaimsSet().getExpirationTime();
-        InvalidatedToken invalidatedToken = InvalidatedToken.builder()
-                .id(jit)
-                .expiryTime(expiryTime)
-                .build();
+        try {
+            var signToken = verifyToken(request.getToken(), true);
+            String jit = signToken.getJWTClaimsSet().getJWTID();
+            Date expiryTime = signToken.getJWTClaimsSet().getExpirationTime();
+            InvalidatedToken invalidatedToken =
+                    InvalidatedToken.builder().id(jit).expiryTime(expiryTime).build();
+            invalidatedTokenRepository.save(invalidatedToken);
+        } catch (AppException e) {
+            log.info("Token already expired");
+        }
+    }
+
+    @Override
+    public AuthenticationResponse refreshToken(RefreshRequest request) throws ParseException, JOSEException {
+        var signToken = verifyToken(request.getToken(), true);
+        var jit = signToken.getJWTClaimsSet().getJWTID();
+        var expiryTime = signToken.getJWTClaimsSet().getExpirationTime();
+        InvalidatedToken invalidatedToken =
+                InvalidatedToken.builder().id(jit).expiryTime(expiryTime).build();
         invalidatedTokenRepository.save(invalidatedToken);
+
+        var email = signToken.getJWTClaimsSet().getSubject();
+
+        var user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        var jwtToken = jwtUtil.generateToken(user);
+        return AuthenticationResponse.builder()
+                .jwtToken(jwtToken)
+                .message("Refresh token successful")
+                .build();
     }
 
     // Xác thực JWT và trả về thông tin người dùng
@@ -159,8 +187,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         //        user.setFirstName(request.getFirstName());
-//        user.setLastName(request.getLastName());
-//        user.setAddress(request.getAddress());
+        //        user.setLastName(request.getLastName());
+        //        user.setAddress(request.getAddress());
 
         // Save the user to the database
         userRepository.save(user);

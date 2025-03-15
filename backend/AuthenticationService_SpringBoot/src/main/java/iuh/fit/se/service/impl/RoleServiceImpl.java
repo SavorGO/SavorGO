@@ -1,5 +1,10 @@
 package iuh.fit.se.service.impl;
 
+import java.util.HashSet;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
 import iuh.fit.se.dto.request.RoleRequest;
 import iuh.fit.se.dto.response.RoleResponse;
 import iuh.fit.se.entity.Role;
@@ -10,18 +15,15 @@ import iuh.fit.se.service.RoleService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.stereotype.Service;
-
-import java.util.HashSet;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class RoleServiceImpl implements RoleService {
     RoleRepository roleRepository;
     RoleMapper roleMapper;
     PermissionRepository permissionRepository;
+
     @Override
     public RoleResponse create(RoleRequest request) {
         Role role = roleMapper.toRole(request);
@@ -41,4 +43,3 @@ public class RoleServiceImpl implements RoleService {
         roleRepository.deleteById(roleName);
     }
 }
-
