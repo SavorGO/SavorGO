@@ -10,10 +10,16 @@ spring:
   cloud:
     gateway:
       routes:
-        - id: user-service
-          uri: http://localhost:8080/api/users
+        - id: authentication-service
+          uri: http://localhost:8080
           predicates:
             - Path=${app.api-prefix}/**
+          filters:
+            - StripPrefix=2
+        - id: user-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=${app.api-prefix}/users/**
           filters:
             - StripPrefix=2
 logging:

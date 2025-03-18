@@ -12,9 +12,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
-//import org.springframework.security.access.prepost.PreAuthorize;
-//import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,9 +31,12 @@ public class UserController {
      *
      * @return a list of all users
      */
+    @PreAuthorize("hasRole('MANAGER')")
     @GetMapping
-    public ResponseEntity<List<UserResponse>> getUsers() {
-        return ResponseEntity.ok(userService.findUsers());
+    public ApiResponse<List<UserResponse>> getUsers() {
+        return ApiResponse.<List<UserResponse>>builder()
+                .result(userService.findUsers())
+                .build();
     }
 
     /**
@@ -45,8 +46,10 @@ public class UserController {
      * @return the user information
      */
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getUser(@PathVariable String id) {
-        return ResponseEntity.ok(userService.findById(id));
+    public ApiResponse<UserResponse> getUser(@PathVariable String id) {
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.findById(id))
+                .build();
     }
 
     /**
@@ -56,38 +59,11 @@ public class UserController {
      * @return a list of users matching the search query
      */
     @GetMapping("/search")
-    public ResponseEntity<List<UserResponse>> searchUsers(@RequestParam(name = "q") String query) {
-        List<UserResponse> users = userService.searchUsers(query);
-        return ResponseEntity.ok(users);
+    public ApiResponse<List<UserResponse>> searchUsers(@RequestParam(name = "q") String query) {
+        return ApiResponse.<List<UserResponse>>builder()
+                .result(userService.searchUsers(query))
+                .build();
     }
-
-    /**
-     * Get users by role.
-     *
-     * @param role the role of users to search for
-     * @return a list of users with the specified role
-     */
-    //    @GetMapping("/search/r/{role}")
-    //    public ResponseEntity<List<UserResponse>> getUsersByRole(@PathVariable String role) {
-    //        return ResponseEntity.ok(userService.findByRole(role));
-    //    }
-
-    /**
-     * Get a user by email.
-     *
-     * @param email the email of the user
-     * @return the user information
-     */
-//    @PreAuthorize("hasRole('MANAGER')")
-//    @GetMapping("/search/e/{email}")
-//    public ResponseEntity<UserResponse> getUserByEmail(@PathVariable String email) {
-//        var authentication = SecurityContextHolder.getContext().getAuthentication();
-//        log.info("User: {}", authentication.getPrincipal());
-//        log.info("Name: {}", authentication.getName());
-//        log.info("Authorities: ");
-//        authentication.getAuthorities().forEach(s -> log.info(s.getAuthority()));
-//        return ResponseEntity.ok(userService.findByEmail(email));
-//    }
 
     /**
      * Create a new user.
@@ -97,7 +73,6 @@ public class UserController {
      */
     @PostMapping("/create")
     public ApiResponse<UserResponse> createUser(@RequestBody @Valid UserCreationRequest request) throws JsonProcessingException {
-        //        return ResponseEntity.ok(userService.createUser(request));
         ObjectMapper objectMapper = new ObjectMapper();
         log.info("UserClientRequest JSON: {}", objectMapper.writeValueAsString(request));
         return ApiResponse.<UserResponse>builder()
@@ -112,10 +87,11 @@ public class UserController {
      * @param request the user update request containing updated user details
      * @return the updated user
      */
-//    @PreAuthorize("hasAuthority('UPDATE_USER')")
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponse> updateUser(@PathVariable String id, @RequestBody UserUpdateRequest request) {
-        return ResponseEntity.ok(userService.updateUser(id, request));
+    public ApiResponse<UserResponse> updateUser(@PathVariable String id, @RequestBody UserUpdateRequest request) {
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.updateUser(id, request))
+                .build();
     }
 
     /**
@@ -124,11 +100,12 @@ public class UserController {
      * @param id the unique ID of the user to delete
      * @return a confirmation message
      */
-//    @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteUser(@PathVariable String id) {
+    public ApiResponse<String> deleteUser(@PathVariable String id) {
         userService.deleteUser(id);
-        return ResponseEntity.ok("User has been deleted");
+        return ApiResponse.<String>builder()
+                .result("User has been deleted")
+                .build();
     }
 
     /**
@@ -137,18 +114,12 @@ public class UserController {
      * @param requestBody a map containing a list of user IDs to delete
      * @return a confirmation message
      */
-//    @PreAuthorize("hasRole('MANAGER')")
     @DeleteMapping
-    public ResponseEntity<String> deleteUsers(@RequestBody Map<String, List<String>> requestBody) {
+    public ApiResponse<String> deleteUsers(@RequestBody Map<String, List<String>> requestBody) {
         List<String> ids = requestBody.get("ids");
         userService.deleteUsers(ids);
-        return ResponseEntity.ok("Users have been deleted");
+        return ApiResponse.<String>builder()
+                .result("Users have been deleted")
+                .build();
     }
-//    @PreAuthorize("hasAuthority('VIEW_USER')")
-//    @GetMapping("/myinfo")
-//    public ApiResponse<UserResponse> getMyInfo() {
-//        return ApiResponse.<UserResponse>builder()
-//                .result(userService.getMyInfo())
-//                .build();
-//    }
 }

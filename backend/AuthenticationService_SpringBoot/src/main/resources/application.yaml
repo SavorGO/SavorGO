@@ -3,17 +3,17 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mariadb://localhost:3306/auth_db
+    url: ${DBMS_CONNECTION}
     driver-class-name: "org.mariadb.jdbc.Driver"
-    username: root
-    password: sapassword
+    username: ${DBMS_USERNAME}
+    password: ${DBMS_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
 
 jwt:
-  signerKey: "1TjXchw5FloESb63Kc+DFhTARvpWL4jUGCwfGWxuG5SIf/1y/LgJxHnMqaF6A/ij"
+  signerKey: ${JWT_SIGNERKEY}
   valid-duration: 3600 #in seconds
   refreshable-duration: 360000 #in seconds
 

@@ -2,6 +2,7 @@ package iuh.fit.se.service.impl;
 
 import java.util.HashSet;
 
+import jakarta.servlet.ServletContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,8 @@ import iuh.fit.se.repository.httpclient.UserClient;
 import iuh.fit.se.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Slf4j
 @Service
@@ -68,6 +71,8 @@ public class UserServiceImpl implements UserService {
         log.info("UserClientRequest JSON: {}", objectMapper.writeValueAsString(userClientRequest));
         //        log.warn("UserClientRequest: " + userClientRequest.getAccountId() +
         // userClientRequest.getFirstName()+userClientRequest.getLastName()+userClientRequest.getAccountId());
+//        ServletRequestAttributes authorization = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+//        var token = authorization.getRequest().getHeader("Authorization");
         var x = userClient.createUser(userClientRequest);
         //        log.warn("UserClientResponse: " + x.getAccountId()+x.getFirstName());
         return userMapper.toUserResponse(user);
