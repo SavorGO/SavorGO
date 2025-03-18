@@ -1,0 +1,122 @@
+services:
+  # DATABASE NETWORK
+  mariadb:
+    build: ./backends/Databases/mariadb
+    env_file:
+      - ./backends/Databases/mariadb/.env
+    ports:
+      - "3306:3306"
+    networks:
+      - databases
+
+  mongodb:
+    build: 
+      context: ./backends/Databases/mongodb
+      dockerfile: mongo.dockerfile
+    env_file:
+      - ./backends/Databases/mongodb/.env
+    ports:
+      - "27017:27017"
+    networks:
+      - databases
+    volumes:
+      - "S:/Delevopement Workspace/SavorGO/backends/Databases/mongodb/menus.json:/docker-entrypoint-initdb.d/menus.json"
+
+  # BACKEND NETWORK
+  menu_statistics_django:
+    build: ./backends/MenuAndStatisticsManagementService_Django
+    container_name: menu_statistics_django
+    restart: always
+    depends_on:
+      - mariadb
+      - mongodb
+    env_file:
+      - ./backends/MenuAndStatisticsManagementService_Django/.env
+    ports:
+      - "8000:8000"
+    networks:
+      - backends
+      - databases  # Kết nối được với database
+    command: >
+      bash -c "sleep 10 && python manage.py runserver 0.0.0.0:8000"
+
+  mongodb_import:
+    build:
+      context: ./backends/Databases/mongodb
+      dockerfile: import.dockerfile
+    env_file:
+      - ./backends/Databases/mongodb/.env
+    depends_on:
+      - mongodb
+    networks:
+      - databases
+    volumes:
+      - "S:/Delevopement Workspace/SavorGO/backends/Databases/mongodb/menus.json:/docker-entrypoint-initdb.d/menus.json"
+  user_springboot:
+    build: ./backends/UserManagementService_SpringBoot
+    container_name: user_springboot
+    restart: always
+    depends_on:
+      - mariadb
+    ports:
+      - "8080:8080"
+    networks:
+      - backends
+      - databases
+    volumes:
+      - ./serviceAccountKey.json:/app/serviceAccountKey.json
+
+
+  # FRONTEND NETWORK
+  customer_nextjs:
+    build: ./frontends/Customer_NextJS
+    container_name: customer_nextjs
+    restart: always
+    depends_on:
+      - menu_statistics_django
+    ports:
+      - "3000:3000"
+    networks:
+      - frontends
+    environment:
+      - NODE_ENV=production
+  workforce_swing:
+    build: ./frontends/Workforce_Swing
+    container_name: workforce_swing
+    restart: always
+    depends_on:
+      - menu_statistics_django
+      - user_springboot
+    networks:
+      - frontends
+    environment:
+      - DISPLAY=$DISPLAY
+    ports:
+    - "8082:8082"
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix  # Cho phép hiển thị UI Java Swing
+
+  # REVERSE PROXY (NGINX)
+  nginx:
+    image: nginx:latest
+    container_name: nginx_proxy
+    restart: always
+    depends_on:
+      - menu_statistics_django
+      - customer_nextjs
+    networks:
+      - frontends
+      - backends  # Cầu nối frontend và backend
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro  # Cấu hình Nginx tùy chỉnh
+
+# NETWORKS
+networks:
+  frontends:
+    driver: bridge
+  backends:
+    driver: bridge
+  databases:
+    driver: bridge

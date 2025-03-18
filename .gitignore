@@ -1,0 +1,96 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# Node.js dependencies
+**/node_modules/
+node_modules/
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# Testing
+/coverage
+.env
+.env*.local
+
+# Next.js
+/.next/
+.out/
+
+# Build output
+/build
+
+# Miscellaneous
+.DS_Store
+*.pem
+
+# Debugging logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Docker
+/.dockerignore
+/docker-compose.override.yml
+
+# IDE configurations (Eclipse, IntelliJ, VS Code)
+.metadata/
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+
+# IntelliJ IDEA
+.idea/
+
+# Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# Database environment files (to protect sensitive information)
+backends/Databases/.env
+backends/MenuAndStatisticsManagementService_Django/.env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Logs
+logs/*
+
+# Virtual environments
+backends/MenuAndStatisticsManagementService_Django/venv/
+
+# Java build files
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Gradle build files
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Java service key (do not commit sensitive keys)
+src/main/resources/serviceAccountKey.json

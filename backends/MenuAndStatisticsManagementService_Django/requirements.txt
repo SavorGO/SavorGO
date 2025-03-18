@@ -1,0 +1,16 @@
+asgiref
+Django
+django-cors-headers
+django-mongoengine
+djangorestframework
+mongoengine
+mysqlclient
+psycopg2
+pymongo
+pytz
+setuptools
+sqlparse
+tzdata
+drf-spectacular
+drf-spectacular-sidecar
+python-dotenv

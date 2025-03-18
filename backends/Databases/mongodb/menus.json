@@ -1,0 +1,427 @@
+[{
+  "_id": {
+    "$oid": "6793901c2251b721c39a9279"
+  },
+  "name": "Cá Chiên Giòn",
+  "category": "Fried Food",
+  "description": "Cá tươi chiên giòn, ăn kèm với nước chấm.",
+  "original_price": 412856,
+  "sale_price": 531714,
+  "sizes": [],
+  "options": [],
+  "status": "Available",
+  "created_time": {
+    "$date": "2025-01-30T10:00:00.000Z"
+  },
+  "modified_time": {
+    "$date": "2025-01-30T05:42:52.468Z"
+  },
+  "public_id": "Y0Ahc4vCVA"
+},
+{
+  "_id": {
+    "$oid": "6793901c2251b721c39a9280"
+  },
+  "name": "Trà Sữa Trân Châu",
+  "category": "Beverages",
+  "description": "Trà sữa thơm ngon với trân châu dẻo.",
+  "original_price": 470984,
+  "sale_price": 773194,
+  "sizes": [
+    {
+      "size_name": "Medium",
+      "price_change": 0
+    }
+  ],
+  "options": [],
+  "status": "Available",
+  "created_time": {
+    "$date": "2025-01-30T10:05:00.000Z"
+  },
+  "modified_time": {
+    "$date": "2025-01-30T08:44:01.504Z"
+  },
+  "public_id": "7TFEjfgs0V"
+},
+{
+  "_id": {
+    "$oid": "6793901c2251b721c39a9281"
+  },
+  "name": "Bánh Mì Thịt Nướng",
+  "category": "Main Course",
+  "description": "Bánh mì với thịt nướng và rau sống.",
+  "original_price": 109834,
+  "sale_price": 345344,
+  "sizes": [],
+  "options": [],
+  "status": "Available",
+  "created_time": {
+    "$date": "2025-01-30T10:10:00.000Z"
+  },
+  "modified_time": {
+    "$date": "2025-01-30T14:29:49.554Z"
+  },
+  "public_id": "Hilr4BUrnW"
+},
+{
+  "_id": {
+    "$oid": "6793901c2251b721c39a9282"
+  },
+  "name": "Kem Dừa",
+  "category": "Desserts",
+  "description": "Kem dừa thơm ngon, mát lạnh.",
+  "original_price": 160799,
+  "sale_price": 658291,
+  "sizes": [],
+  "options": [],
+  "status": "Available",
+  "created_time": {
+    "$date": "2025-01-30T10:15:00.000Z"
+  },
+  "modified_time": {
+    "$date": "2025-01-30T08:39:21.701Z"
+  },
+  "public_id": "kWWTNGOBI1"
+},
+{
+  "_id": {
+    "$oid": "6793901c2251b721c39a9283"
+  },
+  "name": "Gỏi Cuốn",
+  "category": "Appetizers",
+  "description": "Gỏi cuốn tươi ngon, ăn kèm với nước chấm.",
+  "original_price": 718360,
+  "sale_price": 722669,
+  "sizes": [],
+  "options": [],
+  "status": "Available",
+  "created_time": {
+    "$date": "2025-01-30T10:20:00.000Z"
+  },
+  "modified_time": {
+    "$date": "2025-01-30T08:42:54.827Z"
+  },
+  "public_id": "a1M5AxTXOn"
+},
+{
+  "_id": {
+    "$oid": "6793901c2251b721c39a9284"
+  },
+  "name": "Mì Quảng",
+  "category": "Main Course",
+  "description": "Mì Quảng với tôm, thịt và rau sống.",
+  "original_price": 7506,
+  "sale_price": 388134,
+  "sizes": [],
+  "options": [],
+  "status": "Available",
+  "created_time": {
+    "$date": "2025-01-30T10:25:00.000Z"
+  },
+  "modified_time": {
+    "$date": "2025-01-30T05:38:27.554Z"
+  },
+  "public_id": "VJV4ALvxTc"
+},
+{
+  "_id": {
+    "$oid": "6793901c2251b721c39a9285"
+  },
+  "name": "Soda Chanh",
+  "category": "Beverages",
+  "description": "Soda chanh mát lạnh, giải khát tuyệt vời.",
+  "original_price": 595076,
+  "sale_price": 681541,
+  "sizes": [],
+  "options": [],
+  "status": "Available",
+  "created_time": {
+    "$date": "2025-01-30T10:30:00.000Z"
+  },
+  "modified_time": {
+    "$date": "2025-01-30T08:40:30.013Z"
+  },
+  "public_id": "AZus8qxjxy"
+},
+{
+  "_id": {
+    "$oid": "6793901c2251b721c39a9286"
+  },
+  "name": "Bánh Flan",
+  "category": "Desserts",
+  "description": "Bánh flan mềm mịn, thơm ngon.",
+  "original_price": 395536,
+  "sale_price": 547228,
+  "sizes": [],
+  "options": [],
+  "status": "Available",
+  "created_time": {
+    "$date": "2025-01-30T10:35:00.000Z"
+  },
+  "modified_time": {
+    "$date": "2025-01-30T08:38:38.057Z"
+  },
+  "public_id": "Gm2PhfzFdP"
+},
+{
+  "_id": {
+    "$oid": "6793901c2251b721c39a9287"
+  },
+  "name": "Pizza Hải Sản",
+  "category": "Main Course",
+  "description": "Pizza với hải sản tươi ngon.",
+  "original_price": 609822,
+  "sale_price": 612186,
+  "sizes": [],
+  "options": [],
+  "status": "Available",
+  "created_time": {
+    "$date": "2025-01-30T10:40:00.000Z"
+  },
+  "modified_time": {
+    "$date": "2025-01-30T08:38:55.246Z"
+  },
+  "public_id": "DjkwiWz7Cc"
+},
+{
+  "_id": {
+    "$oid": "6793901c2251b721c39a9288"
+  },
+  "name": "Bánh Xèo",
+  "category": "Snacks",
+  "description": "Bánh xèo giòn rụm, ăn kèm với rau sống.",
+  "original_price": 697453,
+  "sale_price": 890463,
+  "sizes": [],
+  "options": [],
+  "status": "Available",
+  "created_time": {
+    "$date": "2025-01-30T10:45:00.000Z"
+  },
+  "modified_time": {
+    "$date": "2025-01-30T05:43:39.113Z"
+  },
+  "public_id": "UWj0qOiFdu"
+},
+{
+  "_id": {
+    "$oid": "6793901c2251b721c39a9289"
+  },
+  "name": "Sushi Cá Hồi",
+  "category": "Specialties",
+  "description": "Sushi với cá hồi tươi ngon.",
+  "original_price": 20876,
+  "sale_price": 715402,
+  "sizes": [],
+  "options": [],
+  "status": "Available",
+  "created_time": {
+    "$date": "2025-01-30T10:50:00.000Z"
+  },
+  "modified_time": {
+    "$date": "2025-01-30T05:42:29.265Z"
+  },
+  "public_id": "Sx17IpM7v7"
+},
+{
+  "_id": {
+    "$oid": "6793901c2251b721c39a9290"
+  },
+  "name": "Bò Bít Tết",
+  "category": "Main Course",
+  "description": "Bò bít tết nướng, ăn kèm với khoai tây chiên.",
+  "original_price": 34770,
+  "sale_price": 687071,
+  "sizes": [],
+  "options": [],
+  "status": "Available",
+  "created_time": {
+    "$date": "2025-01-30T10:55:00.000Z"
+  },
+  "modified_time": {
+    "$date": "2025-01-30T05:37:52.786Z"
+  },
+  "public_id": "C1r0PRPw89"
+},
+{
+  "_id": {
+    "$oid": "6793901c2251b721c39a9291"
+  },
+  "name": "Chè Bắp",
+  "category": "Desserts",
+  "description": "Chè bắp ngọt ngào, thơm ngon.",
+  "original_price": 349215,
+  "sale_price": 456316,
+  "sizes": [],
+  "options": [],
+  "status": "Available",
+  "created_time": {
+    "$date": "2025-01-30T11:00:00.000Z"
+  },
+  "modified_time": {
+    "$date": "2025-01-30T05:42:12.644Z"
+  },
+  "public_id": "sw1fUyqWPP"
+},
+{
+  "_id": {
+    "$oid": "6793901c2251b721c39a9292"
+  },
+  "name": "Nước Dừa Tươi",
+  "category": "Beverages",
+  "description": "Nước dừa tươi mát lạnh.",
+  "original_price": 252793,
+  "sale_price": 589968,
+  "sizes": [],
+  "options": [],
+  "status": "Available",
+  "created_time": {
+    "$date": "2025-01-30T11:05:00.000Z"
+  },
+  "modified_time": {
+    "$date": "2025-01-30T05:41:53.672Z"
+  },
+  "public_id": "NEUNQ7X2UH"
+},
+{
+  "_id": {
+    "$oid": "6793901c2251b721c39a9293"
+  },
+  "name": "Bánh Bông Lan",
+  "category": "Desserts",
+  "description": "Bánh bông lan mềm mịn, thơm ngon.",
+  "original_price": 193739,
+  "sale_price": 756654,
+  "sizes": [],
+  "options": [],
+  "status": "Available",
+  "created_time": {
+    "$date": "2025-01-30T11:10:00.000Z"
+  },
+  "modified_time": {
+    "$date": "2025-01-30T08:42:06.560Z"
+  },
+  "public_id": "nAlBTQ4osD"
+},
+{
+  "_id": {
+    "$oid": "6793901c2251b721c39a9294"
+  },
+  "name": "Mì Ý Bò Bằm",
+  "category": "Main Course",
+  "description": "Mì Ý với bò bằm và sốt cà chua.",
+  "original_price": 256941,
+  "sale_price": 540781,
+  "sizes": [],
+  "options": [],
+  "status": "Available",
+  "created_time": {
+    "$date": "2025-01-30T11:15:00.000Z"
+  },
+  "modified_time": {
+    "$date": "2025-01-30T08:39:41.620Z"
+  },
+  "public_id": "yMQcAvdfkh"
+},
+{
+  "_id": {
+    "$oid": "6793901c2251b721c39a9295"
+  },
+  "name": "Cà Phê Sữa Đá",
+  "category": "Beverages",
+  "description": "Cà phê sữa đá thơm ngon, đậm đà.",
+  "original_price": 378147,
+  "sale_price": 927115,
+  "sizes": [],
+  "options": [],
+  "status": "Available",
+  "created_time": {
+    "$date": "2025-01-30T11:20:00.000Z"
+  },
+  "modified_time": {
+    "$date": "2025-01-30T08:41:44.484Z"
+  },
+  "public_id": "kGfUYypPEu"
+},
+{
+  "_id": {
+    "$oid": "6793901c2251b721c39a9296"
+  },
+  "name": "Sườn Nướng",
+  "category": "Main Course",
+  "description": "Sườn nướng thơm ngon, ăn kèm với cơm.",
+  "original_price": 673034,
+  "sale_price": 683564,
+  "sizes": [],
+  "options": [],
+  "status": "Available",
+  "created_time": {
+    "$date": "2025-01-30T11:25:00.000Z"
+  },
+  "modified_time": {
+    "$date": "2025-01-30T05:43:09.170Z"
+  },
+  "public_id": "JBEkmdkr3n"
+},
+{
+  "_id": {
+    "$oid": "6793901c2251b721c39a9297"
+  },
+  "name": "Bánh Bột Chiên",
+  "category": "Snacks",
+  "description": "Bánh bột chiên giòn rụm, ăn kèm với nước chấm.",
+  "original_price": 162723,
+  "sale_price": 754795,
+  "sizes": [],
+  "options": [],
+  "status": "Available",
+  "created_time": {
+    "$date": "2025-01-30T11:30:00.000Z"
+  },
+  "modified_time": {
+    "$date": "2025-01-30T08:40:05.171Z"
+  },
+  "public_id": "tDMX11SEui"
+},
+{
+  "_id": {
+    "$oid": "67a5c5443cdc0b7627d437d9"
+  },
+  "name": "Phở Bò",
+  "category": "Main Course",
+  "description": "Phở bò thơm ngon, nước dùng đậm đà, thịt bò mềm.",
+  "original_price": 0,
+  "sale_price": 0,
+  "public_id": "uu9snVSOmm",
+  "sizes": [
+    {
+      "size_name": "S",
+      "price_change": 0
+    },
+    {
+      "size_name": "M",
+      "price_change": 10000
+    },
+    {
+      "size_name": "L",
+      "price_change": 20000
+    }
+  ],
+  "options": [
+    {
+      "option_name": "Thêm nạc",
+      "price_change": 1000
+    },
+    {
+      "option_name": "Thêm mỡ",
+      "price_change": 2000
+    }
+  ],
+  "status": "Available",
+  "created_time": {
+    "$date": "2025-02-07T08:33:08.181Z"
+  },
+  "modified_time": {
+    "$date": "2025-02-07T08:33:38.047Z"
+  }
+}]
