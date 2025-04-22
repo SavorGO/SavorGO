@@ -4,30 +4,27 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- Tham chiếu đến POM của project gốc -->
     <parent>
         <groupId>iuh.fit.se</groupId>
         <artifactId>Workforce_Swing</artifactId>
         <version>1.0-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath> <!-- Đường dẫn tới pom của project gốc -->
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>demo</artifactId>
 
     <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <dependencies>
-        <!-- Thêm các dependency cần thiết cho module con demo -->
         <dependency>
-    <groupId>iuh.fit.se</groupId>
-    <artifactId>modal-dialog</artifactId>
-    <version>1.0-SNAPSHOT</version>
-</dependency>
-
+            <groupId>iuh.fit.se</groupId>
+            <artifactId>modal-dialog</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
         <dependency>
             <groupId>javax.websocket</groupId>
             <artifactId>javax.websocket-api</artifactId>
@@ -132,7 +129,7 @@
             <resource>
                 <directory>src/main/resources</directory>
                 <includes>
-                    <include>**/*</include> <!-- Bao gồm tất cả các tệp trong resources -->
+                    <include>**/*</include>
                 </includes>
             </resource>
         </resources>
@@ -148,10 +145,10 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>raven.modal.demo.Demo</mainClass>
+                            <mainClass>iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.Demo</mainClass> <!-- Thay bằng lớp main chính xác -->
                         </manifest>
                     </archive>
-                    <finalName>modal-dialog-demo-${project.version}</finalName>
+                    <finalName>demo-${project.version}</finalName>
                     <appendAssemblyId>false</appendAssemblyId>
                 </configuration>
                 <executions>

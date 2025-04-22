@@ -1,32 +1,38 @@
-# Sử dụng base image Maven với JDK 8 để build dự án
-FROM maven:3.8.6-jdk-8-slim AS builder
+# Stage 1: Build the project
+FROM maven:3.8.6-eclipse-temurin-17 as builder
 
-# Thiết lập thư mục làm việc trong container
+# Set working directory
 WORKDIR /app
 
-# Copy các file POM
-COPY pom.xml ./
-COPY modal-dialog/pom.xml ./modal-dialog/
-COPY demo/pom.xml ./demo/
+# Copy everything
+COPY . .
 
-# Tải các dependencies mà không build ứng dụng
-RUN mvn dependency:go-offline -f demo/pom.xml
+# Optional: give permission to wrapper if used
+RUN chmod +x mvnw
 
-# Copy mã nguồn sau khi tải dependencies
-COPY modal-dialog/src ./modal-dialog/src/
-COPY demo/src ./demo/src/
+# Install all modules
+RUN mvn clean install -DskipTests
 
-# Build ứng dụng (module demo)
-RUN mvn package -f demo/pom.xml
+# Download all dependencies
+RUN mvn dependency:go-offline
 
-# Sử dụng base image OpenJDK 8 JRE để chạy ứng dụng
-FROM openjdk:8-jre-slim
+# Build the project
+RUN mvn clean package -DskipTests
 
-# Thiết lập thư mục làm việc
+# Stage 2: Run the application
+FROM eclipse-temurin:17-jdk
+RUN apt-get update && apt-get install -y \
+    libx11-6 \
+    libxext6 \
+    libxrender1 \
+    libxtst6 \
+    libxi6 \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
-# Copy JAR đã build từ stage builder
-COPY --from=builder /app/demo/target/modal-dialog-demo-*.jar /app/app.jar
+# Copy the final JAR
+COPY --from=builder /app/demo/target/*.jar app.jar
 
-# Chạy ứng dụng
-CMD ["java", "-jar", "app.jar"]
+EXPOSE 8082
+
+ENTRYPOINT ["java", "-jar", "app.jar"]

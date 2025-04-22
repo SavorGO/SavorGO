@@ -11,13 +11,20 @@ import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollp
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.info.PromotionInfoForm;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.scrollpane.popupform.update.UpdatePromotionInputForm;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.simple.SimpleMessageModal;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.ApiResponse;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.BusinessException;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.DefaultComponent;
+import raven.modal.Drawer;
 import raven.modal.ModalDialog;
 import raven.modal.Toast;
 import raven.modal.component.AdaptSimpleModalBorder;
 
 import javax.swing.*;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.MouseAdapter;
@@ -29,6 +36,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -38,29 +46,24 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class PromotionFormController {
-    private PromotionFormUI formPromotion;
+    private PromotionFormUI promotionFormUI;
     private static final int DEBOUNCE_DELAY = 1000; // Debounce delay in milliseconds
     private Timer debounceTimer;
     private PromotionController promotionController = new PromotionController();
     private MenuController controllerMenu = new MenuController();
-
-    /**
-     * Constructs a FormPromotionController with the specified PromotionFormUI.
-     * 
-     * @param formPromotion the PromotionFormUI to control
-     */
+    private int currentPage = 1;
+	private boolean isShowDeleted = false;
+	private Integer totalPages = Integer.MAX_VALUE;
+	private int pageSize;
+	private String searchTerm = "";
+	
     public PromotionFormController(PromotionFormUI formPromotion) {
-        this.formPromotion = formPromotion;
+        this.promotionFormUI = formPromotion;
     }
 
     private volatile boolean isLoading = false;
 
-    /**
-     * Loads promotion data based on the provided search term.
-     * 
-     * @param searchTerm the term to search for in the promotions
-     */
-    public void loadData(String searchTerm) {
+    public void loadData() {
         if (isLoading)
             return;
         isLoading = true;
@@ -69,22 +72,15 @@ public class PromotionFormController {
 
         executor.submit(() -> {
             try {
-                List<Promotion> promotions = fetchPromotions(searchTerm);
+                List<Promotion> promotions = fetchPromotions();
                 if (promotions == null || promotions.isEmpty()) {
-                    Toast.show(formPromotion, Toast.Type.INFO, "No promotion in database or in search");
+                    Toast.show(promotionFormUI, Toast.Type.INFO, "No promotion in database or in search");
                     return;
                 }
                 SwingUtilities.invokeLater(() -> {
-                    formPromotion.getPanelCard().removeAll();
-                    try {
-						populateCardTable(promotions);
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+                    promotionFormUI.getPanelCard().removeAll();
+                    populateCardTable(promotions);
                 });
-            } catch (IOException e) {
-                e.printStackTrace();
             } finally {
                 latch.countDown();
             }
@@ -92,13 +88,11 @@ public class PromotionFormController {
 
         executor.submit(() -> {
             try {
-                List<Promotion> promotions = fetchPromotions(searchTerm);
+                List<Promotion> promotions = fetchPromotions();
                 SwingUtilities.invokeLater(() -> {
-                    formPromotion.getTableModel().setRowCount(0); // Clear existing rows
+                    promotionFormUI.getTableModel().setRowCount(0); // Clear existing rows
                     populateBasicTable(promotions);
                 });
-            } catch (IOException e) {
-                e.printStackTrace();
             } finally {
                 latch.countDown();
             }
@@ -117,150 +111,107 @@ public class PromotionFormController {
         }).start();
     }
 
-    /**
-     * Fetches the list of promotions based on the search term.
-     * 
-     * @param searchTerm the term to search for in the promotions
-     * @return the list of Promotion objects
-     * @throws IOException if an I/O error occurs
-     */
-    private List<Promotion> fetchPromotions(String searchTerm) throws IOException {
-        if (searchTerm != null && !searchTerm.isEmpty()) {
-            return promotionController.searchPromotions(searchTerm);
-        } else {
-            return promotionController.getAllPromotions();
-        }
-    }
-
-    /**
-     * Populates the card table with the fetched Promotion objects.
-     * 
-     * @param promotions the list of Promotion objects to populate
-     * @throws IOException if an I/O error occurs
-     */
-    private void populateCardTable(List<Promotion> promotions) throws IOException {
-        ExecutorService executor = Executors.newFixedThreadPool(4);
-        CountDownLatch latch = new CountDownLatch(promotions.size());
-        List<CardPromotion> cardPromotions = new ArrayList<>();
-
-        promotions.parallelStream().forEach(promotion -> {
-            executor.submit(() -> {
-                try {
-                    Menu menu = controllerMenu.getMenuById(promotion.getMenuId());
-                    CardPromotion promotionCard = new CardPromotion(promotion);
-                    promotionCard.addMouseListener(new MouseAdapter() {
-                        @Override
-                        public void mouseReleased(MouseEvent e) {
-                            showPopup(e);
-                        }
-
-                        private void showPopup(MouseEvent e) {
-                            if (e.getComponent() instanceof CardPromotion) {
-                                if (SwingUtilities.isLeftMouseButton(e)) {
-                                    promotionCard.setSelected(!promotionCard.isSelected());
-                                    if (promotionCard.isSelected()) {
-                                        promotionCard.setBorder(BorderFactory.createLineBorder(Color.GREEN, 5));
-                                    } else {
-                                        promotionCard.setBorder(BorderFactory.createEmptyBorder());
-                                    }
-                                } else if (e.isPopupTrigger()) {
-                                    promotionCard.setSelected(true);
-                                    promotionCard.setBorder(BorderFactory.createLineBorder(Color.GREEN, 5));
-                                    formPromotion.createPopupMenu().show(e.getComponent(), e.getX(), e.getY());
-                                }
-                            }
-                        }
-                    });
-                    synchronized (cardPromotions) {
-                        cardPromotions.add(promotionCard);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    latch.countDown();
-                }
-            });
-        });
-
+    private List<Promotion> fetchPromotions() {
         try {
-            latch.await();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        } finally {
-            executor.shutdown();
+            ApiResponse apiResponse = promotionController.list(searchTerm, "id", "asc", currentPage, pageSize,
+                    isShowDeleted ? "all" : "without_deleted");
+
+            if (apiResponse.getErrors() != null) {
+                String errorMessage = apiResponse.getErrors().toString();
+                System.out.println(promotionFormUI + " + and + " + errorMessage);
+                //Toast.show(promotionFormUI, Toast.Type.ERROR, apiResponse.getMessage() + ":\n" + errorMessage);
+                return new ArrayList<>();
+            }
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new JavaTimeModule());
+
+            // Ép kiểu data về Map<String, Object>
+            Map<String, Object> responseData = (Map<String, Object>) apiResponse.getData();
+            totalPages = (Integer) responseData.get("total_pages");
+
+            // Lấy danh sách data từ response
+            Object rawData = responseData.get("data");
+
+            // Chuyển rawData thành JSON string rồi parse thành List<Promotion>
+            String jsonData = objectMapper.writeValueAsString(rawData);
+            return objectMapper.readValue(jsonData, new TypeReference<List<Promotion>>() {
+            });
+
+        } catch (Exception e) {
+           	e.printStackTrace();
+            Toast.show(promotionFormUI, Toast.Type.ERROR, "Failed to parse data: " + e.getMessage());
+            return new ArrayList<>();
         }
-
-        cardPromotions.sort(Comparator.comparingLong(promotionCard -> promotionCard.getModel().getId()));
-
-        SwingUtilities.invokeLater(() -> {
-            cardPromotions.forEach(formPromotion.getPanelCard()::add);
-            formPromotion.getPanelCard().revalidate();
-            formPromotion.getPanelCard().repaint();
-        });
     }
 
-    /**
-     * Populates the basic table with the fetched Promotion objects.
-     * 
-     * @param promotions the list of Promotion objects to populate
-     */
     private void populateBasicTable(List<Promotion> promotions) {
-        ExecutorService executor = Executors.newFixedThreadPool(4);
-        CountDownLatch latch = new CountDownLatch(promotions.size());
-        List<Object[]> rows = new ArrayList<>();
+        // Xóa tất cả hàng trong JTable trước khi thêm mới
+        SwingUtilities.invokeLater(() -> promotionFormUI.getTableModel().setRowCount(0));
 
-        promotions.parallelStream().forEach(promotion -> {
-            executor.submit(() -> {
-                try {
-                    Object[] row = promotionController.getTableRow(promotion);
-                    synchronized (rows) {
-                        rows.add(row);
-                    }
-                } catch (IOException e) {
-                    Toast.show(formPromotion, Toast.Type.ERROR, "Failed to find menu relation with promotion");
-                } finally {
-                    latch.countDown();
+        promotions.parallelStream().forEachOrdered(promotion -> {
+            System.out.println("Đang load table: " + promotion.getName());
+
+            try {
+                final Object[] rowData = promotionController.getTableRow(promotion);
+
+                // Chỉ cập nhật UI nếu lấy được dữ liệu hợp lệ
+                if (rowData != null) {
+                    SwingUtilities.invokeLater(() -> promotionFormUI.getTableModel().addRow(rowData));
                 }
-            });
-        });
-
-        try {
-            latch.await();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        } finally {
-            executor.shutdown();
-        }
-
-        Object[][] rowsArray = rows.toArray(new Object[0][]);
-        Arrays.parallelSort(rowsArray, (row1, row2) -> Long.compare((Long) row1[1], (Long) row2[1]));
-
-        SwingUtilities.invokeLater(() -> {
-            for (Object[] row : rowsArray) {
-                formPromotion.getTableModel().addRow(row);
+            } catch (IOException e) {
+                SwingUtilities.invokeLater(() -> 
+                    Toast.show(promotionFormUI, Toast.Type.ERROR, "Failed to find menu relation with promotion")
+                );
+                e.printStackTrace();
             }
         });
+
+        // Cập nhật giao diện sau khi thêm tất cả promotion vào bảng
+        SwingUtilities.invokeLater(() -> promotionFormUI.getTableModel().fireTableDataChanged());
     }
 
-    /**
-     * Handles the search text change with debounce functionality.
-     * 
-     * @param txtSearch the JTextField containing the search text
-     */
-    public void handleSearchTextChange(JTextField txtSearch) {
-        if (debounceTimer != null && debounceTimer.isRunning()) {
-            debounceTimer.stop();
-        }
-        debounceTimer = new Timer(DEBOUNCE_DELAY, evt -> loadData(txtSearch.getText()));
-        debounceTimer.setRepeats(false);
-        debounceTimer.start();
+    private void populateCardTable(List<Promotion> promotions) {
+        // Xóa hết các card trước khi thêm mới
+        SwingUtilities.invokeLater(() -> promotionFormUI.getPanelCard().removeAll());
+
+        promotions.parallelStream().forEachOrdered(promotion -> {
+            CardPromotion promotionCard = new CardPromotion(promotion);
+            System.out.println("Đang load card: " + promotion.getName());
+
+            // Thêm MouseListener cho cardPromotion
+            promotionCard.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseReleased(MouseEvent e) {
+                    if (e.getComponent() instanceof CardPromotion) {
+                        if (SwingUtilities.isLeftMouseButton(e)) {
+                            promotionCard.setSelected(!promotionCard.isSelected());
+                            if (promotionCard.isSelected()) {
+                                promotionCard.setBorder(BorderFactory.createLineBorder(Color.GREEN, 5));
+                            } else {
+                                promotionCard.setBorder(BorderFactory.createEmptyBorder());
+                            }
+                        } else if (e.isPopupTrigger()) {
+                            promotionCard.setSelected(true);
+                            promotionCard.setBorder(BorderFactory.createLineBorder(Color.GREEN, 5));
+                            promotionFormUI.createPopupMenu().show(e.getComponent(), e.getX(), e.getY());
+                        }
+                    }
+                }
+            });
+
+            // Cập nhật UI phải chạy trên EDT
+            SwingUtilities.invokeLater(() -> promotionFormUI.getPanelCard().add(promotionCard));
+        });
+
+        // Cập nhật giao diện sau khi thêm tất cả CardPromotion
+        SwingUtilities.invokeLater(() -> {
+            promotionFormUI.getPanelCard().revalidate();
+            promotionFormUI.getPanelCard().repaint();
+        });
     }
 
-    /**
-     * Shows a modal dialog based on the user action.
-     * 
-     * @param userAction the action to perform (details, create, edit, delete)
-     */
+
     public void showModal(String userAction) {
         switch (userAction) {
             case "details":
@@ -280,217 +231,204 @@ public class PromotionFormController {
         }
     }
 
-    /**
-     * Shows the details modal for the selected promotion.
-     */
     private void showDetailsModal() {
         long[] idHolder = { -1L };
-        if (formPromotion.getSelectedTitle().equals("Basic table")) {
+        if (promotionFormUI.getSelectedTitle().equals("Basic table")) {
             if (!validateSingleRowSelection("view details"))
                 return;
-            idHolder[0] = (long) formPromotion.getTable().getValueAt(formPromotion.getTable().getSelectedRow(), 1);
-        } else if (formPromotion.getSelectedTitle().equals("Grid table")) {
+            idHolder[0] = (long) promotionFormUI.getTable().getValueAt(promotionFormUI.getTable().getSelectedRow(), 1);
+        } else if (promotionFormUI.getSelectedTitle().equals("Grid table")) {
             if (!validateSingleCardSelection(idHolder, "view details"))
                 return;
         }
         PromotionInfoForm infoFormPromotion = createInfoFormPromotion(idHolder[0]);
-        ModalDialog.showModal(formPromotion, new AdaptSimpleModalBorder(infoFormPromotion, "Promotion details information", AdaptSimpleModalBorder.DEFAULT_OPTION, (controller, action) -> {}), DefaultComponent.getInfoForm());
+        ModalDialog.showModal(promotionFormUI, new AdaptSimpleModalBorder(infoFormPromotion, "Promotion details information", AdaptSimpleModalBorder.DEFAULT_OPTION, (controller, action) -> {}), DefaultComponent.getInfoForm());
     }
 
-    /**
-     * Shows the create modal for adding a new promotion.
-     */
     private void showCreateModal() {
         CreatePromotionInputForm inputFormCreatePromotion = new CreatePromotionInputForm(null);
-        ModalDialog.showModal(formPromotion, new AdaptSimpleModalBorder(inputFormCreatePromotion, "Create promotions", AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
+        ModalDialog.showModal(promotionFormUI, new AdaptSimpleModalBorder(inputFormCreatePromotion, "Create promotions", AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
             if (action == AdaptSimpleModalBorder.YES_OPTION) {
                 handleCreatePromotion(inputFormCreatePromotion);
             }
         }), DefaultComponent.getInputFormDoubleSize());
     }
 
-    /**
-     * Handles the creation of a new promotion.
-     * 
-     * @param inputFormCreatePromotion the form containing the promotion data
-     */
     private void handleCreatePromotion(CreatePromotionInputForm inputFormCreatePromotion) {
-        try {
-            promotionController.createPromotions(inputFormCreatePromotion.getData());
-            Toast.show(formPromotion, Toast.Type.SUCCESS, "Create promotion successfully");
-            loadData(""); // Reload table data after successful creation
-        } catch (IOException e) {
-            Toast.show(formPromotion, Toast.Type.ERROR, "Failed to create promotion: " + e.getMessage());
+        ApiResponse response = promotionController.createPromotions(inputFormCreatePromotion.getData());
+
+        if (response != null && response.getStatus() == 201 && response.getData() != null) {
+            Toast.show(promotionFormUI, Toast.Type.SUCCESS, "Promotion created successfully");
+            reloadData();
+        } else {
+            String errorMessage = "Failed to create promotion: " + (response != null ? response.getMessage() : "Unknown error");
+            if (response != null && response.getErrors() != null && !response.getErrors().isEmpty()) {
+                errorMessage += "\nDetails: " + response.getErrors().toString();
+            }
+            Toast.show(promotionFormUI, Toast.Type.ERROR, errorMessage);
         }
     }
 
-    /**
-     * Shows the edit modal for updating the selected promotion.
-     */
+
     private void showEditModal() {
         long[] idHolder = { -1L };
-        if (formPromotion.getSelectedTitle().equals("Basic table")) {
+        
+        if (promotionFormUI.getSelectedTitle().equals("Basic table")) {
             if (!validateSingleRowSelection("edit"))
                 return;
-            idHolder[0] = (long) formPromotion.getTable().getValueAt(formPromotion.getTable().getSelectedRow(), 1);
-        } else if (formPromotion.getSelectedTitle().equals("Grid table")) {
+            idHolder[0] = (long) promotionFormUI.getTable().getValueAt(promotionFormUI.getTable().getSelectedRow(), 1);
+        } else if (promotionFormUI.getSelectedTitle().equals("Grid table")) {
             if (!validateSingleCardSelection(idHolder, "edit"))
                 return;
         }
-        Promotion promotion = null;
-        try {
-            promotion = promotionController.getPromotionById(idHolder[0]);
-        } catch (IOException e) {
-            Toast.show(formPromotion, Toast.Type.ERROR, "Failed to find promotion to edit: " + e.getMessage());
+        
+        ApiResponse apiResponse = promotionController.getPromotionById(idHolder[0]);
+
+        if (apiResponse.getErrors() != null || apiResponse.getData() == null) {
+            String errorMessage = apiResponse.getErrors() != null ? apiResponse.getErrors().toString() : "Unknown error";
+            Toast.show(promotionFormUI, Toast.Type.ERROR, "Failed to fetch promotion: " + errorMessage);
             return;
         }
 
-        Menu menu = null;
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+
+        Promotion promotion;
         try {
-            menu = controllerMenu.getMenuById(promotion.getMenuId());
+            String jsonData = objectMapper.writeValueAsString(apiResponse.getData());
+            promotion = objectMapper.readValue(jsonData, Promotion.class);
         } catch (IOException e) {
-            Toast.show(formPromotion, Toast.Type.ERROR, "Failed to find menu to edit: " + e.getMessage());
+            Toast.show(promotionFormUI, Toast.Type.ERROR, "Failed to parse data: " + e.getMessage());
             return;
         }
 
         if (promotion.getStatus().equals(PromotionStatusEnum.DELETED)) {
-            Toast.show(formPromotion, Toast.Type.ERROR, "Cannot edit deleted promotion");
+            Toast.show(promotionFormUI, Toast.Type.ERROR, "Cannot edit deleted promotion");
             return;
         }
 
-        UpdatePromotionInputForm inputFormUpdatePromotion = createInputFormUpdatePromotion(promotion.getId());
-        ModalDialog.showModal(formPromotion, new AdaptSimpleModalBorder(inputFormUpdatePromotion, "Update promotion", AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
-            if (action == AdaptSimpleModalBorder.YES_OPTION) {
-                handleUpdatePromotion(inputFormUpdatePromotion);
-            }
-        }), DefaultComponent.getInputForm());
+        UpdatePromotionInputForm updateFormUpdatePromotion = createInputFormUpdatePromotion(promotion.getId());
+        ModalDialog.showModal(promotionFormUI, new AdaptSimpleModalBorder(updateFormUpdatePromotion, "Update promotion",
+                AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
+                    if (action == AdaptSimpleModalBorder.YES_OPTION) {
+                        handleUpdatePromotion(updateFormUpdatePromotion);
+                    }
+                }), DefaultComponent.getInputForm());
     }
 
-    /**
-     * Validates that only a single row is selected for the specified action.
-     * 
-     * @param action the action being validated for
-     * @return true if validation passes, false otherwise
-     */
+
     private boolean validateSingleRowSelection(String action) {
-        if (formPromotion.getTable().getSelectedRowCount() > 1) {
-            Toast.show(formPromotion, Toast.Type.ERROR, "Please select only one row to " + action);
+        if (promotionFormUI.getTable().getSelectedRowCount() > 1) {
+            Toast.show(promotionFormUI, Toast.Type.ERROR, "Please select only one row to " + action);
             return false;
         }
-        if (formPromotion.getTable().getSelectedRowCount() == 0) {
-            Toast.show(formPromotion, Toast.Type.ERROR, "Please select a row to " + action);
+        if (promotionFormUI.getTable().getSelectedRowCount() == 0) {
+            Toast.show(promotionFormUI, Toast.Type.ERROR, "Please select a row to " + action);
             return false;
         }
         return true;
     }
 
-    /**
-     * Validates that only a single card is selected for the specified action.
-     * 
-     * @param idHolder an array to hold the selected ID
-     * @param action the action being validated for
-     * @return true if validation passes, false otherwise
-     */
     private boolean validateSingleCardSelection(long[] idHolder, String action) {
-        List<Long> selectedIds = findSelectedPromotionIds(formPromotion.getPanelCard());
+        List<Long> selectedIds = findSelectedPromotionIds(promotionFormUI.getPanelCard());
         if (selectedIds.size() > 1) {
-            Toast.show(formPromotion, Toast.Type.ERROR, "Please select only one row to " + action);
+            Toast.show(promotionFormUI, Toast.Type.ERROR, "Please select only one row to " + action);
             return false;
         }
         if (selectedIds.isEmpty()) {
-            Toast.show(formPromotion, Toast.Type.ERROR, "Please select a row to " + action);
+            Toast.show(promotionFormUI, Toast.Type.ERROR, "Please select a row to " + action);
             return false;
         }
         idHolder[0] = selectedIds.get(0);
         return true;
     }
 
-    /**
-     * Creates an input form update promotion for the specified promotion.
-     * 
-     * @param promotionId the ID of the promotion to create the update form for
-     * @return the created InputFormUpdatePromotion
-     */
     private UpdatePromotionInputForm createInputFormUpdatePromotion(long promotionId) {
+        ApiResponse promotionResponse = promotionController.getPromotionById(promotionId);
+
+        if (promotionResponse.getErrors() != null || promotionResponse.getData() == null) {
+            String errorMessage = promotionResponse.getErrors() != null ? promotionResponse.getErrors().toString() : "Unknown error";
+            Toast.show(promotionFormUI, Toast.Type.ERROR, "Failed to fetch promotion: " + errorMessage);
+            return null;
+        }
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+
         Promotion promotion;
+        try {
+            String jsonData = objectMapper.writeValueAsString(promotionResponse.getData());
+            promotion = objectMapper.readValue(jsonData, Promotion.class);
+        } catch (IOException e) {
+            Toast.show(promotionFormUI, Toast.Type.ERROR, "Failed to parse promotion data: " + e.getMessage());
+            return null;
+        }
+
+        ApiResponse menuResponse = controllerMenu.getMenuById(promotion.getMenuId());
+
+        if (menuResponse.getErrors() != null || menuResponse.getData() == null) {
+            String errorMessage = menuResponse.getErrors() != null ? menuResponse.getErrors().toString() : "Unknown error";
+            Toast.show(promotionFormUI, Toast.Type.ERROR, "Failed to fetch menu: " + errorMessage);
+            return null;
+        }
+
         Menu menu;
         try {
-            promotion = promotionController.getPromotionById(promotionId);
+            String jsonData = objectMapper.writeValueAsString(menuResponse.getData());
+            menu = objectMapper.readValue(jsonData, Menu.class);
         } catch (IOException e) {
-            Toast.show(formPromotion, Toast.Type.ERROR, "Failed to find promotion to edit: " + e.getMessage());
+            Toast.show(promotionFormUI, Toast.Type.ERROR, "Failed to parse menu data: " + e.getMessage());
             return null;
         }
-        try {
-            menu = controllerMenu.getMenuById(promotion.getMenuId());
-        } catch (IOException e) {
-            Toast.show(formPromotion, Toast.Type.ERROR, "Failed to find menu to edit: " + e.getMessage());
-            return null;
-        }
+
         return new UpdatePromotionInputForm(promotion, menu);
     }
 
-    /**
-     * Creates an info form promotion for the specified promotion ID.
-     * 
-     * @param promotionId the ID of the promotion to create the info form for
-     * @return the created InfoFormPromotion
-     */
     private PromotionInfoForm createInfoFormPromotion(long promotionId) {
         try {
             return new PromotionInfoForm(promotionId);
         } catch (IOException e) {
-            Toast.show(formPromotion, Toast.Type.ERROR, "Failed to find promotion to view details: " + e.getMessage());
+            Toast.show(promotionFormUI, Toast.Type.ERROR, "Failed to find promotion to view details: " + e.getMessage());
             return null;
         }
     }
 
-    /**
-     * Handles the update of a promotion.
-     * 
-     * @param inputFormUpdatePromotion the form containing the updated promotion data
-     */
     private void handleUpdatePromotion(UpdatePromotionInputForm inputFormUpdatePromotion) {
         Object[] promotionData = inputFormUpdatePromotion.getData();
-        try {
-            promotionController.updatePromotion(promotionData);
-            Toast.show(formPromotion, Toast.Type.SUCCESS, "Update promotion successfully");
-            formPromotion.formRefresh();
-        } catch (IOException | BusinessException e) {
-            Toast.show(formPromotion, Toast.Type.ERROR, "Failed to update promotion: " + e.getMessage());
+        ApiResponse response = promotionController.updatePromotion(promotionData);
+
+        if (response != null && response.getStatus() == 200 && response.getData() != null) {
+            Toast.show(promotionFormUI, Toast.Type.SUCCESS, "Promotion updated successfully");
+            reloadData();
+        } else {
+            String errorMessage = "Failed to update promotion: " + (response != null ? response.getMessage() : "Unknown error");
+            if (response != null && response.getErrors() != null && !response.getErrors().isEmpty()) {
+            	System.err.println( response.getErrors().toString());
+                errorMessage += "\nDetails: " + response.getErrors().toString();
+            }
+            Toast.show(promotionFormUI, Toast.Type.ERROR, errorMessage);
         }
     }
 
-    /**
-     * Shows the delete modal for the selected promotions.
-     */
+
     private void showDeleteModal() {
         List<Long> findSelectedPromotionIds = findSelectedPromotionIdsForDeletion();
         if (findSelectedPromotionIds.isEmpty()) {
-            Toast.show(formPromotion, Toast.Type.ERROR, "You have to select at least one promotion to delete");
+            Toast.show(promotionFormUI, Toast.Type.ERROR, "You have to select at least one promotion to delete");
             return;
         }
         confirmDeletion(findSelectedPromotionIds);
     }
 
-    /**
-     * Gets the selected promotion IDs for deletion.
-     * 
-     * @return a list of selected promotion IDs
-     */
     private List<Long> findSelectedPromotionIdsForDeletion() {
-        if (formPromotion.getSelectedTitle().equals("Basic table")) {
+        if (promotionFormUI.getSelectedTitle().equals("Basic table")) {
             return findSelectedPromotionIds();
-        } else if (formPromotion.getSelectedTitle().equals("Grid table")) {
-            return findSelectedPromotionIds(formPromotion.getPanelCard());
+        } else if (promotionFormUI.getSelectedTitle().equals("Grid table")) {
+            return findSelectedPromotionIds(promotionFormUI.getPanelCard());
         }
         return new ArrayList<>();
     }
 
-    /**
-     * Confirms the deletion of the specified promotion IDs.
-     * 
-     * @param findSelectedPromotionIds the list of promotion IDs to confirm deletion for
-     */
     private void confirmDeletion(List<Long> findSelectedPromotionIds) {
         if (findSelectedPromotionIds.size() == 1) {
             confirmSingleDeletion(findSelectedPromotionIds.get(0));
@@ -499,71 +437,62 @@ public class PromotionFormController {
         }
     }
 
-    /**
-     * Confirms the deletion of a single promotion.
-     * 
-     * @param promotionId the ID of the promotion to delete
-     */
     private void confirmSingleDeletion(Long promotionId) {
-        ModalDialog.showModal(formPromotion, new SimpleMessageModal(SimpleMessageModal.Type.WARNING, "Are you sure you want to delete this promotion: " + promotionId + "? This action cannot be undone.", "Confirm Deletion", SimpleMessageModal.YES_NO_OPTION, (controller, action) -> {
+        ModalDialog.showModal(promotionFormUI, new SimpleMessageModal(SimpleMessageModal.Type.WARNING, "Are you sure you want to delete this promotion: " + promotionId + "? This action cannot be undone.", "Confirm Deletion", SimpleMessageModal.YES_NO_OPTION, (controller, action) -> {
             if (action == AdaptSimpleModalBorder.YES_OPTION) {
                 deletePromotion(promotionId);
             }
         }), DefaultComponent.getChoiceModal());
     }
 
-    /**
-     * Confirms the deletion of multiple promotions.
-     * 
-     * @param findSelectedPromotionIds the list of promotion IDs to delete
-     */
     private void confirmMultipleDeletion(List<Long> findSelectedPromotionIds) {
-        ModalDialog.showModal(formPromotion, new SimpleMessageModal(SimpleMessageModal.Type.WARNING, "Are you sure you want to delete these promotions: " + findSelectedPromotionIds + "? This action cannot be undone.", "Confirm Deletion", SimpleMessageModal.YES_NO_OPTION, (controller, action) -> {
+        ModalDialog.showModal(promotionFormUI, new SimpleMessageModal(SimpleMessageModal.Type.WARNING, "Are you sure you want to delete these promotions: " + findSelectedPromotionIds + "? This action cannot be undone.", "Confirm Deletion", SimpleMessageModal.YES_NO_OPTION, (controller, action) -> {
             if (action == AdaptSimpleModalBorder.YES_OPTION) {
                 deletePromotions(findSelectedPromotionIds);
             }
         }), DefaultComponent.getChoiceModal());
     }
 
-    /**
-     * Deletes a promotion with the specified ID.
-     * 
-     * @param promotionId the ID of the promotion to delete
-     */
     private void deletePromotion(Long promotionId) {
-        try {
-            promotionController.deletePromotion(promotionId);
-            formPromotion.formRefresh();
-            Toast.show(formPromotion, Toast.Type.SUCCESS, "Delete promotion successfully");
-        } catch (IOException e) {
-            Toast.show(formPromotion, Toast.Type.ERROR, "Failed to delete promotion: " + e.getMessage());
+        ApiResponse response = promotionController.deletePromotion(promotionId);
+
+        if (response != null && response.getStatus() == 200) {
+            promotionFormUI.formRefresh();
+            Toast.show(promotionFormUI, Toast.Type.SUCCESS, "Promotion deleted successfully");
+        } else {
+            String errorMessage = "Failed to delete promotion: " + (response != null ? response.getMessage() : "Unknown error");
+            if (response != null && response.getErrors() != null && !response.getErrors().isEmpty()) {
+                errorMessage += "\nDetails: " + response.getErrors().toString();
+            }
+            Toast.show(promotionFormUI, Toast.Type.ERROR, errorMessage);
         }
     }
 
-    /**
-     * Deletes multiple promotions with the specified IDs.
-     * 
-     * @param findSelectedPromotionIds the list of promotion IDs to delete
-     */
-    private void deletePromotions(List<Long> findSelectedPromotionIds) {
-        try {
-            promotionController.deletePromotions(findSelectedPromotionIds);
-            formPromotion.formRefresh();
-            Toast.show(formPromotion, Toast.Type.SUCCESS, "Delete promotions successfully");
-        } catch (IOException e) {
-            Toast.show(formPromotion, Toast.Type.ERROR, "Failed to delete promotions: " + e.getMessage());
+    private void deletePromotions(List<Long> selectedPromotionIds) {
+        if (selectedPromotionIds == null || selectedPromotionIds.isEmpty()) {
+            Toast.show(promotionFormUI, Toast.Type.WARNING, "No promotions selected for deletion");
+            return;
+        }
+
+        ApiResponse response = promotionController.deletePromotions(selectedPromotionIds);
+
+        if (response != null && response.getStatus() == 200) {
+            promotionFormUI.formRefresh();
+            Toast.show(promotionFormUI, Toast.Type.SUCCESS, "Promotions deleted successfully");
+        } else {
+            String errorMessage = "Failed to delete promotions: " + (response != null ? response.getMessage() : "Unknown error");
+            if (response != null && response.getErrors() != null && !response.getErrors().isEmpty()) {
+                errorMessage += "\nDetails: " + response.getErrors().toString();
+            }
+            Toast.show(promotionFormUI, Toast.Type.ERROR, errorMessage);
         }
     }
+
 
     private static final int CHUNK_SIZE = 4;
 
-    /**
-     * Finds the selected promotion IDs from the basic table.
-     * 
-     * @return a list of selected promotion IDs
-     */
     public List<Long> findSelectedPromotionIds() {
-        int rowCount = formPromotion.getTable().getRowCount();
+        int rowCount = promotionFormUI.getTable().getRowCount();
         Set<Long> promotionIdsToDelete = Collections.synchronizedSet(new HashSet<>());
         List<List<Long>> chunks = createChunks(rowCount);
         ExecutorService executorService = Executors.newFixedThreadPool(4);
@@ -586,18 +515,12 @@ public class PromotionFormController {
         return new ArrayList<>(promotionIdsToDelete);
     }
 
-    /**
-     * Creates chunks of rows for processing.
-     * 
-     * @param rowCount the total number of rows
-     * @return a list of chunks containing row IDs
-     */
     private List<List<Long>> createChunks(int rowCount) {
         List<List<Long>> chunks = new ArrayList<>();
         List<Long> currentChunk = new ArrayList<>();
 
         for (int i = 0; i < rowCount; i++) {
-            Long promotionId = (Long) formPromotion.getTable().getValueAt(i, 1);
+            Long promotionId = (Long) promotionFormUI.getTable().getValueAt(i, 1);
             currentChunk.add(promotionId);
 
             if (currentChunk.size() == CHUNK_SIZE) {
@@ -613,18 +536,12 @@ public class PromotionFormController {
         return chunks;
     }
 
-    /**
-     * Processes a chunk of rows to find selected promotion IDs.
-     * 
-     * @param chunk the chunk of row IDs to process
-     * @return a list of selected promotion IDs
-     */
     private List<Long> processChunk(List<Long> chunk) {
         List<Long> promotionIdsToDelete = new ArrayList<>();
 
         for (Long promotionId : chunk) {
             int rowIndex = findRowIndexById(promotionId);
-            Boolean isChecked = (Boolean) formPromotion.getTable().getValueAt(rowIndex, 0);
+            Boolean isChecked = (Boolean) promotionFormUI.getTable().getValueAt(rowIndex, 0);
             if (isChecked != null && isChecked) {
                 promotionIdsToDelete.add(promotionId);
             }
@@ -633,27 +550,15 @@ public class PromotionFormController {
         return promotionIdsToDelete;
     }
 
-    /**
-     * Finds the row index by the specified promotion ID.
-     * 
-     * @param promotionId the ID of the promotion to find
-     * @return the index of the row, or -1 if not found
-     */
     private int findRowIndexById(Long promotionId) {
-        for (int i = 0; i < formPromotion.getTable().getRowCount(); i++) {
-            if (formPromotion.getTable().getValueAt(i, 1).equals(promotionId)) {
+        for (int i = 0; i < promotionFormUI.getTable().getRowCount(); i++) {
+            if (promotionFormUI.getTable().getValueAt(i, 1).equals(promotionId)) {
                 return i;
             }
         }
         return -1;
     }
 
-    /**
-     * Finds the selected promotion IDs from the specified panel.
-     * 
-     * @param panelCard the panel containing card promotions
-     * @return a list of selected promotion IDs
-     */
     public List<Long> findSelectedPromotionIds(JPanel panelCard) {
         List<Long> selectedPromotionIds = new ArrayList<>();
         Component[] components = panelCard.getComponents();
@@ -679,12 +584,6 @@ public class PromotionFormController {
         return selectedPromotionIds;
     }
 
-    /**
-     * Creates chunks of components for processing.
-     * 
-     * @param components the array of components to chunk
-     * @return a list of chunks containing components
-     */
     private List<List<Component>> createComponentChunks(Component[] components) {
         List<List<Component>> chunks = new ArrayList<>();
         List<Component> currentChunk = new ArrayList<>();
@@ -705,12 +604,6 @@ public class PromotionFormController {
         return chunks;
     }
 
-    /**
-     * Processes a chunk of components to find selected promotion IDs.
-     * 
-     * @param chunk the chunk of components to process
-     * @return a list of selected promotion IDs
-     */
     private List<Long> processComponentChunk(List<Component> chunk) {
         List<Long> selectedIds = new ArrayList<>();
 
@@ -725,4 +618,53 @@ public class PromotionFormController {
 
         return selectedIds;
     }
+    
+    public void handleSearchButton(JTextField txtSearch, JSpinner spnCurrentPage, JTextField txtTotalPages) {
+		searchTerm = txtSearch.getText();
+		moveToFirst(spnCurrentPage, txtTotalPages);
+	}
+
+	public void moveToFirst(JSpinner spnCurrentPage, JTextField txtTotalPages) {
+		currentPage = 1;
+		reloadData();
+		spnCurrentPage.setValue(currentPage);
+		updatePaginationControls(spnCurrentPage, txtTotalPages);
+	}
+
+	public void moveToLast(JSpinner spnCurrentPage, JTextField txtTotalPages) {
+		currentPage = getTotalPages();
+		reloadData();
+		spnCurrentPage.setValue(currentPage);
+		updatePaginationControls(spnCurrentPage, txtTotalPages);
+	}
+
+	public void checkChkShowDeleted(JCheckBox chkShowDeleted, JSpinner spnCurrentPage, JTextField txtTotalPages) {
+		isShowDeleted = chkShowDeleted.isSelected();
+		moveToFirst(spnCurrentPage, txtTotalPages);
+	}
+
+	public void moveToPage(JSpinner spnCurrentPage) {
+		currentPage = (int) spnCurrentPage.getValue();
+		reloadData();
+	}
+
+	public void changePageSize(JSpinner spnPageSize, JSpinner spnCurrentPage, JTextField txtTotalPages) {
+		pageSize = (int) spnPageSize.getValue();
+		moveToFirst(spnCurrentPage, txtTotalPages);
+	}
+
+	private void updatePaginationControls(JSpinner spnCurrentPage, JTextField txtTotalPages) {
+		int totalPages = getTotalPages();
+		((SpinnerNumberModel) spnCurrentPage.getModel()).setMaximum(totalPages);
+		txtTotalPages.setText("/   " + totalPages);
+	}
+
+	public void reloadData() {
+		SwingUtilities.invokeLater(() -> loadData());
+	}
+
+	public int getTotalPages() {
+		fetchPromotions();
+		return totalPages;
+	}
 }

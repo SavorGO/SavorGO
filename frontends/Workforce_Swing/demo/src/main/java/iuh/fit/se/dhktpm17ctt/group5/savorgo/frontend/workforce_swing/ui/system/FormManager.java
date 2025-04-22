@@ -11,10 +11,13 @@ import javax.swing.*;
 
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.Demo;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.controller.AuthenticationController;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.model.Promotion;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.component.About;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.auth.Login;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.form.Form;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.form.FormDashboard;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.form.PromotionFormUI;
+import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.ui.panel.form.TableFormUI;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.util.TokenManager;
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.utils.UndoRedo;
 
@@ -29,7 +32,7 @@ public class FormManager {
         install();
         frame = f;
         frame.setState(JFrame.NORMAL);
-        login();
+        logout();
         
         try {
             // Đọc token đã được mã hóa từ file và giải mã
@@ -55,13 +58,9 @@ public class FormManager {
     	logout();
     }
 
-
-    
     public static void reloadFrame() {
-    	frame.dispose();
-    	Demo.launchApplication();
+        Demo.reload();
     }
-
     private static void install() {
         FormSearch.getInstance().installKeyMap(getMainForm());
     }
@@ -108,7 +107,7 @@ public class FormManager {
         frame.getContentPane().removeAll();
         frame.getContentPane().add(getMainForm());
 
-        Drawer.setSelectedItemClass(FormDashboard.class);
+        Drawer.setSelectedItemClass(TableFormUI.class);
         frame.repaint();
         frame.revalidate();
     }

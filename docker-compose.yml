@@ -20,7 +20,7 @@ services:
     networks:
       - databases
     volumes:
-      - "S:/Delevopement Workspace/SavorGO/backends/Databases/mongodb/menus.json:/docker-entrypoint-initdb.d/menus.json"
+      - "./backends/Databases/mongodb/menus.json:/docker-entrypoint-initdb.d/menus.json"
 
   # BACKEND NETWORK
   menu_statistics_django:
@@ -51,7 +51,7 @@ services:
     networks:
       - databases
     volumes:
-      - "S:/Delevopement Workspace/SavorGO/backends/Databases/mongodb/menus.json:/docker-entrypoint-initdb.d/menus.json"
+      - "./backends/Databases/mongodb/menus.json:/docker-entrypoint-initdb.d/menus.json"
   user_springboot:
     build: ./backends/UserManagementService_SpringBoot
     container_name: user_springboot
@@ -59,7 +59,7 @@ services:
     depends_on:
       - mariadb
     ports:
-      - "8080:8080"
+      - "8089:8089"
     networks:
       - backends
       - databases
@@ -90,11 +90,13 @@ services:
     networks:
       - frontends
     environment:
-      - DISPLAY=$DISPLAY
+      - DISPLAY=${DISPLAY} # Truyền biến DISPLAY từ máy chủ
     ports:
-    - "8082:8082"
+      - "8082:8082"
     volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix  # Cho phép hiển thị UI Java Swing
+      - /tmp/.X11-unix:/tmp/.X11-unix # Cần cho Linux
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   # REVERSE PROXY (NGINX)
   nginx:

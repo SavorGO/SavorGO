@@ -14,12 +14,13 @@
     <artifactId>modal-dialog</artifactId>
 
     <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+</properties>
 
     <dependencies>
+        <!-- Giữ nguyên các phụ thuộc hiện có -->
         <dependency>
             <groupId>javax.websocket</groupId>
             <artifactId>javax.websocket-api</artifactId>
@@ -31,7 +32,6 @@
             <artifactId>java-jwt</artifactId>
             <version>4.4.0</version>
         </dependency>
-
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
@@ -42,92 +42,77 @@
             <artifactId>javafx-web</artifactId>
             <version>20</version>
         </dependency>
-
         <dependency>
             <groupId>io.github.dj-raven</groupId>
             <artifactId>swing-datetime-picker</artifactId>
             <version>2.0.0</version>
         </dependency>
-
         <dependency>
             <groupId>org.swinglabs</groupId>
             <artifactId>swingx</artifactId>
             <version>1.6.1</version>
         </dependency>
-
         <dependency>
             <groupId>com.google.firebase</groupId>
             <artifactId>firebase-admin</artifactId>
             <version>9.2.0</version>
         </dependency>
-
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
             <version>4.11.0</version>
         </dependency>
-
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
             <version>20230227</version>
         </dependency>
-
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
             <version>2.15.2</version>
         </dependency>
-
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>2.15.0</version>
         </dependency>
-
         <dependency>
             <groupId>org.jfree</groupId>
             <artifactId>jfreechart</artifactId>
             <version>1.5.5</version>
         </dependency>
-
         <dependency>
             <groupId>com.formdev</groupId>
             <artifactId>flatlaf-intellij-themes</artifactId>
             <version>3.2.5</version>
         </dependency>
-
         <dependency>
             <groupId>com.formdev</groupId>
             <artifactId>flatlaf-fonts-roboto</artifactId>
             <version>2.137</version>
         </dependency>
-
         <dependency>
             <groupId>com.fifesoft</groupId>
             <artifactId>rsyntaxtextarea</artifactId>
             <version>3.4.0</version>
         </dependency>
-
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.36</version>
             <scope>provided</scope>
         </dependency>
-
         <dependency>
             <groupId>com.cloudinary</groupId>
             <artifactId>cloudinary-http5</artifactId>
             <version>2.0.0</version>
         </dependency>
-
         <dependency>
             <groupId>com.cloudinary</groupId>
             <artifactId>cloudinary-taglib</artifactId>
             <version>2.0.0</version>
         </dependency>
-
         <dependency>
             <groupId>io.github.cdimascio</groupId>
             <artifactId>dotenv-java</artifactId>
@@ -145,12 +130,7 @@
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
-                    <archive>
-                        <manifest>
-                            <mainClass>raven.modal.demo.Demo</mainClass>
-                        </manifest>
-                    </archive>
-                    <finalName>modal-dialog-demo-${project.version}</finalName>
+                    <finalName>modal-dialog-${project.version}</finalName>
                     <appendAssemblyId>false</appendAssemblyId>
                 </configuration>
                 <executions>
@@ -165,5 +145,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

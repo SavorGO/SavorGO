@@ -11,7 +11,7 @@ import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.util.HttpU
 import iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.util.JsonUtil;
 
 public class AuthenticationServiceImpl implements AuthenticationService {
-    private static final String API_URL = "http://localhost:8080/api/authentication";
+    private static final String API_URL = "http://localhost:8089/api/authentication";
 
     @Override
     public String loginWithGoogle(String idToken) throws IOException {

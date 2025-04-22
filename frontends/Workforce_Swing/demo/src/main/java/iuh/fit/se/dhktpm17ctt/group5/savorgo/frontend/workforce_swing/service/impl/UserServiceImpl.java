@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class UserServiceImpl implements UserService {
 
-    private static final String API_URL = "http://localhost:8080/api/users";
+    private static final String API_URL = "http://localhost:8089/api/users";
     private static final String API_URL_ID = API_URL + "/";
 
     /**

@@ -3,8 +3,8 @@ package iuh.fit.se.dhktpm17ctt.group5.savorgo.frontend.workforce_swing.enums;
 import java.util.Arrays;
 
 public enum PromotionDiscountTypeEnum {
-    PERCENT("Percent"), // Giảm giá theo phần trăm
-    FLAT("Flat");       // Giảm giá theo số tiền cố định
+    PERCENTAGE("Percentage"), // Giảm giá theo phần trăm
+    FIXED_AMOUNT("Fixed Amount");       // Giảm giá theo số tiền cố định
 
     private final String displayName;
 

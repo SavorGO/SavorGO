@@ -26,9 +26,11 @@ public class AllForms {
     }
 
     public static Form getForm(Class<? extends Form> cls) {
+    	
         if (getInstance().formsMap.containsKey(cls)) {
             return getInstance().formsMap.get(cls);
         }
+        
         try {
             Form form = cls.getDeclaredConstructor().newInstance();
             getInstance().formsMap.put(cls, form);

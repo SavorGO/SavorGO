@@ -40,8 +40,8 @@ public class TokenManager {
         File keystoreFile = new File(KEYSTORE_FILE);
 
         if (!keystoreFile.exists()) {
-            System.err.println("Keystore file not found: " + KEYSTORE_FILE);
-            return null;
+            System.out.println("Keystore không tồn tại. Đang tạo mới...");
+            createAndStoreAESKey(); // Tự động tạo mới
         }
 
         try (FileInputStream fis = new FileInputStream(keystoreFile)) {
@@ -51,8 +51,13 @@ public class TokenManager {
         KeyStore.ProtectionParameter passwordParam = new KeyStore.PasswordProtection(KEYSTORE_PASSWORD.toCharArray());
         KeyStore.SecretKeyEntry secretKeyEntry = (KeyStore.SecretKeyEntry) keyStore.getEntry(KEY_ALIAS, passwordParam);
 
-        return secretKeyEntry != null ? secretKeyEntry.getSecretKey() : null;
+        if (secretKeyEntry == null) {
+            throw new IllegalStateException("Không tìm thấy khóa AES trong KeyStore.");
+        }
+
+        return secretKeyEntry.getSecretKey();
     }
+
 
 
  // Mã hóa token cùng với timestamp
@@ -101,13 +106,24 @@ public class TokenManager {
 
 
     // Lưu token đã mã hóa vào file
+ // Lưu token đã mã hóa vào file
     public static void writeEncryptedTokenToFile(String encryptedToken) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(TOKEN_FILE_PATH))) {
-            writer.write(encryptedToken);
+        try {
+            File file = new File(TOKEN_FILE_PATH);
+            File parentDir = file.getParentFile();
+            if (!parentDir.exists()) {
+                parentDir.mkdirs(); // Tạo thư mục nếu chưa có
+            }
+
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+                writer.write(encryptedToken);
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 
     // Đọc token đã mã hóa từ file
     public static String readEncryptedTokenFromFile() {
