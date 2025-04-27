@@ -76,7 +76,7 @@ public class Demo extends JFrame {
         });
     }
 
-    private static final int port = 8082;
+    private static final int port = 8085;
 
     private static void startHttpServer() {
         try {
@@ -119,6 +119,17 @@ public class Demo extends JFrame {
 
     public static void main(String[] args) {
         prepareLookAndFeel();
-        startHttpServer();
+        //startHttpServer();
+		SwingUtilities.invokeLater(() -> {
+			try {
+				instance = new Demo();
+				instance.setVisible(true);
+				FormManager.install(instance);
+				System.out.println("Demo started successfully");
+			} catch (Exception e) {
+				System.err.println("Error starting Demo: " + e.getMessage());
+				e.printStackTrace();
+			}
+		});
     }
 }

@@ -37,7 +37,6 @@ public class AccountFormUI extends Form {
 		try {
 			user = authenticationController.verifyJwtToken();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			Toast.show(FormManager.getFrame(), Toast.Type.ERROR, "Lỗi khi giải token: " + e.getMessage());
 		}
 
@@ -45,78 +44,64 @@ public class AccountFormUI extends Form {
 			return;
 		}
 
-		// Thay đổi layout thành GridBagLayout
-		setLayout(new BorderLayout(10, 10));
+		// Sử dụng MigLayout thay vì BorderLayout
+		setLayout(new MigLayout("fill, insets 10", "[grow]", "[grow][]"));
 
 		// Panel chứa thông tin người dùng
 		JPanel userInfoPanel = createUserInfoPanel();
-		add(userInfoPanel, BorderLayout.CENTER);
+		add(userInfoPanel, "grow, wrap");
 
 		// Panel chứa các button
 		JPanel buttonsPanel = createButtonsPanel();
-		add(buttonsPanel, BorderLayout.SOUTH);
+		add(buttonsPanel, "growx, aligny bottom");
 	}
 	
 	private Form thisForm = this;
 
 	private JPanel createUserInfoPanel() {
-	    JPanel panel = new JPanel();
-	    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+	    JPanel panel = new JPanel(new MigLayout("fillx, wrap 1", "[grow, fill]", "[]"));
 
-	    JPanel userCard = new JPanel();
-	    userCard.setLayout(new BorderLayout(10, 10));  // Sử dụng BorderLayout
+	    JPanel userCard = new JPanel(new MigLayout("align left top, gap 10, fillx", "[fill]10[grow,fill]", "[]"));
 
 	    try {
-	        MyImageIcon imageIcon = userController.getImage(user, 1960, 1080, 0);
+	        MyImageIcon imageIcon = userController.getImage(user, 500, 500, 0);
 	        if (imageIcon != null) {
 	            JLabel imageIconlbl = new JLabel(imageIcon);
-	            imageIconlbl.setPreferredSize(new Dimension(600,350));
-	            JPanel imagePanel = new JPanel(new BorderLayout());  // Tạo panel riêng cho ảnh
-	            imagePanel.add(imageIconlbl, BorderLayout.CENTER);
-	            imageIconlbl.getParent().addComponentListener(new ComponentAdapter() {
-	                @Override
-	                public void componentResized(ComponentEvent e) {
-	                    int parentWidth = thisForm.getWidth();
-	                    int width = parentWidth /2;
-	                    int height = (int) (width * 2.0 / 3); // Tính chiều cao theo tỷ lệ 2:3
-	                    imageIconlbl.setMaximumSize(new Dimension(width, height));
-	                    imageIconlbl.setMinimumSize(new Dimension(width, height));
-	                    // Thu nhỏ hình ảnh
-	                    ImageIcon icon = (ImageIcon) imageIconlbl.getIcon();
-	                    if (icon == null) return;
-	                    Image img = icon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH);
-	                    imageIconlbl.setIcon(new ImageIcon(img));
-	                    imageIconlbl.revalidate();
-	                    imageIconlbl.repaint();
-	                }
-	            });
-	            userCard.add(imagePanel, BorderLayout.WEST);  // Đặt ảnh bên trái
+	            JPanel imagePanel = new JPanel(new MigLayout("fill"));
+	            imagePanel.add(imageIconlbl, "grow"); // Loại bỏ w 300lp!
+	            userCard.add(imagePanel);
 	        }
 	    } catch (IOException e) {
 	        e.printStackTrace(); // Xử lý lỗi khi lấy ảnh
 	    }
 
 	    // Tạo các dòng thông tin người dùng và thêm vào bên phải
-	    JPanel infoPanel = new JPanel();
-	    infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
-	    infoPanel.add(createUserInfoRow("User ID:", user.getId()));
-	    infoPanel.add(createUserInfoRow("Email:", user.getEmail()));
-	    infoPanel.add(createUserInfoRow("First Name:", user.getFirstName()));
-	    infoPanel.add(createUserInfoRow("Last Name:", user.getLastName()));
-	    infoPanel.add(createUserInfoRow("Role:", user.getRole().getDisplayName()));
-	    infoPanel.add(createUserInfoRow("Points:", String.valueOf(user.getPoints())));
-	    infoPanel.add(createUserInfoRow("Tier:", user.getTier().getDisplayName()));
-	    infoPanel.add(createUserInfoRow("Created At:", user.getCreatedTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
-	    infoPanel.add(createUserInfoRow("Updated At:", user.getModifiedTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
+	    JPanel infoPanel = new JPanel(new MigLayout("fillx, wrap 2", "[][grow,fill]"));
+	    infoPanel.add(new JLabel("User ID:"));
+	    infoPanel.add(new JLabel(user.getId()));
+	    infoPanel.add(new JLabel("Email:"));
+	    infoPanel.add(new JLabel(user.getEmail()));
+	    infoPanel.add(new JLabel("First Name:"));
+	    infoPanel.add(new JLabel(user.getFirstName()));
+	    infoPanel.add(new JLabel("Last Name:"));
+	    infoPanel.add(new JLabel(user.getLastName()));
+	    infoPanel.add(new JLabel("Role:"));
+	    infoPanel.add(new JLabel(user.getRole().getDisplayName()));
+	    infoPanel.add(new JLabel("Points:"));
+	    infoPanel.add(new JLabel(String.valueOf(user.getPoints())));
+	    infoPanel.add(new JLabel("Tier:"));
+	    infoPanel.add(new JLabel(user.getTier().getDisplayName()));
+	    infoPanel.add(new JLabel("Created At:"));
+	    infoPanel.add(new JLabel(user.getCreatedTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
+	    infoPanel.add(new JLabel("Updated At:"));
+	    infoPanel.add(new JLabel(user.getModifiedTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
 
-	    userCard.add(infoPanel, BorderLayout.CENTER);  // Đặt thông tin người dùng bên phải
+	    userCard.add(infoPanel, "growx"); // Đảm bảo infoPanel cũng mở rộng
 
-	    panel.add(userCard);
+	    panel.add(userCard, "growx"); // Cho userCard mở rộng theo chiều ngang của panel chính
 
 	    return panel;
 	}
-
-
 	private JPanel createUserInfoRow(String label, String value) {
 	    JPanel rowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));  // Điều chỉnh hgap, vgap là 5
 	    rowPanel.add(new JLabel(label));
@@ -125,7 +110,6 @@ public class AccountFormUI extends Form {
 	    rowPanel.add(textField);
 	    return rowPanel;
 	}
-
 
 	private JPanel createButtonsPanel() {
 		JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -151,7 +135,7 @@ public class AccountFormUI extends Form {
 	}
 
 	private void changePasswordAction() {
-	ChangePasswordInputForm updatePasswordInputForm = new ChangePasswordInputForm();
+		ChangePasswordInputForm updatePasswordInputForm = new ChangePasswordInputForm();
 		ModalDialog.showModal(this, new AdaptSimpleModalBorder(updatePasswordInputForm, "Update password",
 				AdaptSimpleModalBorder.YES_NO_OPTION, (controller, action) -> {
 					if (action == AdaptSimpleModalBorder.YES_OPTION) {
@@ -168,7 +152,6 @@ public class AccountFormUI extends Form {
 		try {
 			authenticationController.changePassword(data);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			Toast.show(this, Toast.Type.ERROR, "Failed to update password: " + e.getMessage());
 		}
 	}

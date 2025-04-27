@@ -14,11 +14,74 @@ from .models import Menu, Size, Option, Status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.exceptions import NotFound
 from django.utils import timezone
+import os
+import pandas as pd
+from django.http import JsonResponse
+from menu_management.models import Menu  # Cập nhật đúng model bạn dùng
+from pandasai import SmartDataframe
+from pandasai.llm import LlamaCpp
+from rest_framework.decorators import api_view
+from rest_framework import status
+
+
+
 logger = logging.getLogger("myapp.api")
 
 
 class MenuViewSet(ViewSet):
     serializer_class = MenuSerializer
+    @api_view(["GET"])
+    def ai_analysis_local(request):
+        """
+        Phân tích dữ liệu Menu bằng mô hình AI nội bộ (Mistral/GGUF).
+        Gửi câu hỏi tự nhiên qua query param ?q=
+        """
+
+        question = request.GET.get("q", "Món nào giá cao nhất?")
+
+        # Lấy dữ liệu từ model Django
+        qs = Menu.objects.all().values()
+        df = pd.DataFrame(list(qs))
+
+        if df.empty:
+            return JsonResponse(
+                {"error": "Không có dữ liệu menu."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Đường dẫn mô hình GGUF
+        model_path = os.path.join("ai_models", "mistral.gguf")
+
+        if not os.path.exists(model_path):
+            return JsonResponse(
+                {"error": f"Mô hình không tồn tại tại {model_path}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        # Khởi tạo mô hình AI nội bộ
+        llm = LlamaCpp(
+            model_path=model_path,
+            max_tokens=256,
+            temperature=0.7,
+            model_kwargs={"n_ctx": 2048},
+            verbose=False,
+        )
+
+        # Khởi tạo dataframe thông minh
+        sdf = SmartDataframe(df, config={"llm": llm})
+
+        try:
+            result = sdf.chat(question)
+        except Exception as e:
+            return JsonResponse(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        return JsonResponse({
+            "question": question,
+            "answer": result
+        })
 
     @extend_schema(
         parameters=[
