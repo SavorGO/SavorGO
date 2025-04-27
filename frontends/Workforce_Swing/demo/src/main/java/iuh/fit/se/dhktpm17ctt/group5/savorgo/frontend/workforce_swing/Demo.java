@@ -76,7 +76,7 @@ public class Demo extends JFrame {
         });
     }
 
-    private static final int port = 8082;
+    private static final int port = 8083;
 
     private static void startHttpServer() {
         try {
